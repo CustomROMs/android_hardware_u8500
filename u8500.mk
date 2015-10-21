@@ -23,4 +23,9 @@ PRODUCT_PACKAGES += \
 # External
 PRODUCT_PACKAGES += \
    memtrack.montblanc
+
+# STE Camera Symbols
+PRODUCT_PACKAGES += \
+    libste_symbols
+
 BOARD_HAL_STATIC_LIBRARIES := libhealthd.montblanc
