@@ -59,7 +59,7 @@ static struct vsync_monitor_context s_ctx = {
 
 #ifdef FAKE_VSYNC
 #ifndef REFRESH_RATE
-#define REFRESH_RATE (60.0)
+#define REFRESH_RATE (120.0)
 #endif // REFRESH_RATE
 #define REFRESH_PERIOD ((int64_t)(NSEC_PER_SEC / REFRESH_RATE))
 
