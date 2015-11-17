@@ -21,6 +21,8 @@ LOCAL_SRC_FILES := \
 
 LOCAL_SHARED_LIBRARIES := \
     libbinder \
+    libutils \
+    libgui \
     libui
 
 LOCAL_MODULE := libste_symbols
