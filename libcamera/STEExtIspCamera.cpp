@@ -319,7 +319,7 @@ int STEExtIspCamera::msgTypeEnabled(int32_t msgType)
 }
 
 
-status_t STEExtIspCamera::doStartPreview()
+int32_t STEExtIspCamera::doStartPreview()
 {
     DBGT_PROLOG("");
     OMX_ERRORTYPE err;
@@ -458,10 +458,10 @@ end_fmt:
     return NO_ERROR;
 }
 
-status_t STEExtIspCamera::startPreview()
+int32_t STEExtIspCamera::startPreview()
 {
     DBGT_PROLOG("");
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
     Mutex::Autolock lockTakePic(mLockTakePic);
     Mutex::Autolock lock(mLock);
@@ -645,7 +645,7 @@ int STEExtIspCamera::previewEnabled()
 }
 
 
-status_t STEExtIspCamera::startRecording()
+int32_t STEExtIspCamera::startRecording()
 {
     DBGT_PROLOG("");
     Mutex::Autolock lockTakePic(mLockTakePic);
@@ -899,7 +899,7 @@ void STEExtIspCamera::releaseRecordingFrame(const void* mem)
 
 // ---------------------------------------------------------------------------
 
-status_t STEExtIspCamera::autoFocus()
+int32_t STEExtIspCamera::autoFocus()
 {
     DBGT_PROLOG("");
     mPerfManager.init(PerfManager::EAutoFocusRequested);
@@ -923,7 +923,7 @@ status_t STEExtIspCamera::autoFocus()
     return NO_ERROR;
 }
 
-status_t STEExtIspCamera::cancelAutoFocus()
+int32_t STEExtIspCamera::cancelAutoFocus()
 {
     DBGT_PROLOG("");
     Mutex::Autolock lock(mLock);
@@ -1313,7 +1313,7 @@ int STEExtIspCamera::pictureThread()
     return NO_ERROR;
 }
 
-status_t STEExtIspCamera::takePicture()
+int32_t STEExtIspCamera::takePicture()
 {
     DBGT_PROLOG("");
     mPerfManager.init(PerfManager::ETakePictureRequested);
@@ -1333,14 +1333,14 @@ status_t STEExtIspCamera::takePicture()
     return NO_ERROR;
 }
 
-status_t STEExtIspCamera::cancelPicture()
+int32_t STEExtIspCamera::cancelPicture()
 {
     DBGT_PROLOG("");
     DBGT_EPILOG("");
     return NO_ERROR;
 }
 
-status_t STEExtIspCamera::dump(int fd) const
+int32_t STEExtIspCamera::dump(int fd) const
 {
     DBGT_PROLOG("Fd: %d", fd);
 
@@ -1368,7 +1368,7 @@ int STEExtIspCamera::setParameters(const char* parameters)
     return setParameters(params);
 }
 
-status_t STEExtIspCamera::setParameters(const CameraParameters& params)
+int32_t STEExtIspCamera::setParameters(const CameraParameters& params)
 {
     DBGT_PROLOG("");
     Mutex::Autolock lockTakePic(mLockTakePic);
@@ -1789,9 +1789,9 @@ void STEExtIspCamera::putParameters(char *parms)
     DBGT_EPILOG("");
 }
 
-status_t STEExtIspCamera::sendCommand(int32_t command, int32_t arg1, int32_t arg2)
+int32_t STEExtIspCamera::sendCommand(int32_t command, int32_t arg1, int32_t arg2)
 {
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     DBGT_PROLOG("");
 
     switch(command) {

@@ -31,7 +31,7 @@ int STENativeWindow::init(
         return 0;
     }
 
-    status_t error
+    int32_t error
         = mPreviewWindow->set_buffers_geometry(
                 mPreviewWindow,
                 width,
@@ -73,7 +73,7 @@ int STENativeWindow::setCrop(int left, int top, int right, int bottom)
         DBGT_EPILOG("");
         return -1;
     }
-    status_t error = mPreviewWindow->set_crop(
+    int32_t error = mPreviewWindow->set_crop(
                         mPreviewWindow,
                         left, top,
                         right, bottom);
@@ -96,7 +96,7 @@ int STENativeWindow::setBufferCount(int count)
         return -1;
     }
 
-    status_t error = mPreviewWindow->set_buffer_count(
+    int32_t error = mPreviewWindow->set_buffer_count(
                         mPreviewWindow, count);
     if (OK != error) {
         DBGT_CRITICAL("error = %d", error);
@@ -118,7 +118,7 @@ int STENativeWindow::dequeueBuffer(buffer_handle_t **ppBuffer, int *pStride)
     }
 
     int stride;
-    status_t error = mPreviewWindow->dequeue_buffer(
+    int32_t error = mPreviewWindow->dequeue_buffer(
                         mPreviewWindow,
                         ppBuffer,
                         &stride);
@@ -144,7 +144,7 @@ int STENativeWindow::enqueueBuffer(buffer_handle_t &pBuffer)
         return -1;
     }
 
-    status_t error = mPreviewWindow->enqueue_buffer(
+    int32_t error = mPreviewWindow->enqueue_buffer(
                         mPreviewWindow,
                         &pBuffer);
     if (OK != error) {
@@ -166,7 +166,7 @@ int STENativeWindow::cancelBuffer(buffer_handle_t &pBuffer)
         return -1;
     }
 
-    status_t error = mPreviewWindow->cancel_buffer(
+    int32_t error = mPreviewWindow->cancel_buffer(
                         mPreviewWindow,
                         &pBuffer);
     if (OK != error) {
@@ -188,7 +188,7 @@ int STENativeWindow::lockBuffer(buffer_handle_t &pBuffer)
         return -1;
     }
 
-    status_t error = mPreviewWindow->lock_buffer(
+    int32_t error = mPreviewWindow->lock_buffer(
                         mPreviewWindow,
                         &pBuffer);
     if (OK != error) {

@@ -179,7 +179,7 @@ class OmxUtils
         static int bpp(OMX_COLOR_FORMATTYPE aOmxColorFmt);
 
         /**< To return application status corresponding to OMX errors*/
-        static status_t convertOmxErrorToStatus(OMX_ERRORTYPE aOmxErr);
+        static int32_t convertOmxErrorToStatus(OMX_ERRORTYPE aOmxErr);
         /**<  Flush Port safely after checking if its enabled or not
               This is not supported for OMX_ALL Port config*/
 

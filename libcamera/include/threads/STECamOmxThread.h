@@ -25,14 +25,14 @@ class OmxThread<OmxBuffInfo> : public ThreadHandler<OmxBuffInfo>
 {
  public:
   /* Handle request, from ThreadHandler */
-  virtual status_t handleRequest(OmxBuffInfo& aData);
+  virtual int32_t handleRequest(OmxBuffInfo& aData);
 
   /* Handle flush request, from ThreadHandler */
-  virtual status_t handleFlush(OmxBuffInfo& aData);
+  virtual int32_t handleFlush(OmxBuffInfo& aData);
 
  public:
   /* Handle buffer */
-  virtual status_t handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags) =0;
+  virtual int32_t handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags) =0;
 
  protected:
   inline void checkBufferValid(OmxBuffInfo& aData);

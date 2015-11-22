@@ -16,7 +16,7 @@ inline AutoFocusThread<AutoFocusThreadData>::AutoFocusThread(STECamera* aParent)
     DBGT_EPILOG("");
 }
 
-status_t AutoFocusThread<AutoFocusThreadData>::handleRequest(AutoFocusThreadData& aData)
+int32_t AutoFocusThread<AutoFocusThreadData>::handleRequest(AutoFocusThreadData& aData)
 {
     DBGT_PROLOG("Enabled: %d", aData.mEnabled);
 

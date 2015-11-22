@@ -89,7 +89,7 @@ namespace android {
         int out_MemFd )
     {
         DBGT_PDEBUG("> transform");
-        status_t err = NO_ERROR;
+        int32_t err = NO_ERROR;
         ssize_t in_offset;
         ssize_t out_offset;
         size_t in_len;
@@ -125,7 +125,7 @@ namespace android {
     {
 
         DBGT_PDEBUG("> transform");
-        status_t err = NO_ERROR;
+        int32_t err = NO_ERROR;
         ssize_t in_offset = inOffset;
         ssize_t out_offset = outOffset;
         size_t in_len = inSize;
