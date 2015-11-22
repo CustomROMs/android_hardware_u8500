@@ -8,7 +8,7 @@
 #ifndef STECAMOMXTHREAD_INL
 #define STECAMOMXTHREAD_INL
 
-status_t OmxThread<OmxBuffInfo>::handleRequest(OmxBuffInfo& aData)
+int OmxThread<OmxBuffInfo>::handleRequest(OmxBuffInfo& aData)
 {
     DBGT_PROLOG("Buffinfo: %p", &aData);
 
@@ -17,7 +17,7 @@ status_t OmxThread<OmxBuffInfo>::handleRequest(OmxBuffInfo& aData)
 
     OMX_BOOL needFlagUpdation = OMX_TRUE;
 
-    status_t err = handleBuffer(aData, needFlagUpdation);
+    int err = handleBuffer(aData, needFlagUpdation);
 
     //update flags
     if(needFlagUpdation)
@@ -27,7 +27,7 @@ status_t OmxThread<OmxBuffInfo>::handleRequest(OmxBuffInfo& aData)
 	return (int)err;
 }
 
-status_t OmxThread<OmxBuffInfo>::handleFlush(OmxBuffInfo& aData)
+int OmxThread<OmxBuffInfo>::handleFlush(OmxBuffInfo& aData)
 {
     DBGT_PROLOG("Buffinfo: %p", &aData);
 

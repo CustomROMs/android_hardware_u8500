@@ -246,7 +246,7 @@ OMX_ERRORTYPE EnableDataFlow::init(const ImageInfo &aThumbnailInfo,
     OmxUtils::initialize(mParamExifInput, OMX_PortDomainImage, 0);
 
     //Initialize Semaphores
-    status_t err1 = mStateArmIvSem.init(1);
+    int err1 = mStateArmIvSem.init(1);
     if(-1 == err1) {
         DBGT_CRITICAL("mStateArmIvSem init failed - OMX_ErrorInsufficientResources");
         DBGT_EPILOG("");

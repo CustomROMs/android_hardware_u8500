@@ -28,14 +28,14 @@ SemaphoreContainer::~SemaphoreContainer()
     return;
 }
 
-inline status_t SemaphoreContainer::init(uint32_t aMaxOutstandingEvents)
+inline int SemaphoreContainer::init(uint32_t aMaxOutstandingEvents)
 {
     DBGT_PROLOG("Max events: %d", aMaxOutstandingEvents);
 
     //check
     DBGT_ASSERT(0 != aMaxOutstandingEvents, "Max events is 0");
 
-    status_t err = NO_ERROR;
+    int err = NO_ERROR;
 
     err = sem_init(&mSem, 0, 0);
 	if(-1 == err) {

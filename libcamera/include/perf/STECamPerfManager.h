@@ -65,7 +65,7 @@ class PerfManager
         ~PerfManager();
 
         /**< Allocate all resources */
-        status_t connect();
+        int connect();
 
         /**< Close all resources */
         void close();

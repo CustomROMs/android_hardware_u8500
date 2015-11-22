@@ -49,11 +49,11 @@ inline bool Queue<T>::isFull()
 }
 
 template<typename T>
-status_t Queue<T>::init(uint32_t aLength)
+int Queue<T>::init(uint32_t aLength)
 {
     DBGT_PDEBUG("Length: %u", aLength);
 
-    status_t err = NO_ERROR;
+    int err = NO_ERROR;
 
     DBGT_ASSERT(0 != aLength, "Length is 0");
 
