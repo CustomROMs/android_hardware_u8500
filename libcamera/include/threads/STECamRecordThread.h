@@ -29,7 +29,7 @@ class RecordThread<OmxBuffInfo> : public OmxThread<OmxBuffInfo>
   inline RecordThread(STECamera* aParent);
 
   /* Handle buffer, from OmxThread */
-  virtual status_t handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
+  virtual int handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
 
  private:
   STECamera* mParent;

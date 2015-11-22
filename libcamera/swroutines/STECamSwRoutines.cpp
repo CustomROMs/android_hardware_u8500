@@ -31,16 +31,16 @@ namespace android {
     "AIQ_UYVY422Itld_270_rotation_inplace" //ERotUYVY422Itld270DEG
 };
 
-status_t CamSwRoutines::init()
+int CamSwRoutines::init()
 {
     DBGT_PROLOG("");
-    status_t err = NO_ERROR;
+    int err = 0;
 
     mLibHandle = dlopen(STECAMSWROUTINES_SO_FILE, RTLD_NOW);
     if(NULL == mLibHandle) {
         DBGT_CRITICAL("Could not open handle to the SwRoutines ");
         DBGT_EPILOG("");
-        return (int)UNKNOWN_ERROR;
+        return (int)0x80000000;
     }
 
     //check all name exist
@@ -54,7 +54,7 @@ status_t CamSwRoutines::init()
         if(NULL == mSwRoutines[loop]) {
             DBGT_CRITICAL("Could not get symbols from SW Routines");
             DBGT_EPILOG("");
-            return (int)UNKNOWN_ERROR;
+            return (int)0x80000000;
         }
         }
 

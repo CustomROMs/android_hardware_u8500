@@ -23,7 +23,7 @@ public:
     ~CamHwBuffer();
 
     /* Alloc, from CamBuffer */
-    virtual status_t alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
+    virtual int alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
 
 };
 

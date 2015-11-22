@@ -158,7 +158,7 @@ public:
      * call back parameter may be null.
      * From CameraHardwareInterface
      */
-    status_t startPreview();
+    int startPreview();
 
     /**
      * Stop a previously started preview, from CameraHardwareInterface
@@ -176,7 +176,7 @@ public:
      * by calling releaseRecordingFrame().
      * From CameraHardwareInterface
      */
-    status_t startRecording();
+    int startRecording();
 
     /**
      * Stop a previously started recording, from CameraHardwareInterface
@@ -203,7 +203,7 @@ public:
      * to each of the call back routines.
      * From CameraHardwareInterface
      */
-    status_t takePicture();
+    int takePicture();
 
     /**
      * Cancel a picture that was started with takePicture.  You may cancel any
@@ -211,7 +211,7 @@ public:
      * picture is being taken is a no-op.
      * From CameraHardwareInterface
      */
-    status_t cancelPicture();
+    int cancelPicture();
 
     /**
      * Start auto focus, the callback routine is called
@@ -219,7 +219,7 @@ public:
      * be called again if another auto focus is needed.
      * From CameraHardwareInterface
      */
-    status_t autoFocus();
+    int autoFocus();
 
     /**
      * Cancels auto-focus function. If the auto-focus is still in progress,
@@ -228,11 +228,11 @@ public:
      * If the camera does not support auto-focus, this is a no-op.
      * From CameraHardwareInterface
      */
-    status_t cancelAutoFocus();
+    int cancelAutoFocus();
 
     /** Set the camera parameters, from CameraHardwareInterface */
-    status_t setParameters(const CameraParameters& params);
-    status_t setParameters(const char* parameters);
+    int setParameters(const CameraParameters& params);
+    int setParameters(const char* parameters);
 
 
     /** Return the camera parameters, from CameraHardwareInterface */
@@ -243,7 +243,7 @@ public:
      * Send command to camera driver.
      * From CameraHardwareInterface
      */
-    status_t sendCommand(int32_t cmd, int32_t arg1, int32_t arg2);
+    int sendCommand(int32_t cmd, int32_t arg1, int32_t arg2);
 
     /**
      * Release the hardware resources owned by this object.  Note that this is
@@ -257,7 +257,7 @@ public:
      */
     int dump(int fd) const;
 
-    status_t storeMetaDataInBuffers(int enable)
+    int storeMetaDataInBuffers(int enable)
     {
         return NO_ERROR;
     }
@@ -428,7 +428,7 @@ private:
 private:
     /**** Define all member functions here ****/
 
-    status_t initGlobalParams();
+    int initGlobalParams();
     OMX_ERRORTYPE initDefaultParameters();
     OMX_ERRORTYPE initPrimaryDefaultParameters();
     OMX_ERRORTYPE initSecondaryDefaultParameters();
@@ -437,7 +437,7 @@ private:
     OMX_ERRORTYPE startSmoothZoom(int32_t aZoomKey);
     OMX_ERRORTYPE stopSmoothZoom();
 
-    status_t initThreads();
+    int initThreads();
     void destroyThreads();
     void destroySemaphores();
     void destroyHeaps(bool aPreviewRunning = false);
@@ -554,23 +554,23 @@ private:
     OMX_ERRORTYPE  setMakeAndModel();
     OMX_ERRORTYPE  configVideoRevertAspectRatio(OMX_HANDLETYPE hComponent, OMX_BOOL aEnable);
     OMX_ERRORTYPE  setPropVideoRotate(OMX_HANDLETYPE aCam, int aRotation);
-    status_t  SetPropZoom(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropWhiteBalance(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropSceneModes(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropFocus(const CameraParameters& params,OMX_HANDLETYPE mCam, bool aSetControl=false);
-    status_t  SetPropFlash(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropFlickerRemoval(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetExposureCompensation(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropContrast(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropBrightness(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropSaturation(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropColorEffect(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropSharpness(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropRegionControl(const CameraParameters& params,OMX_HANDLETYPE mCam);
-    status_t  SetPropMeteringArea(const CameraParameters& params, OMX_HANDLETYPE mCam);
-    status_t  SetPropFocusArea(const CameraParameters& params, OMX_HANDLETYPE mCam);
-    status_t  SetPropAWBLock(const CameraParameters& params, OMX_HANDLETYPE mCam);
-    status_t  SetPropAELock(const CameraParameters& params, OMX_HANDLETYPE mCam);
+    int  SetPropZoom(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropWhiteBalance(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropSceneModes(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropFocus(const CameraParameters& params,OMX_HANDLETYPE mCam, bool aSetControl=false);
+    int  SetPropFlash(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropFlickerRemoval(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetExposureCompensation(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropContrast(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropBrightness(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropSaturation(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropColorEffect(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropSharpness(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropRegionControl(const CameraParameters& params,OMX_HANDLETYPE mCam);
+    int  SetPropMeteringArea(const CameraParameters& params, OMX_HANDLETYPE mCam);
+    int  SetPropFocusArea(const CameraParameters& params, OMX_HANDLETYPE mCam);
+    int  SetPropAWBLock(const CameraParameters& params, OMX_HANDLETYPE mCam);
+    int  SetPropAELock(const CameraParameters& params, OMX_HANDLETYPE mCam);
     void Append_WhiteBalance(String8 &wb,String8 &wb_set);
     void Append_SceneMode(String8 &scene_mode,String8 &scene_mode_set);
     void Append_FlashMode(String8 &flash_mode,String8 &flash_mode_set);
@@ -587,15 +587,15 @@ private:
     int sendFaceROI(camera_frame_metadata_t aFaceMetaData);
 #endif
     /* Apply the Camera Properties/Effects */
-    status_t applyCameraProperties(const CameraParameters& aParams);
+    int applyCameraProperties(const CameraParameters& aParams);
 
     /* Setup sw rotation processing for preview/picture/video */
     void setupPreviewSwRotProcessing(int aRotation);
     void setupVideoSwRotProcessing(int aRotation);
     /* Setup sw conversion processing for preview*/
-    status_t setupPreviewSwConProcessing(const char* const aFormat);
-    status_t setupPreviewSwBuffers(int aWidth, int aHeight);
-    status_t setupRawSwConProcessing(
+    int setupPreviewSwConProcessing(const char* const aFormat);
+    int setupPreviewSwBuffers(int aWidth, int aHeight);
+    int setupRawSwConProcessing(
             const char* const aFormat,
             int aWidth, int aHeight);
 
@@ -618,16 +618,16 @@ private:
     OMX_ERRORTYPE doSmoothZoomProcessing(void* aArg);
 
     /* Do preview processing */
-    status_t doPreviewProcessing(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
+    int doPreviewProcessing(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
 
     /* Do record processing */
-    status_t doRecordProcessing(OmxBuffInfo& aData);
+    int doRecordProcessing(OmxBuffInfo& aData);
 
     /* Do autofocus processing */
-    status_t doAutoFocusProcessing(AutoFocusThreadData& aData);
+    int doAutoFocusProcessing(AutoFocusThreadData& aData);
 
     /* Do callback processing */
-    status_t doCallbackProcessing(ReqHandlerThreadData& aData);
+    int doCallbackProcessing(ReqHandlerThreadData& aData);
 
     /* Raw callback processing */
     OMX_ERRORTYPE doRawProcessing(void* aArg);
@@ -636,10 +636,10 @@ private:
     void setupXP70Traces();
 
     /* flush viewfidner buffers */
-    status_t flushViewFinderBuffers(bool aFlushCamera = true);
+    int flushViewFinderBuffers(bool aFlushCamera = true);
 
     /* flush video buffers */
-    status_t flushVideoBuffers(bool aFlushCamera = true);
+    int flushVideoBuffers(bool aFlushCamera = true);
 
     /* Set request callback handlers */
     void setupReqCbHandlers();
@@ -654,7 +654,7 @@ private:
     OMX_ERRORTYPE doStopPreview();
 
     /* Unlocked StartPreview API*/
-    status_t doStartPreview();
+    int doStartPreview();
 
     /* Configure and Start Preview for Hi Resolution View Finder */
     void configureAndStartHiResVF();
@@ -687,16 +687,16 @@ private:
     OMX_ERRORTYPE postOMXConfigStartVideoRecord();
 
     /* Allocate processing buffer */
-    status_t initProcessingBuffers();
+    int initProcessingBuffers();
 
     /* Initialize mAutoFocusHandler, mContinuousAutoFocusHandler instances*/
-    status_t initFocusHandler();
+    int initFocusHandler();
 
     /* Initialize mEnableDataFlow, mDisableDataFlow instances*/
     OMX_ERRORTYPE initThumbnailHandler();
 
     /* Initialize mImageRotHandler, mDeviceHwRotation, mDeviceSwRotation instances*/
-    status_t initImageRotHandler();
+    int initImageRotHandler();
 
     /* Check if preview is enabled */
     bool checkPreviewEnabled();
@@ -704,14 +704,14 @@ private:
     /* Check if record is enabled */
     bool checkRecordingEnabled();
 
-    status_t getNativeBuffFromNativeWindow(void);
-    status_t sendCancelReqToNativeWindow(int index);
-    status_t sendCancelReqToCameraHalNativeWindow(int index);
-    status_t shareNativeBuffWithOMXPorts(bool aPreviewRunning = false);
-    status_t getLockForNativeBuffer(int index);
+    int getNativeBuffFromNativeWindow(void);
+    int sendCancelReqToNativeWindow(int index);
+    int sendCancelReqToCameraHalNativeWindow(int index);
+    int shareNativeBuffWithOMXPorts(bool aPreviewRunning = false);
+    int getLockForNativeBuffer(int index);
     int dequeueNativeBuffer(void);
     int  findNativeBuffIndex(buffer_handle_t *buf);
-    status_t renderNativeBuffer(int index);
+    int renderNativeBuffer(int index);
     void cancelAllNativeBuffers(void);
     void cancelCameraHalNativeBuffers(void);
     OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent,
@@ -728,7 +728,7 @@ private:
     /* Updates the Video Stab Status when application
      * dynamically switches the video stabilization feature
      */
-    status_t UpdateVideoStabStatus();
+    int UpdateVideoStabStatus();
 
     /* Initializes Ports of all components.
      * The function added to removed the duplicate code in

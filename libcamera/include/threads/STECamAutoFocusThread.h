@@ -30,7 +30,7 @@ class AutoFocusThread<AutoFocusThreadData> : public ThreadHandler<AutoFocusThrea
   inline AutoFocusThread(STECamera* aParent);
 
   /* Handle request, from ThreadHandler */
-  virtual status_t handleRequest(AutoFocusThreadData& aData);
+  virtual int handleRequest(AutoFocusThreadData& aData);
 
  private:
   STECamera* mParent;

@@ -105,7 +105,7 @@ LOCAL_SHARED_LIBRARIES := \
                          libcutils \
                          libbinder \
                          libblt_hw \
-                         libexif \
+                         libjhead \
                          libui \
                          libFFTEm \
                          libZXImg \
