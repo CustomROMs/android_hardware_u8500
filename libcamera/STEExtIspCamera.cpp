@@ -46,7 +46,6 @@
 #include "STEArmIvProc.h"
 #include "STES5K4ECGX.h"
 #include "STEExtIspMyNative.h"
-#include "ZXImgEnhance.h"
 
 #define MMHWBUFFER_SO_FILE "/system/lib/libste_ensloader.so"
 
@@ -938,6 +937,7 @@ int STEExtIspCamera::beginPictureThread(void *cookie)
     return c->pictureThread();
 }
 
+#if 0
 bool doZXImgEnhance(unsigned char *inBuf, int w, int h, int mode)
 {
     int handle = 0;
@@ -966,6 +966,7 @@ errquit1:
 errquit0:
     return false;
 }
+#endif
 
 int STEExtIspCamera::pictureThread()
 {
@@ -1214,9 +1215,11 @@ int STEExtIspCamera::pictureThread()
                 callbackData = NULL;
             }
 
+#if 0
             if (mImgEEMode != IMGEE_MODE_DEFAULT) {
                 doZXImgEnhance((unsigned char *)yuvSnapBuf, mPictureWidth, mPictureHeight, mImgEEMode);
             }
+#endif
 
             // encode the picture
             mJpegEncpict->encode(
@@ -1378,7 +1381,9 @@ int STEExtIspCamera::setParameters(const CameraParameters& params)
     LOGD("SteExtIspCamera::setParameters imgeemode is %s", (imgeemode == NULL ? "NULL" : imgeemode));
     if (imgeemode == NULL) {
         mImgEEMode = IMGEE_MODE_DEFAULT; 
-    } else if (!strcmp(imgeemode, "auto")) {
+    }
+#if 0
+ else if (!strcmp(imgeemode, "auto")) {
         mImgEEMode = IMGEE_MODE_AUTO;
     } else if (!strcmp(imgeemode, "hdr")) {
         mImgEEMode = IMGEE_MODE_HDR;
@@ -1387,7 +1392,7 @@ int STEExtIspCamera::setParameters(const CameraParameters& params)
     } else {
         mImgEEMode = IMGEE_MODE_DEFAULT;
     }
-
+#endif
     if (mCam) {
         if (mParameters.getInt(KEY_CONTRAST)!=params.getInt(KEY_CONTRAST)) {
             mParameters.set (KEY_CONTRAST, params.get (KEY_CONTRAST));

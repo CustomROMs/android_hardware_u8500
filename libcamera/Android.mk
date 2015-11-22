@@ -55,7 +55,6 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/threads
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/framedumpreplay
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/focus
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/semaphore
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/ZXImg
 
 LOCAL_SRC_FILES := STECamCompiletimeCheck.cpp
 LOCAL_SRC_FILES += STEJpegEnc.cpp
@@ -108,9 +107,6 @@ LOCAL_SHARED_LIBRARIES := \
                          libjhead \
                          libui \
                          libFFTEm \
-                         libZXImg \
                          libstelpcutils
 
 include $(BUILD_SHARED_LIBRARY)
-
-include $(LOCAL_PATH)/ZXImg/Android.mk
