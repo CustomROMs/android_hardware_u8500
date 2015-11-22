@@ -37,7 +37,7 @@ int32_t PerfManager::connect()
     {
     DBGT_PROLOG("");
 
-    int rc = NO_ERROR;
+    int rc = 0;
 
     //create timer
     createTimer();
