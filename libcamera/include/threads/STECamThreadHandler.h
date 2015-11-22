@@ -32,27 +32,27 @@ class ThreadHandler : public Thread
   virtual ~ThreadHandler();
 
   /* start */
-  inline int32_t init(uint32_t aMaxEvents, bool aSignalCompletion, const char* aName,
+  inline status_t init(uint32_t aMaxEvents, bool aSignalCompletion, const char* aName,
                        int32_t aPriority, size_t aStack);
 
   /* Flush */
-  inline int32_t flush();
+  inline status_t flush();
 
   /* Request */
   virtual void request(T& aData, bool aCheckRequestQueueFull = false);
 
   /* Wait for request to complete */
-  inline int32_t waitForCompletion();
+  inline status_t waitForCompletion();
 
   /* Request Pending */
   inline volatile T* isRequestPending();
 
  public:
   /* Handle new request */
-  virtual int32_t handleRequest(T& aData) = 0;
+  virtual status_t handleRequest(T& aData) = 0;
 
   /* Handle flush request */
-  virtual int32_t handleFlush(T& aData);
+  virtual status_t handleFlush(T& aData);
 
  protected:
   /* Self Destroy */
@@ -64,7 +64,7 @@ class ThreadHandler : public Thread
 
  private:
   Queue<T> mQueue; /**< Queue */
-  int32_t mLastRequest; /**< Last Request */
+  status_t mLastRequest; /**< Last Request */
   bool mIsThreadActive; /**< If thread is alive */
   bool mSignalCompletion; /**< Signal completion */
   SemaphoreContainer mRequestSem; /**< Request semaphore */

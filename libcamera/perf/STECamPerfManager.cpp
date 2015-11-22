@@ -33,7 +33,7 @@ PerfManager::~PerfManager()
     DBGT_EPILOG("");
     }
 
-int32_t PerfManager::connect()
+status_t PerfManager::connect()
     {
     DBGT_PROLOG("");
 

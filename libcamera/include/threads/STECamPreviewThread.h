@@ -29,7 +29,7 @@ class PreviewThread<OmxBuffInfo> : public OmxThread<OmxBuffInfo>
   inline PreviewThread(STECamera* aParent);
 
   /* Handle buffer, from OmxThread */
-  virtual int32_t handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
+  virtual status_t handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags);
 
  private:
   STECamera* mParent;

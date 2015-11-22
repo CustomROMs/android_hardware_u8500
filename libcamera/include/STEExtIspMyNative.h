@@ -75,7 +75,7 @@ public:
     ~MyNativeWindow() {
         deinit();
     }
-    int32_t init(
+    status_t init(
             preview_stream_ops_t *aWindow,
             camera_request_memory aRequestMemoryFunc,
             int width, int height,
@@ -93,7 +93,7 @@ public:
 
         return mSTENativeWindow->setCrop(left, top, right, bottom);
     }
-    int32_t deinit() {
+    status_t deinit() {
         Mutex::Autolock autoLock(mLock);
         return deinit_l();
     }
@@ -104,7 +104,7 @@ public:
         if(!mIsInitialized) return NULL;
         // Get one native buffer from display framework.
         buffer_handle_t* buf;
-        int32_t err = mSTENativeWindow->dequeueBuffer(
+        status_t err = mSTENativeWindow->dequeueBuffer(
                            &buf, NULL);
         if ((OK != err) || (NULL == buf)) {
             return NULL;
@@ -118,13 +118,13 @@ public:
 
     }
 
-    int32_t renderNBuffer(NBuffer& aNBuffer) {
+    status_t renderNBuffer(NBuffer& aNBuffer) {
         Mutex::Autolock autoLock(mLock);
         if(!mIsInitialized) return INVALID_OPERATION;
 
         return mSTENativeWindow->enqueueBuffer(aNBuffer.getBufferHandle());
     }
-    int32_t returnNBuffer(NBuffer& aNBuffer) {
+    status_t returnNBuffer(NBuffer& aNBuffer) {
 
         Mutex::Autolock autoLock(mLock);
         if(!mIsInitialized) return INVALID_OPERATION;
@@ -155,29 +155,29 @@ private:
     int mWindowHeight;
     int mPreviewColorFormat;    //format define in /system/core/include/system/graphics.h
 
-    int32_t fetchNBufferFromNativeWindow_l(void);
-    int32_t setupNBuffersForPreview_l(void);
-    int32_t lockNBuffer(NBuffer& aNBuffer);
+    status_t fetchNBufferFromNativeWindow_l(void);
+    status_t setupNBuffersForPreview_l(void);
+    status_t lockNBuffer(NBuffer& aNBuffer);
 
     preview_stream_ops_t* getNativeWindow_l() {
         if (NULL == mSTENativeWindow) return NULL;
         return mSTENativeWindow->getNativeWindow();
     }
-    int32_t returnNBuffer_l(NBuffer& aNBuffer) {
+    status_t returnNBuffer_l(NBuffer& aNBuffer) {
 
         return returnBuffer_l(aNBuffer.getBufferHandle());
     }
-    int32_t returnAllNBuffers_l(void) {
+    status_t returnAllNBuffers_l(void) {
         for (int i = (mTotalNumOfNativeBuff-1); i >= 0; i--) {
             returnNBuffer_l(*mNBuffers[i]);
         }
         return OK;
     }
-    int32_t returnBuffer_l(buffer_handle_t& aBuffer) {
+    status_t returnBuffer_l(buffer_handle_t& aBuffer) {
         return mSTENativeWindow->cancelBuffer(aBuffer);
     }
 
-    int32_t clearAllBufferHandles() {
+    status_t clearAllBufferHandles() {
         for (int i = 0; i < mTotalNumOfNativeBuff; i++) {
             if (mNBuffers[i]->getMMNativeBuffer() != NULL) {
                 mDestroy(mNBuffers[i]->getMMNativeBuffer());
@@ -200,7 +200,7 @@ private:
         return size;
     }
 
-    int32_t deinit_l() {
+    status_t deinit_l() {
         if (!mIsInitialized) return OK;
         clearAllBufferHandles();
 

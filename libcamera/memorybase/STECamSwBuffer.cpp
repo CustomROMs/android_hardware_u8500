@@ -36,13 +36,13 @@ CamSwBuffer::~CamSwBuffer()
     DBGT_EPILOG("");
 }
 
-/* virtual */ int32_t CamSwBuffer::alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize)
+/* virtual */ status_t CamSwBuffer::alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize)
 {
     DBGT_PROLOG("Offset: %ld Size: %zu", aOffset, aSize);
 
     DBGT_ASSERT(0 != aSize, "Size is 0");
 
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
 
     //alloc heap base
     mMemoryHeapBase = new MemoryHeapBase(aSize);
