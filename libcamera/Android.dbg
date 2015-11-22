@@ -5,10 +5,7 @@
 # specific written permission of ST-Ericsson SA.
 ##
 
-# Debug build options
-ifeq ($(TARGET_BUILD_TYPE),debug)
 LOCAL_CFLAGS += -DCAM_DEBUG=1
-endif
 
 LOCAL_CFLAGS += -DCAM_DEBUG=1 -DLOG_NDEBUG=0 -D__DEBUG -DDBGT_CONFIG_DEBUG -DDBGT_CONFIG_AUTOVAR -DDBGT_TAG=\"CameraHal\"
 
