@@ -16,7 +16,7 @@ inline SwProcessingThread<SwProcessingThreadData>::SwProcessingThread(STECamera*
     DBGT_EPILOG("");
 }
 
-status_t SwProcessingThread<SwProcessingThreadData>::handleRequest(SwProcessingThreadData& aData)
+int SwProcessingThread<SwProcessingThreadData>::handleRequest(SwProcessingThreadData& aData)
 {
     DBGT_PROLOG("OmxBufferHeader: %p", aData.mOmxBufferHeader /* , aData.mMMHwBuffer */);
     DBGT_ASSERT( NULL != aData.mOmxBufferHeader, "OmxBufferHeader is NULL");

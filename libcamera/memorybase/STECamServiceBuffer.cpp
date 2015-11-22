@@ -40,13 +40,13 @@ CamServiceBuffer::~CamServiceBuffer()
     DBGT_EPILOG("");
 }
 
-status_t CamServiceBuffer::alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize)
+int CamServiceBuffer::alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize)
 {
     DBGT_PINFO("Offset: %ld Size: %zu", aOffset, aSize);
 
     DBGT_ASSERT(0 != aSize, "Size is 0");
 
-    status_t err = NO_ERROR;
+    int err = NO_ERROR;
 
     mCamHandle = mRequestMemory(-1, aSize, 1, (void *)mCallbackCookie);
     if (mCamHandle == 0) {

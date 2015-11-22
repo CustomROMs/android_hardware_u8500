@@ -25,7 +25,7 @@ public:
     virtual ~CamBuffer();
 
     /* Re-Alloc */
-    status_t realloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
+    int realloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
 
     /* Clear */
     void clear();
@@ -38,7 +38,7 @@ public:
 
 private:
     /* Allocate */
-    virtual status_t alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize) =0;
+    virtual int alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize) =0;
 
     /* De-allocate */
     virtual void dealloc();
