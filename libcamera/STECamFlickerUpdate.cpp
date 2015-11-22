@@ -245,7 +245,7 @@ OMX_SYMBIAN_FLICKERREMOVALTYPE cameraGetLocation()
     char operatorCode[7];
     uint32_t countryCode;
 
-    //DynSetting::get(DynSetting::ECountryCode, operatorCode);
+    DynSetting::get(DynSetting::ECountryCode, operatorCode);
     DBGT_PTRACE("Operator code =%s",operatorCode);
 
     if(NULL != operatorCode)
