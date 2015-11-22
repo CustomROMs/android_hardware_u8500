@@ -25,7 +25,9 @@
 /* static */ inline void DynSetting::get(Type type, char *value)
 {
     //ignore return value
-    property_get(DynSetting::mKey[type], value, mValue[type]);
+    char prop_value[PROPERTY_VALUE_MAX];
+    if (property_get(DynSetting::mKey[type], prop_value, mValue[type]) >=0)
+	strncpy(value, prop_value, strlen(prop_value));		
 }
 
 /* static */ inline void DynSetting::set(Type type, int value)
