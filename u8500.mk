@@ -30,9 +30,10 @@ PRODUCT_PACKAGES += \
     libcamera_symbols \
     libicuuc_51
 
-# STE RIL Compat Symbols
+# Legacy RIL
 PRODUCT_PACKAGES += \
-    libste_ril
+    libste_ril \
+    libsec-ril-wrapper
 
 # STE gps Compat Symbols
 PRODUCT_PACKAGES += \
