@@ -32,7 +32,7 @@ PRODUCT_PACKAGES += \
 
 # Legacy RIL
 PRODUCT_PACKAGES += \
-    libste_ril \
+    libril \
     libsec-ril-wrapper
 
 # STE gps Compat Symbols

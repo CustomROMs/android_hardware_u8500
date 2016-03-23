@@ -49,15 +49,13 @@ LOCAL_C_INCLUDES += external/nanopb-c
 
 
 LOCAL_SRC_FILES :=   \
-           ste_ril.cpp \
+         ril.cpp \
          ril_event.cpp \
          RilSocket.cpp \
          RilSapSocket.cpp 
 
-LOCAL_SHARED_LIBRARIES += libril
-
-LOCAL_MODULE := libste_ril
-LOCAL_COPY_HEADERS_TO := libste_ril
+LOCAL_MODULE := libril
+LOCAL_COPY_HEADERS_TO := libril
 LOCAL_COPY_HEADERS := ril_ex.h
 
 LOCAL_MODULE_TAGS := optional

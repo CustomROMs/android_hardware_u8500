@@ -4449,6 +4449,69 @@ static void startListen(RIL_SOCKET_ID socket_id, SocketListenParam* socket_liste
     rilEventAddWakeup (socket_listen_p->listen_event);
 }
 
+#define REAL_RIL_NAME				"/system/lib/libsamsung-ril.so"
+#include <dlfcn.h>
+#include <errno.h>
+
+/* libril constructor / destructor */
+
+void libEvtLoading(void) __attribute__((constructor));
+void libEvtUnloading(void) __attribute__((destructor));
+
+/* wrapped library handle */
+
+void *realRilLibHandle;
+
+/* wrapped callbacks */
+
+void (*fRealRILregister)(const RIL_RadioFunctions *callbacks);
+void (*fRealRILonRequestComplete)(RIL_Token t, RIL_Errno e, void *response, size_t responselen);
+void (*fRealRILonUnsolicitedResponse)(int unsolResponse, const void *data, size_t datalen);
+
+void libEvtLoading(void)
+{
+	//get the real RIL
+	realRilLibHandle = dlopen(REAL_RIL_NAME, RTLD_LOCAL);
+	if (!realRilLibHandle) {
+		RLOGE("Failed to load the real RIL '" REAL_RIL_NAME  "': %s\n", dlerror());
+		return;
+	}
+
+	//load the real RIL
+	fRealRILregister = (void (*)(const RIL_RadioFunctions *))dlsym(realRilLibHandle, "RIL_register");
+	if (!fRealRILregister) {
+		RLOGE("Failed to find the real RIL_register\n");
+		goto out_fail;
+	}
+
+	fRealRILonRequestComplete =
+		(void (*)(RIL_Token, RIL_Errno, void *, size_t))dlsym(realRilLibHandle, "RIL_onRequestComplete");
+
+	if (!fRealRILregister) {
+		RLOGE("Failed to find the real RIL_onRequestComplete\n");
+		goto out_fail;
+	}
+
+	fRealRILonUnsolicitedResponse =
+		(void (*)(int, const void *, size_t))dlsym(realRilLibHandle, "RIL_onUnsolicitedResponse");
+
+	if (!fRealRILregister) {
+		RLOGE("Failed to find the real RIL_onUnsolicitedResponse\n");
+		goto out_fail;
+	}
+
+	return;
+
+out_fail:
+	dlclose(realRilLibHandle);
+}
+
+void libEvtUnloading(void)
+{
+	if (realRilLibHandle)
+		 dlclose(realRilLibHandle);
+}
+
 #if 0
 extern "C" void
 RIL_register (const RIL_RadioFunctions *callbacks) {
@@ -4616,6 +4679,17 @@ RIL_register (const RIL_RadioFunctions *callbacks) {
 #endif
 
 }
+#else
+
+extern "C" void
+RIL_register (const RIL_RadioFunctions *callbacks)
+{
+	// try to init the real ril
+	if (fRealRILregister)
+		fRealRILregister(callbacks);
+	else
+		RLOGE("can't resolve fRealRILregiste\n");
+}
 #endif
 
 extern "C" void
@@ -4775,6 +4849,17 @@ RIL_onRequestComplete(RIL_Token t, RIL_Errno e, void *response, size_t responsel
 
 done:
     free(pRI);
+}
+
+#else
+
+extern "C" void
+RIL_onRequestComplete(RIL_Token t, RIL_Errno e, void *response, size_t responselen)
+{
+	if (fRealRILonRequestComplete)
+		fRealRILonRequestComplete(t, e, response, responselen);
+        else
+                RLOGE("can't resolve fRealRILonRequestComplete\n");
 }
 #endif
 
@@ -5065,6 +5150,18 @@ error_exit:
         releaseWakeLock();
     }
 }
+
+#else
+
+extern "C"
+void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
+                                size_t datalen) {
+	if (fRealRILonUnsolicitedResponse)
+		fRealRILonUnsolicitedResponse(unsolResponse, data, datalen);
+	else
+		RLOGE("can't resolve fRealRILonUnsolicitedResponse\n");
+}
+
 #endif
 
 /** FIXME generalize this if you track UserCAllbackInfo, clear it
