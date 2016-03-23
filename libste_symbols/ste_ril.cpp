@@ -397,12 +397,10 @@ static char * RIL_getRilSocketName() {
     return rild;
 }
 
-#if 0
 extern "C"
 void RIL_setRilSocketName(const char * s) {
     strncpy(rild, s, MAX_SOCKET_NAME_LENGTH);
 }
-#endif
 
 static char *
 strdupReadString(Parcel &p) {
@@ -450,13 +448,11 @@ memsetString (char *s) {
     }
 }
 
-#if 0
 void   nullParcelReleaseFunction (const uint8_t* data, size_t dataSize,
                                     const size_t* objects, size_t objectsSize,
                                         void* cookie) {
     // do nothing -- the data reference lives longer than the Parcel object
 }
-#endif
 
 /**
  * To be called from dispatch thread
@@ -4369,7 +4365,6 @@ eventLoop(void *param) {
     return NULL;
 }
 
-#if 0
 extern "C" void
 RIL_startEventLoop(void) {
     /* spin up eventLoop thread and wait for it to get started */
@@ -4398,7 +4393,6 @@ done:
 extern "C" void RIL_setcallbacks (const RIL_RadioFunctions *callbacks) {
     memcpy(&s_callbacks, callbacks, sizeof (RIL_RadioFunctions));
 }
-#endif
 
 static void startListen(RIL_SOCKET_ID socket_id, SocketListenParam* socket_listen_p) {
     int fdListen = -1;
@@ -4622,6 +4616,7 @@ RIL_register (const RIL_RadioFunctions *callbacks) {
 #endif
 
 }
+#endif
 
 extern "C" void
 RIL_register_socket (RIL_RadioFunctions *(*Init)(const struct RIL_Env *, int, char **),RIL_SOCKET_TYPE socketType, int argc, char **argv) {
@@ -4649,7 +4644,6 @@ RIL_register_socket (RIL_RadioFunctions *(*Init)(const struct RIL_Env *, int, ch
         }
     }
 }
-#endif
 
 static int
 checkAndDequeueRequestInfo(struct RequestInfo *pRI) {
@@ -5104,13 +5098,11 @@ internalRequestTimedCallback (RIL_TimedCallback callback, void *param,
     return p_info;
 }
 
-#if 0
 extern "C" void
 RIL_requestTimedCallback (RIL_TimedCallback callback, void *param,
                                 const struct timeval *relativeTime) {
     internalRequestTimedCallback (callback, param, relativeTime);
 }
-#endif
 
 const char *
 failCauseToString(RIL_Errno e) {
