@@ -1,4 +1,5 @@
-# Copyright (C) 2015 The CyanogenMod Project
+#
+# Copyright (C) 2014 TeamCanjica https://github.com/TeamCanjica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,30 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-#
-# compat symbols for camera HAL
 #
 
-LOCAL_PATH := $(call my-dir)
-include $(CLEAR_VARS)
+ifeq ($(TARGET_SOC), u8500)
 
-LOCAL_SRC_FILES := ste_camera.cpp
-LOCAL_SHARED_LIBRARIES := libgui libui libutils
-LOCAL_MODULE := libcamera_symbols
-LOCAL_MODULE_TAGS := optional
+ril-modules := libste_ril
+include $(call all-named-subdir-makefiles,$(ril-modules))
 
-include $(BUILD_SHARED_LIBRARY)
-
-#
-# compat symbols for cn_server
-#
-
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := ucnv_51.c
-LOCAL_SHARED_LIBRARIES := libicuuc
-LOCAL_MODULE := libicuuc_51
-LOCAL_MODULE_TAGS := optional
-
-include $(BUILD_SHARED_LIBRARY)
+endif
