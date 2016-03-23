@@ -393,18 +393,16 @@ int cdmaSubscriptionSource = -1;
  */
 int simRuimStatus = -1;
 
-
-// Chrono: to test...
-#if 0
-
 static char * RIL_getRilSocketName() {
     return rild;
 }
 
+#if 0
 extern "C"
 void RIL_setRilSocketName(const char * s) {
     strncpy(rild, s, MAX_SOCKET_NAME_LENGTH);
 }
+#endif
 
 static char *
 strdupReadString(Parcel &p) {
@@ -452,11 +450,13 @@ memsetString (char *s) {
     }
 }
 
+#if 0
 void   nullParcelReleaseFunction (const uint8_t* data, size_t dataSize,
                                     const size_t* objects, size_t objectsSize,
                                         void* cookie) {
     // do nothing -- the data reference lives longer than the Parcel object
 }
+#endif
 
 /**
  * To be called from dispatch thread
@@ -4369,6 +4369,7 @@ eventLoop(void *param) {
     return NULL;
 }
 
+#if 0
 extern "C" void
 RIL_startEventLoop(void) {
     /* spin up eventLoop thread and wait for it to get started */
@@ -4397,6 +4398,7 @@ done:
 extern "C" void RIL_setcallbacks (const RIL_RadioFunctions *callbacks) {
     memcpy(&s_callbacks, callbacks, sizeof (RIL_RadioFunctions));
 }
+#endif
 
 static void startListen(RIL_SOCKET_ID socket_id, SocketListenParam* socket_listen_p) {
     int fdListen = -1;
@@ -4453,6 +4455,7 @@ static void startListen(RIL_SOCKET_ID socket_id, SocketListenParam* socket_liste
     rilEventAddWakeup (socket_listen_p->listen_event);
 }
 
+#if 0
 extern "C" void
 RIL_register (const RIL_RadioFunctions *callbacks) {
     int ret;
@@ -4646,6 +4649,7 @@ RIL_register_socket (RIL_RadioFunctions *(*Init)(const struct RIL_Env *, int, ch
         }
     }
 }
+#endif
 
 static int
 checkAndDequeueRequestInfo(struct RequestInfo *pRI) {
@@ -4697,7 +4701,7 @@ checkAndDequeueRequestInfo(struct RequestInfo *pRI) {
     return ret;
 }
 
-
+#if 0
 extern "C" void
 RIL_onRequestComplete(RIL_Token t, RIL_Errno e, void *response, size_t responselen) {
     RequestInfo *pRI;
@@ -4778,7 +4782,7 @@ RIL_onRequestComplete(RIL_Token t, RIL_Errno e, void *response, size_t responsel
 done:
     free(pRI);
 }
-
+#endif
 
 static void
 grabPartialWakeLock() {
@@ -4918,7 +4922,7 @@ processRadioState(RIL_RadioState newRadioState, RIL_SOCKET_ID socket_id) {
     return newRadioState;
 }
 
-
+#if 0
 #if defined(ANDROID_MULTI_SIM)
 extern "C"
 void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
@@ -5067,6 +5071,7 @@ error_exit:
         releaseWakeLock();
     }
 }
+#endif
 
 /** FIXME generalize this if you track UserCAllbackInfo, clear it
     when the callback occurs
@@ -5099,12 +5104,13 @@ internalRequestTimedCallback (RIL_TimedCallback callback, void *param,
     return p_info;
 }
 
-
+#if 0
 extern "C" void
 RIL_requestTimedCallback (RIL_TimedCallback callback, void *param,
                                 const struct timeval *relativeTime) {
     internalRequestTimedCallback (callback, param, relativeTime);
 }
+#endif
 
 const char *
 failCauseToString(RIL_Errno e) {
@@ -5371,11 +5377,8 @@ rilSocketIdToString(RIL_SOCKET_ID socket_id)
     }
 }
 
-#endif
-
 } /* namespace android */
 
-/*
 void rilEventAddWakeup_helper(struct ril_event *ev) {
     android::rilEventAddWakeup(ev);
 }
@@ -5387,4 +5390,3 @@ void listenCallback_helper(int fd, short flags, void *param) {
 int blockingWrite_helper(int fd, void *buffer, size_t len) {
     return android::blockingWrite(fd, buffer, len);
 }
-*/

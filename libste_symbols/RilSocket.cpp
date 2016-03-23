@@ -23,9 +23,6 @@ void *ril_socket_process_requests_loop(void *arg);
 #include <assert.h>
 #define SOCKET_LISTEN_BACKLOG 0
 
-// to test
-
-#if 0
 int RilSocket::socketInit(void) {
     int ret;
 
@@ -178,4 +175,3 @@ void *ril_socket_process_requests_loop(void *arg) {
     socket->processRequestsLoop();
     return NULL;
 }
-#endif

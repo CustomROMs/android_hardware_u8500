@@ -79,6 +79,9 @@ LOCAL_SRC_FILES :=   \
          ril_event.cpp \
        RilSocket.cpp \
        RilSapSocket.cpp 
+
+LOCAL_SHARED_LIBRARIES += libril
+
 LOCAL_MODULE := libste_ril
 LOCAL_COPY_HEADERS_TO := libste_ril
 LOCAL_COPY_HEADERS := ril_ex.h

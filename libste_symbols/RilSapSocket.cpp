@@ -28,9 +28,6 @@
 
 static RilSapSocket::RilSapSocketList *head = NULL;
 
-// to test
-#if 0
-
 void ril_sap_on_request_complete (
         RIL_Token t, RIL_Errno e,
         void *response, size_t responselen
@@ -502,4 +499,3 @@ void RilSapSocket::onCommandsSocketClosed() {
     sendDisconnect();
     RLOGE("Socket command closed");
 }
-#endif
