@@ -16,7 +16,7 @@
 
 ifeq ($(TARGET_SOC), u8500)
 
-display-libs := libblt_hw libcopybit libgralloc libhwcomposer liblights
+display-libs := libblt_hw libcopybit libgralloc libhwcomposer liblights libUMP-shim
 include $(call all-named-subdir-makefiles,$(display-libs))
 
 endif
