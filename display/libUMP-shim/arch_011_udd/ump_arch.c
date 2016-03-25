@@ -38,6 +38,7 @@ static volatile int ump_ref_count = 0;
 /** Lock for critical section in open/close */
 _ump_osu_lock_t * ump_lock_arch = NULL;
 
+#if 0
 ump_result ump_arch_open(void)
 {
 	ump_result retval = UMP_OK;
@@ -79,7 +80,7 @@ ump_result ump_arch_open(void)
 
 	return retval;
 }
-
+#endif
 
 
 void ump_arch_close(void)
@@ -122,7 +123,7 @@ void ump_arch_close(void)
 }
 
 
-
+#if 0
 ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints constraints)
 {
 	_ump_uk_allocate_s call_arg;
@@ -164,8 +165,9 @@ ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints cons
 
 	return call_arg.secure_id;
 }
+#endif
 
-
+#if 0
 ump_secure_id ump_arch_ion_import(int ion_fd, unsigned long *size, ump_alloc_constraints constraints)
 {
     _ump_uk_ion_import_s call_arg;
@@ -189,7 +191,7 @@ ump_secure_id ump_arch_ion_import(int ion_fd, unsigned long *size, ump_alloc_con
 
     return call_arg.secure_id;
 }
-
+#endif
 
 unsigned long ump_arch_size_get(ump_secure_id secure_id)
 {
@@ -207,7 +209,7 @@ unsigned long ump_arch_size_get(ump_secure_id secure_id)
 	return 0;
 }
 
-
+#if 0
 void ump_arch_reference_release(ump_secure_id secure_id)
 {
 	_ump_uk_release_s dd_release_call_arg;
@@ -222,7 +224,7 @@ void ump_arch_reference_release(ump_secure_id secure_id)
 	UMP_DEBUG_ASSERT(retval == _UMP_OSU_ERR_OK, ("UMP: Failed to release reference to UMP memory"));
 	UMP_IGNORE(retval);
 }
-
+#endif
 
 void* ump_arch_map(ump_secure_id secure_id, unsigned long size, ump_cache_enabled cache, unsigned long *cookie_out)
 {
@@ -262,6 +264,7 @@ void ump_arch_unmap(void* mapping, unsigned long size, unsigned long cookie)
 	_ump_uku_unmap_mem( &dd_unmap_call_arg );
 }
 
+#if 0
 /** Memory synchronization - cache flushing of mapped memory */
 ump_cache_enabled ump_arch_msync(ump_secure_id secure_id, void* mapping, unsigned long cookie, void * address, unsigned long size,  ump_cpu_msync_op op)
 {
@@ -284,6 +287,7 @@ ump_cache_enabled ump_arch_msync(ump_secure_id secure_id, void* mapping, unsigne
 	}
 	return (ump_cache_enabled)(dd_msync_call_arg.is_cached);
 }
+#endif
 
 /** Cache operation control. Tell when cache maintenance operations start and end.
 This will allow the kernel to merge cache operations togheter, thus making them faster */
@@ -312,6 +316,7 @@ int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user )
 	return 1; /* Always success */
 }
 
+#if 0
 int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage )
 {
 	_ump_uk_lock_s dd_lock_arg;
@@ -336,3 +341,5 @@ int ump_arch_unlock( ump_secure_id secure_id )
 	_ump_uku_unlock( &dd_unlock_arg );
 	return 1; /* Always success */
 }
+
+#endif

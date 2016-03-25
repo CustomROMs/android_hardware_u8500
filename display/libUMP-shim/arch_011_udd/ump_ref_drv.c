@@ -29,7 +29,7 @@
 
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
 static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_constraints constraints, ump_cache_enabled cache);
-static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constraints constraints, ump_cache_enabled cache);
+//static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constraints constraints, ump_cache_enabled cache);
 
 
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
@@ -43,6 +43,7 @@ ump_handle ump_ref_drv_allocate(unsigned long size, ump_alloc_constraints constr
 	return ump_ref_drv_allocate_internal(size, constraints, cache);
 }
 
+#if 0
 ump_handle ump_ref_drv_ion_import(int ion_fd, ump_alloc_constraints constraints)
 {
     ump_cache_enabled cache= UMP_CACHE_DISABLE;
@@ -52,6 +53,7 @@ ump_handle ump_ref_drv_ion_import(int ion_fd, ump_alloc_constraints constraints)
     }
     return ump_ref_drv_ion_import_internal(ion_fd, constraints, cache);
 }
+#endif
 
 UMP_API_EXPORT int ump_cpu_msync_now(ump_handle memh, ump_cpu_msync_op op, void* address, int size)
 {
@@ -170,7 +172,7 @@ static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_co
 				 * We release the one from ump_arch_allocate(), and rely solely on the one from the ump_arch_map()
 				 * That is, ump_arch_unmap() should now do the final release towards the UMP kernel space driver.
 				 */
-				ump_arch_reference_release(secure_id);
+				ump_arch_release(secure_id);
 
 				/* This is called only to set the cache settings in this handle */
 				ump_cpu_msync_now((ump_handle)mem, UMP_MSYNC_READOUT_CACHE_ENABLED, NULL, 0);
@@ -181,16 +183,17 @@ static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_co
 			}
 
 			ump_arch_unmap(mapping, allocated_size, cookie); /* Unmap the memory */
-			ump_arch_reference_release(secure_id); /* Release reference added when we allocated the UMP memory */
+			ump_arch_release(secure_id); /* Release reference added when we allocated the UMP memory */
 		}
 
-		ump_arch_reference_release(secure_id); /* Release reference added when we allocated the UMP memory */
+		ump_arch_release(secure_id); /* Release reference added when we allocated the UMP memory */
 	}
 
 	UMP_DEBUG_PRINT(4, ("Allocation of UMP memory failed"));
 	return UMP_INVALID_MEMORY_HANDLE;
 }
 
+#if 0
 static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constraints constraints, ump_cache_enabled cache)
 {
     ump_secure_id secure_id;
@@ -252,3 +255,4 @@ static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constrai
     UMP_DEBUG_PRINT(4, ("Allocation of UMP memory failed"));
     return UMP_INVALID_MEMORY_HANDLE;
 }
+#endif
