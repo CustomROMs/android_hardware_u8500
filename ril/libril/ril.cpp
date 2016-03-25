@@ -4487,7 +4487,7 @@ void libEvtLoading(void)
 	fRealRILonRequestComplete =
 		(void (*)(RIL_Token, RIL_Errno, void *, size_t))dlsym(realRilLibHandle, "RIL_onRequestComplete");
 
-	if (!fRealRILregister) {
+	if (!fRealRILonRequestComplete) {
 		RLOGE("Failed to find the real RIL_onRequestComplete\n");
 		goto out_fail;
 	}
@@ -4495,7 +4495,7 @@ void libEvtLoading(void)
 	fRealRILonUnsolicitedResponse =
 		(void (*)(int, const void *, size_t))dlsym(realRilLibHandle, "RIL_onUnsolicitedResponse");
 
-	if (!fRealRILregister) {
+	if (!fRealRILonUnsolicitedResponse) {
 		RLOGE("Failed to find the real RIL_onUnsolicitedResponse\n");
 		goto out_fail;
 	}
