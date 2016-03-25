@@ -21,6 +21,9 @@
  * It relies heavily on a arch backend to do the communication with the UMP device driver.
  */
 
+
+#if 0
+
 #include "ump.h"
 #include "ump_internal.h"
 #include "ump_arch.h"
@@ -97,6 +100,7 @@ UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_
 	return UMP_INVALID_MEMORY_HANDLE;
 }
 
+#if 0
 UMP_API_EXPORT unsigned long ump_size_get(ump_handle memh)
 {
 	ump_mem * mem = (ump_mem*)memh;
@@ -108,6 +112,7 @@ UMP_API_EXPORT unsigned long ump_size_get(ump_handle memh)
 
 	return mem->size;
 }
+#endif
 
 UMP_API_EXPORT void ump_read(void *dst, ump_handle srch, unsigned long offset, unsigned long length)
 {
@@ -211,3 +216,4 @@ UMP_API_EXPORT void ump_reference_release(ump_handle memh)
 		_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
 	}
 }
+#endif /* 0 */

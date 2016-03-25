@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
-LOCAL_SHARED_LIBRARIES := liblog libcutils libUMP
+LOCAL_SHARED_LIBRARIES := liblog libcutils
 
 LOCAL_CFLAGS:= -DLOG_TAG=\"UMP\"
 
@@ -28,6 +28,7 @@ LOCAL_C_INCLUDES:= \
 	$(LOCAL_PATH)/include
 
 UMP_SRCS := \
+	shim.c \
 	arch_011_udd/ump_frontend.c \
 	arch_011_udd/ump_ref_drv.c \
 	arch_011_udd/ump_arch.c \
@@ -37,6 +38,6 @@ UMP_SRCS := \
 
 LOCAL_SRC_FILES := $(UMP_SRCS)
 
-LOCAL_MODULE := libUMP-shim
+LOCAL_MODULE := libUMP
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)

@@ -210,7 +210,7 @@ unsigned long ump_arch_size_get(ump_secure_id secure_id)
 }
 
 #if 0
-void ump_arch_reference_release(ump_secure_id secure_id)
+void ump_arch_release(ump_secure_id secure_id)
 {
 	_ump_uk_release_s dd_release_call_arg;
 	_ump_osu_errcode_t retval;
