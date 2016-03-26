@@ -27,11 +27,15 @@ LOCAL_C_INCLUDES:= \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/include
 
+#	arch_011_udd/ump_frontend/ump_handle_create_from_secure_id.S \
+
+
 UMP_SRCS := \
 	shim.c \
 	arch_011_udd/ump_frontend.c \
 	arch_011_udd/ump_frontend/ump_mapped_pointer_get.S \
 	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
+	arch_011_udd/ump_frontend/ump_reference_release.S \
 	arch_011_udd/ump_ref_drv.c \
 	arch_011_udd/ump_arch.c \
 	os/linux/ump_uku.c \
