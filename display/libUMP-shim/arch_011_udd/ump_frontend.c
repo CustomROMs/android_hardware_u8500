@@ -39,12 +39,9 @@ UMP_API_EXPORT void ump_close(void)
 	ump_arch_close();
 }
 
-#if 0
-
 UMP_API_EXPORT ump_secure_id ump_secure_id_get(ump_handle memh)
 {
 	ump_mem * mem = (ump_mem*)memh;
-
 	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
 	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != mem->secure_id, ("Secure ID is inavlid"));
 	UMP_DEBUG_ASSERT(0 < mem->ref_count, ("Reference count too low"));
@@ -52,6 +49,8 @@ UMP_API_EXPORT ump_secure_id ump_secure_id_get(ump_handle memh)
 
 	return mem->secure_id;
 }
+
+#if 0
 
 UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_id)
 {
