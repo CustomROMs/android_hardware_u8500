@@ -172,7 +172,7 @@ UMP_API_EXPORT void ump_mapped_pointer_release(ump_handle memh)
 	/* noop, cos we map in the pointer when handle is created, and unmap it when handle is destroyed */
 }
 
-
+#endif /* 0 */
 
 UMP_API_EXPORT void ump_reference_add(ump_handle memh)
 {
@@ -188,7 +188,7 @@ UMP_API_EXPORT void ump_reference_add(ump_handle memh)
 	_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
 }
 
-
+#if 0
 
 UMP_API_EXPORT void ump_reference_release(ump_handle memh)
 {
@@ -218,4 +218,4 @@ UMP_API_EXPORT void ump_reference_release(ump_handle memh)
 		_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
 	}
 }
-#endif /* 0 */
+#endif
