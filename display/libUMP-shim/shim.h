@@ -28,19 +28,11 @@
 
 #define  WRAP_FUNCTION(type, name, args_declare, args_return, real_function)  \
 	type name args_declare { 					      \
-		if (!real_function) { 					      \
-			RLOGE("%s: can't resolve real function\n", __func__); \
-			return (type)NULL;				      \
-		}							      \
 		return real_function args_return;			      \
 	}
 
 #define  WRAP_VOID_FUNCTION(name, args_declare, args_return, real_function)   \
 	void name args_declare { 					      \
-		if (!real_function) { 					      \
-			RLOGE("%s: can't resolve real function\n", __func__); \
-			return;						      \
-		}							      \
 		real_function args_return;				      \
 	}
 
