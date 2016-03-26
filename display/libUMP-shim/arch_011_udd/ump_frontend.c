@@ -143,23 +143,6 @@ UMP_API_EXPORT void ump_write(ump_handle dsth, unsigned long offset, const void 
 	_ump_osu_memcpy((char*)(dst->mapped_mem) + offset, src, length);
 }
 
-#if 0
-
-UMP_API_EXPORT void* ump_mapped_pointer_get(ump_handle memh)
-{
-	ump_mem * mem = (ump_mem*)memh;
-
-	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
-	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != mem->secure_id, ("Secure ID is inavlid"));
-	UMP_DEBUG_ASSERT(0 < mem->ref_count, ("Reference count too low"));
-	UMP_DEBUG_ASSERT(0 < mem->size, ("Memory size of passed handle too low"));
-	UMP_DEBUG_ASSERT(NULL != mem->mapped_mem, ("Error in mapping pointer (not mapped)"));
-
-	return mem->mapped_mem;
-}
-
-#endif /* 0 */
-
 UMP_API_EXPORT void ump_reference_add(ump_handle memh)
 {
 	ump_mem * mem = (ump_mem*)memh;
