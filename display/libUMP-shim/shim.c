@@ -47,6 +47,7 @@ static void *realLibHandle;
 /* arch */
 
 ump_result (*fReal_ump_arch_open)(void);
+void (*fReal_ump_arch_close)(void);
 ump_secure_id (*fReal_ump_arch_allocate)(unsigned long * size, ump_alloc_constraints constraints);
 int (*fReal_ump_arch_lock)( ump_secure_id secure_id, ump_lock_usage lock_usage );
 int (*fReal_ump_arch_unlock)( ump_secure_id secure_id );
@@ -63,8 +64,8 @@ ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 /* frontend */
 
 UMP_API_EXPORT unsigned long (*fReal_ump_size_get)(ump_handle memh);
-UMP_API_EXPORT ump_result  (*fReal_ump_open)(void);
-UMP_API_EXPORT void (*fReal_ump_close)(void);
+//UMP_API_EXPORT ump_result  (*fReal_ump_open)(void);
+//UMP_API_EXPORT void (*fReal_ump_close)(void);
 UMP_API_EXPORT ump_secure_id (*fReal_ump_secure_id_get)(ump_handle memh);
 UMP_API_EXPORT ump_handle (*fReal_ump_handle_create_from_secure_id)(ump_secure_id secure_id);
 UMP_API_EXPORT void (*fReal_ump_read)(void *dst, ump_handle srch, unsigned long offset, unsigned long length);
@@ -87,6 +88,7 @@ void libEvtLoading(void)
         }
         // load the real lib
 	LOAD_SYMBOL(fReal_ump_arch_open, "ump_arch_open");
+	LOAD_SYMBOL(fReal_ump_arch_close, "ump_arch_close");
 	LOAD_SYMBOL(fReal_ump_arch_allocate, "ump_arch_allocate");
 	LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
 	LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
@@ -95,8 +97,8 @@ void libEvtLoading(void)
 	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
 	LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
 	LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
-        LOAD_SYMBOL(fReal_ump_open, "ump_open");
-        LOAD_SYMBOL(fReal_ump_close, "ump_close");
+        //LOAD_SYMBOL(fReal_ump_open, "ump_open");
+        //LOAD_SYMBOL(fReal_ump_close, "ump_close");
         LOAD_SYMBOL(fReal_ump_secure_id_get, "ump_secure_id_get");
         LOAD_SYMBOL(fReal_ump_handle_create_from_secure_id, "ump_handle_create_from_secure_id");
         LOAD_SYMBOL(fReal_ump_read, "ump_read");
@@ -121,6 +123,7 @@ void libEvtUnloading(void)
 /* arch */
 
 WRAP_FUNCTION(ump_result, ump_arch_open, (void), (), fReal_ump_arch_open)
+WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 WRAP_FUNCTION(ump_secure_id, ump_arch_allocate, (unsigned long * size, ump_alloc_constraints constraints),
 		(size, constraints), fReal_ump_arch_allocate)
 
@@ -142,8 +145,8 @@ WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure
 
 WRAP_FUNCTION(unsigned long, ump_size_get, (ump_handle memh), (memh), fReal_ump_size_get)
 
-WRAP_FUNCTION(ump_result, ump_open, (void), (), fReal_ump_open)
-WRAP_VOID_FUNCTION(ump_close, (void), (), fReal_ump_close)
+//WRAP_FUNCTION(ump_result, ump_open, (void), (), fReal_ump_open)
+//WRAP_VOID_FUNCTION(ump_close, (void), (), fReal_ump_close)
 
 WRAP_FUNCTION(ump_secure_id, ump_secure_id_get, (ump_handle memh), (memh), fReal_ump_secure_id_get)
 WRAP_FUNCTION(ump_handle, ump_handle_create_from_secure_id, (ump_secure_id secure_id), (secure_id), fReal_ump_handle_create_from_secure_id)

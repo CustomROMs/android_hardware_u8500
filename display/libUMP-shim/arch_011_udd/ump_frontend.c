@@ -22,7 +22,6 @@
  */
 
 
-#if 0
 
 #include "ump.h"
 #include "ump_internal.h"
@@ -30,15 +29,17 @@
 #include <ump/ump_debug.h>
 #include <ump/ump_osu.h>
 
-UMP_API_EXPORT ump_result ump_open(void)
+UMP_API_EXPORT void ump_open(void)
 {
-	return ump_arch_open();
+	ump_arch_open();
 }
 
 UMP_API_EXPORT void ump_close(void)
 {
 	ump_arch_close();
 }
+
+#if 0
 
 UMP_API_EXPORT ump_secure_id ump_secure_id_get(ump_handle memh)
 {

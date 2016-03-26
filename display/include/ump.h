@@ -73,10 +73,8 @@ typedef enum
  * Each open is reference counted and must be matched with a call to @ref ump_close "ump_close".
  *
  * @see ump_close
- *
- * @return UMP_OK indicates success, UMP_ERROR indicates failure.
  */
-UMP_API_EXPORT ump_result ump_open(void);
+UMP_API_EXPORT void ump_open(void);
 
 
 /**

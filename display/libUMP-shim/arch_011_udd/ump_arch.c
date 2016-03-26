@@ -82,7 +82,7 @@ ump_result ump_arch_open(void)
 }
 #endif
 
-
+#if 0
 void ump_arch_close(void)
 {
 	_ump_osu_lock_auto_init( &ump_lock_arch, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0 );
@@ -121,7 +121,7 @@ void ump_arch_close(void)
 	/* Signal the lock so someone else can use it */
 	 _ump_osu_lock_signal( ump_lock_arch, _UMP_OSU_LOCKMODE_RW );
 }
-
+#endif
 
 #if 0
 ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints constraints)
