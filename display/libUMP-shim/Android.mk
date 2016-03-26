@@ -21,7 +21,7 @@ include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 
-LOCAL_CFLAGS:= -DLOG_TAG=\"UMP\"
+LOCAL_CFLAGS:= -DLOG_TAG=\"UMP\" -Wa,-mimplicit-it=thumb
 
 LOCAL_C_INCLUDES:= \
 	$(LOCAL_PATH)/../include \

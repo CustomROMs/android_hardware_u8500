@@ -99,21 +99,21 @@ UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_
 
 	return UMP_INVALID_MEMORY_HANDLE;
 }
-
-#if 0
-UMP_API_EXPORT unsigned long ump_size_get(ump_handle memh)
-{
-	ump_mem * mem = (ump_mem*)memh;
-
-	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
-	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != mem->secure_id, ("Secure ID is inavlid"));
-	UMP_DEBUG_ASSERT(0 < mem->ref_count, ("Reference count too low"));
-	UMP_DEBUG_ASSERT(0 < mem->size, ("Memory size of passed handle too low"));
-
-	return mem->size;
-}
-#endif
 #endif /* 0 */
+
+
+UMP_API_EXPORT void ump_size_get(ump_handle memh)
+{
+	__asm__("cmp     r0, #0");
+	__asm__("bxeq    lr");
+	__asm__("ldr     r3, [r0]");
+	__asm__("cmn     r3, #1");
+	__asm__("ldrne   r0, [r0, #8]");
+	__asm__("moveq   r0, #0");
+
+	__asm__("bx      lr");
+	//return;
+}
 
 UMP_API_EXPORT void ump_read(void *dst, ump_handle srch, unsigned long offset, unsigned long length)
 {

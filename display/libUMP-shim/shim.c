@@ -63,7 +63,7 @@ ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 
 /* frontend */
 
-UMP_API_EXPORT unsigned long (*fReal_ump_size_get)(ump_handle memh);
+//UMP_API_EXPORT unsigned long (*fReal_ump_size_get)(ump_handle memh);
 //UMP_API_EXPORT ump_result  (*fReal_ump_open)(void);
 //UMP_API_EXPORT void (*fReal_ump_close)(void);
 //UMP_API_EXPORT ump_secure_id (*fReal_ump_secure_id_get)(ump_handle memh);
@@ -96,7 +96,7 @@ void libEvtLoading(void)
 	LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
 	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
 	LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
-	LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
+	//LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
         //LOAD_SYMBOL(fReal_ump_open, "ump_open");
         //LOAD_SYMBOL(fReal_ump_close, "ump_close");
         //LOAD_SYMBOL(fReal_ump_secure_id_get, "ump_secure_id_get");
@@ -143,7 +143,7 @@ WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure
 
 /* frontend */
 
-WRAP_FUNCTION(unsigned long, ump_size_get, (ump_handle memh), (memh), fReal_ump_size_get)
+//WRAP_FUNCTION(unsigned long, ump_size_get, (ump_handle memh), (memh), fReal_ump_size_get)
 
 //WRAP_FUNCTION(ump_result, ump_open, (void), (), fReal_ump_open)
 //WRAP_VOID_FUNCTION(ump_close, (void), (), fReal_ump_close)

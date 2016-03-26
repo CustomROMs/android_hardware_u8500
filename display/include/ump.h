@@ -143,7 +143,7 @@ UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_
  *
  * @return Returns the allocated size of the specified UMP memory, in bytes.
  */
-UMP_API_EXPORT unsigned long ump_size_get(ump_handle mem);
+UMP_API_EXPORT void ump_size_get(ump_handle mem);
 
 
 /**
