@@ -158,19 +158,6 @@ UMP_API_EXPORT void* ump_mapped_pointer_get(ump_handle memh)
 	return mem->mapped_mem;
 }
 
-
-
-UMP_API_EXPORT void ump_mapped_pointer_release(ump_handle memh)
-{
-	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
-	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != ((ump_mem*)memh)->secure_id, ("Secure ID is inavlid"));
-	UMP_DEBUG_ASSERT(0 < ((ump_mem*)memh)->ref_count, ("Reference count too low"));
-	UMP_DEBUG_ASSERT(0 < ((ump_mem*)memh)->size, ("Memory size of passed handle too low"));
-	UMP_DEBUG_ASSERT(NULL != ((ump_mem*)memh)->mapped_mem, ("Error in mapping pointer (not mapped)"));
-
-	/* noop, cos we map in the pointer when handle is created, and unmap it when handle is destroyed */
-}
-
 #endif /* 0 */
 
 UMP_API_EXPORT void ump_reference_add(ump_handle memh)

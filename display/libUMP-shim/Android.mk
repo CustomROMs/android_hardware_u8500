@@ -30,6 +30,7 @@ LOCAL_C_INCLUDES:= \
 UMP_SRCS := \
 	shim.c \
 	arch_011_udd/ump_frontend.c \
+	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
 	arch_011_udd/ump_ref_drv.c \
 	arch_011_udd/ump_arch.c \
 	os/linux/ump_uku.c \
