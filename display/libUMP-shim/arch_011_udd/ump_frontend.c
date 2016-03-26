@@ -114,6 +114,7 @@ UMP_API_EXPORT unsigned long ump_size_get(ump_handle memh)
 	return mem->size;
 }
 #endif
+#endif /* 0 */
 
 UMP_API_EXPORT void ump_read(void *dst, ump_handle srch, unsigned long offset, unsigned long length)
 {
@@ -143,7 +144,7 @@ UMP_API_EXPORT void ump_write(ump_handle dsth, unsigned long offset, const void 
 	_ump_osu_memcpy((char*)(dst->mapped_mem) + offset, src, length);
 }
 
-
+#if 0
 
 UMP_API_EXPORT void* ump_mapped_pointer_get(ump_handle memh)
 {
