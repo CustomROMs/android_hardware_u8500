@@ -49,8 +49,8 @@ static void *realLibHandle;
 ump_result (*fReal_ump_arch_open)(void);
 void (*fReal_ump_arch_close)(void);
 ump_secure_id (*fReal_ump_arch_allocate)(unsigned long * size, ump_alloc_constraints constraints);
-int (*fReal_ump_arch_lock)( ump_secure_id secure_id, ump_lock_usage lock_usage );
-int (*fReal_ump_arch_unlock)( ump_secure_id secure_id );
+//int (*fReal_ump_arch_lock)( ump_secure_id secure_id, ump_lock_usage lock_usage );
+//int (*fReal_ump_arch_unlock)( ump_secure_id secure_id );
 
 ump_cache_enabled (*fReal_ump_arch_msync)(ump_secure_id secure_id, void* mapping, unsigned long cookie,
 	 void * address, unsigned long size,  ump_cpu_msync_op op);
@@ -90,8 +90,8 @@ void libEvtLoading(void)
 	LOAD_SYMBOL(fReal_ump_arch_open, "ump_arch_open");
 	LOAD_SYMBOL(fReal_ump_arch_close, "ump_arch_close");
 	LOAD_SYMBOL(fReal_ump_arch_allocate, "ump_arch_allocate");
-	LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
-	LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
+	//LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
+	//LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
 	LOAD_SYMBOL(fReal_ump_arch_msync, "ump_arch_msync");
 	LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
 	//LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
@@ -127,10 +127,10 @@ WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 WRAP_FUNCTION(ump_secure_id, ump_arch_allocate, (unsigned long * size, ump_alloc_constraints constraints),
 		(size, constraints), fReal_ump_arch_allocate)
 
-WRAP_FUNCTION(int, ump_arch_lock, (ump_secure_id secure_id, ump_lock_usage lock_usage),
-		(secure_id, lock_usage), fReal_ump_arch_lock)
+//WRAP_FUNCTION(int, ump_arch_lock, (ump_secure_id secure_id, ump_lock_usage lock_usage),
+//		(secure_id, lock_usage), fReal_ump_arch_lock)
 
-WRAP_FUNCTION(int, ump_arch_unlock, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_unlock)
+//WRAP_FUNCTION(int, ump_arch_unlock, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_unlock)
 
 WRAP_FUNCTION(ump_cache_enabled, ump_arch_msync, (ump_secure_id secure_id, void* mapping, unsigned long cookie,
 		void * address, unsigned long size,  ump_cpu_msync_op op),
