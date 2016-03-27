@@ -36,6 +36,7 @@ UMP_SRCS := \
 	arch_011_udd/ump_frontend/ump_mapped_pointer_get.S \
 	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
 	arch_011_udd/ump_frontend/ump_reference_release.S \
+	arch_011_udd/ump_frontend/hwmem_uku.S \
 	arch_011_udd/ump_ref_drv.c \
 	arch_011_udd/ump_arch.c \
 	os/linux/ump_uku.c \
