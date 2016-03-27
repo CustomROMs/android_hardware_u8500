@@ -123,7 +123,6 @@ void ump_arch_close(void)
 }
 #endif
 
-#if 0
 ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints constraints)
 {
 	_ump_uk_allocate_s call_arg;
@@ -165,7 +164,6 @@ ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints cons
 
 	return call_arg.secure_id;
 }
-#endif
 
 #if 0
 ump_secure_id ump_arch_ion_import(int ion_fd, unsigned long *size, ump_alloc_constraints constraints)
@@ -264,7 +262,6 @@ void ump_arch_unmap(void* mapping, unsigned long size, unsigned long cookie)
 	_ump_uku_unmap_mem( &dd_unmap_call_arg );
 }
 
-#if 0
 /** Memory synchronization - cache flushing of mapped memory */
 ump_cache_enabled ump_arch_msync(ump_secure_id secure_id, void* mapping, unsigned long cookie, void * address, unsigned long size,  ump_cpu_msync_op op)
 {
@@ -287,7 +284,6 @@ ump_cache_enabled ump_arch_msync(ump_secure_id secure_id, void* mapping, unsigne
 	}
 	return (ump_cache_enabled)(dd_msync_call_arg.is_cached);
 }
-#endif
 
 /** Cache operation control. Tell when cache maintenance operations start and end.
 This will allow the kernel to merge cache operations togheter, thus making them faster */
