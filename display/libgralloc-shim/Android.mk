@@ -20,16 +20,19 @@ LOCAL_PATH := $(call my-dir)
 # hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
-LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM libgralloc-shim01
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM 
+#libgralloc-shim01
 
-LOCAL_SRC_FILES := hwmem_gralloc.cpp hwmem_gralloc_pmem.c framebuffer.cpp
+#LOCAL_SRC_FILES := hwmem_gralloc.cpp hwmem_gralloc_pmem.cpp framebuffer.cpp mapper.cpp
+LOCAL_SRC_FILES := hwmem_gralloc.cpp hwmem_gralloc_pmem.cpp hwmem_gralloc_framebuffer.cpp mapper.cpp
 #symbols.S
 
 LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(MULTIMEDIA_PATH)
-LOCAL_MODULE := libgralloc-shim
+#LOCAL_MODULE := libgralloc-shim
+LOCAL_MODULE := gralloc.montblanc
 LOCAL_MODULE_TAGS := optional
-#LOCAL_CLANG := true
+LOCAL_CLANG := true
 LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc-shim\" 
 #-mthumb
 include $(BUILD_SHARED_LIBRARY)

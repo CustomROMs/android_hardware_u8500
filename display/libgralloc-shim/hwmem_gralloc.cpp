@@ -140,6 +140,32 @@ static mutex_t buf_tg_infos_mutex = MUTEX_INITIALIZER;
 static Hashmap *buf_handl_2_tg_info_map = NULL;
 
 
+/* Gralloc module alloc device API functions */
+#if 0
+static int gralloc_lock(struct gralloc_module_t const* module, buffer_handle_t handle, int usage,
+    int left, int top, int width, int height, void** addr);
+static int gralloc_unlock(struct gralloc_module_t const* module, buffer_handle_t handle);
+#else
+
+int gralloc_lock(gralloc_module_t const* module,
+        buffer_handle_t handle, int usage,
+        int l, int t, int w, int h,
+        void** vaddr);
+
+int gralloc_unlock(gralloc_module_t const* module,
+        buffer_handle_t handle);
+#endif
+
+static int gralloc_alloc(struct alloc_device_t* device, int width, int height, int format,
+    int usage, buffer_handle_t* handle, int* stride);
+static int gralloc_free(struct alloc_device_t* device, buffer_handle_t handle);
+
+static int open_alloc_device(const struct hwmem_gralloc_module_t* module,
+    struct alloc_device_t** alloc_device);
+static int gralloc_close_alloc_device(struct hw_device_t* device);
+
+
+
 /* buf_tg_infos_mutex muste be held when calling these functions */
 static int get_create_buf_tg_info(struct hwmem_gralloc_buf_handle_t* buf,
     struct buf_tg_info **buf_tg_info);
@@ -248,14 +274,13 @@ static int gralloc_alloc_buffer(alloc_device_t* dev,
         size_t size, int usage, buffer_handle_t* pHandle);
 
 /*****************************************************************************/
-
+/*
 int fb_device_open(const hw_module_t* module, const char* name,
         hw_device_t** device);
 
 static int gralloc_device_open(const hw_module_t* module, const char* name,
         hw_device_t** device);
 
-/*
 extern int gralloc_lock(gralloc_module_t const* module,
         buffer_handle_t handle, int usage,
         int l, int t, int w, int h,
@@ -273,11 +298,332 @@ extern int gralloc_unregister_buffer(gralloc_module_t const* module,
 
 /*****************************************************************************/
 
-static struct hw_module_methods_t gralloc_module_methods = {
-        open: gralloc_device_open
-};
+static int gralloc_register_buffer(gralloc_module_t const* module, buffer_handle_t handle)
+{
+    struct hwmem_gralloc_module_t* gralloc;
+    struct hwmem_gralloc_buf_handle_t* buf;
+    struct buf_tg_info *buf_tg_info;
+
+    LOG_API_CALL("%s(%p, %p)", __func__, module, (void *)handle);
+
+    if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
+        !handle_2_hwmem_gralloc_handle(handle, &buf))
+        return -errno;
+
+    if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
+        return gralloc_register_buffer_pmem(module, buf);
+    if (!inc_buf_cnt(buf, REGISTER_COUNTER))
+        return -errno;
+
+    return 0;
+}
+
+static int gralloc_unregister_buffer(gralloc_module_t const* module, buffer_handle_t handle)
+{
+    struct hwmem_gralloc_module_t* gralloc;
+    struct hwmem_gralloc_buf_handle_t* buf;
+
+    LOG_API_CALL("%s(%p, %p)", __func__, module, (void *)handle);
+
+    if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
+        !handle_2_hwmem_gralloc_handle(handle, &buf))
+        return -EINVAL;
+
+    if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
+        return gralloc_unregister_buffer_pmem(module, buf);
+
+    dec_buf_cnt(buf, REGISTER_COUNTER, 1);
+
+    return 0;
+}
+
+
+
+static int open_alloc_device(const struct hwmem_gralloc_module_t* module,
+    struct alloc_device_t** alloc_device)
+{
+    const struct hwmem_gralloc_module_t* gralloc;
+
+    LOG_API_CALL("%s(%p, %p)", __func__, module, alloc_device);
+
+    /* module_2_hwmem_gralloc_module does not write to module so the const to non
+    const cast is ok */
+    if (!module_2_hwmem_gralloc_module((struct gralloc_module_t const*)module,
+        (struct hwmem_gralloc_module_t**)&gralloc))
+        return 0;
+
+    if (NULL == alloc_device)
+    {
+        LOG_USER_ERROR("%s: NULL == alloc_device", __func__);
+        errno = EINVAL;
+        return 0;
+    }
+
+    *alloc_device = (alloc_device_t*)malloc(sizeof(alloc_device_t));
+    if (NULL == *alloc_device)
+    {
+        LOG_ERROR("%s: Out of memory!", __func__);
+        errno = ENOMEM;
+        return 0;
+    }
+
+    memset(*alloc_device, 0, sizeof(**alloc_device));
+
+    (*alloc_device)->common.tag = HARDWARE_DEVICE_TAG;
+    (*alloc_device)->common.version = 1;
+    /* Dangerous cast but it can't be avoided given the current gralloc API. */
+    (*alloc_device)->common.module = (hw_module_t*)gralloc;
+    (*alloc_device)->common.close = gralloc_close_alloc_device;
+
+    (*alloc_device)->alloc = gralloc_alloc;
+    (*alloc_device)->free = gralloc_free;
+
+    return 1;
+}
+
+static int gralloc_close_alloc_device(struct hw_device_t* device)
+{
+    LOG_API_CALL("%s(%p)", __func__, device);
+
+    if (NULL == device)
+    {
+        LOG_USER_ERROR("%s: NULL == device", __func__);
+        return -EINVAL;
+    }
+
+    /* It would be nice to free all the device's buffers here in case the application
+    forgot. The problem with that approach is the native_handle_close/delete functions.
+    It's not unlikely that an application erronously closes a handle with
+    native_handle_close/delete instead of free and in that case the cleanup code here
+    will try to free an invalid handle which will probably crash the application. Not
+    cleaning up here on the other hand might lead to temporary resource leaks (till the
+    application dies) so the choice is between possibly crashing a faulty application or
+    letting it temporarily leak some resources, I choose the second alternative. If
+    problems arise we'll have to re-evaluate this choice. */
+
+    free(device);
+
+    return 0;
+}
+
+#if 0
+static int gralloc_lock(gralloc_module_t const* module, buffer_handle_t handle, int usage,
+    int left, int top, int width, int height, void** addr)
+{
+    struct hwmem_gralloc_module_t* gralloc;
+    struct hwmem_gralloc_buf_handle_t* buf;
+
+    int ret = 0;
+
+    LOG_API_CALL("%s(%p, %p, %#x, %i, %i, %i, %i, %p)", __func__,
+        module, (void *)handle, (unsigned int)usage, left, top, width, height,
+        addr);
+
+    if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
+        !handle_2_hwmem_gralloc_handle(handle, &buf))
+        return -errno;
+
+    if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
+        return gralloc_lock_pmem(module, buf, usage, left, top, width, height, addr);
+
+    /* TODO: Uncomment when applications learn to allocate buffers with correct usage */
+    /*if (!does_lock_usage_match_alloc_usage(usage, buf->usage))
+    {
+        LOG_USER_ERROR("!does_lock_usage_match_alloc_usage");
+        return -EINVAL;
+    }*/
+
+    if (usage & (GRALLOC_USAGE_SW_READ_MASK | GRALLOC_USAGE_SW_WRITE_MASK))
+    {
+        int mmap_prot = 0;
+
+        if (NULL == addr)
+        {
+            LOG_USER_ERROR("%s: Software usage specified but addr == NULL", __func__);
+            return -EINVAL;
+        }
+
+        if (!mmap_buf_if_necessary(buf, addr, &mmap_prot))
+            return -errno;
+
+        if (!does_usage_match_mmap_prot(usage, mmap_prot))
+        {
+            LOG_USER_ERROR("%s: !does_usage_match_mmap_prot(usage, mmap_prot)", __func__);
+            return -EACCES;
+        }
+    }
+
+    if (!set_buffer_domain(buf, usage, left, top, width, height))
+        return -errno;
+
+    if (!inc_buf_cnt(buf, LOCK_COUNTER))
+        return -errno;
+
+    return 0;
+}
+
+static int gralloc_unlock(gralloc_module_t const* module, buffer_handle_t handle)
+{
+    struct hwmem_gralloc_module_t* gralloc;
+    struct hwmem_gralloc_buf_handle_t* buf;
+
+    LOG_API_CALL("%s(%p, %p)", __func__, module, (void *)handle);
+
+    if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
+        !handle_2_hwmem_gralloc_handle(handle, &buf))
+        return -errno;
+
+    if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
+        return gralloc_unlock_pmem(module, buf);
+
+    dec_buf_cnt(buf, LOCK_COUNTER, 1);
+
+    return 0;
+}
+
+#endif
 
 /*
+static int gralloc_perform(struct gralloc_module_t const* module, int operation, ...)
+{
+    va_list args;
+    va_start(args, operation);
+
+    LOG_API_CALL("%s(%p, %i, ...)", __func__, module, operation);
+
+    switch (operation)
+    {
+        case GRALLOC_MODULE_PERFORM_GET_BUF_ALLOCATOR_HANDLE:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_allocator_handle(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_PIN_BUF:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_pin_buf(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_UNPIN_BUF:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_unpin_buf(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_GET_BUF_OFFSET:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_offset(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_GET_BUF_TYPE:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_type(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_GET_BUF_SIZE:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_size(module, handle);
+        }
+
+        case GRALLOC_MODULE_PERFORM_GET_BUF_WIDTH:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_width(module, handle);
+        }
+        case GRALLOC_MODULE_PERFORM_GET_BUF_HEIGHT:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_height(module, handle);
+        }
+        case GRALLOC_MODULE_PERFORM_GET_BUF_FORMAT:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_format(module, handle);
+        }
+        case GRALLOC_MODULE_PERFORM_GET_BUF_USAGE:
+        {
+            buffer_handle_t handle = va_arg(args, buffer_handle_t);
+            va_end(args);
+
+            return gralloc_get_buf_usage(module, handle);
+        }
+        case GRALLOC_MODULE_PERFORM_COMPOSITION_COMPLETE:
+        {
+            return fb_compositionComplete();
+        }
+
+
+        default:
+            va_end(args);
+
+            LOG_USER_ERROR("%s: Unknown operation, %i", __func__, operation);
+            return -EINVAL;
+    }
+}
+*/
+
+static int gralloc_open_device(const struct hw_module_t* module, const char* name,
+    hw_device_t** device)
+{
+    const struct hwmem_gralloc_module_t* gralloc;
+
+    LOG_API_CALL("%s(%p, %s, %p)", __func__, module, name, device);
+
+    if (NULL == name || NULL == device)
+    {
+        LOG_USER_ERROR("%s: NULL == name || NULL == device", __func__);
+        return -EINVAL;
+    }
+
+    /* module_2_hwmem_gralloc_module does not write to module so the const to non
+    const cast is ok */
+    if (!module_2_hwmem_gralloc_module((struct gralloc_module_t const*)module,
+        (struct hwmem_gralloc_module_t**)&gralloc))
+        return -errno;
+
+    if (0 == strcmp(name, GRALLOC_HARDWARE_GPU0))
+    {
+        if (!open_alloc_device(gralloc, (struct alloc_device_t**)device))
+            return -errno;
+    }
+    else if (0 == strcmp(name, GRALLOC_HARDWARE_FB0))
+        return fb_device_open(module, name, device);
+    else
+    {
+        LOG_USER_ERROR("%s: Unknown device, %s", __func__, name);
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
+
+static struct hw_module_methods_t gralloc_module_methods = {
+        open: gralloc_open_device
+};
+
 struct private_module_t HAL_MODULE_INFO_SYM = {
     base: {
         common: {
@@ -301,11 +647,10 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
     lock: PTHREAD_MUTEX_INITIALIZER,
     currentBuffer: 0,
 };
-*/
 
 /*****************************************************************************/
 
-/*
+#if 0
 static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
         size_t size, int usage, buffer_handle_t* pHandle)
 {
@@ -369,6 +714,7 @@ static int gralloc_alloc_framebuffer(alloc_device_t* dev,
     pthread_mutex_unlock(&m->lock);
     return err;
 }
+#endif
 
 static int gralloc_alloc_buffer(alloc_device_t* dev,
         size_t size, int usage, buffer_handle_t* pHandle)
@@ -398,11 +744,9 @@ static int gralloc_alloc_buffer(alloc_device_t* dev,
     
     return err;
 }
-*/
 
 /*****************************************************************************/
-
-/*
+#if 0
 static int gralloc_alloc(alloc_device_t* dev,
         int w, int h, int format, int usage,
         buffer_handle_t* pHandle, int* pStride)
@@ -449,6 +793,142 @@ static int gralloc_alloc(alloc_device_t* dev,
     *pStride = stride;
     return 0;
 }
+#else
+
+/* Gralloc module alloc device API functions */
+
+static int gralloc_alloc(struct alloc_device_t* device, int width, int height, int format,
+    int usage, buffer_handle_t* handle, int* stride)
+{
+    int ret = 0;
+    int last_result;
+    int hwmem_fd = -1;
+    int actual_width;
+    int actual_height;
+    int buf_size;
+    struct hwmem_alloc_request hwmem_alloc_request;
+    struct hwmem_gralloc_buf_handle_t* buf_handle = NULL;
+
+    LOG_API_CALL("%s(%p, %i, %i, %#x, %#x, %p, %p)", __func__, device,
+        width, height, (unsigned int)format, (unsigned int)usage,
+        handle, stride);
+
+    if (NULL == device || NULL == handle)
+    {
+        LOG_USER_ERROR("%s: NULL == device || NULL == handle", __func__);
+        return -EINVAL;
+    }
+
+    if (!(usage & GRALLOC_USAGE_HW_MASK))
+    {
+        LOG_WARNING_ALWAYS("%s: Gralloc is used to alloc software only buffers!", __func__);
+    }
+
+    buf_size = calc_buf_size(width, height, format, usage, &actual_width, &actual_height);
+    if (buf_size < 0)
+        return -errno;
+
+    if (usage & GRALLOC_USAGE_HW_FB)
+    {
+        int handled;
+
+        last_result = gralloc_alloc_framebuffer(device, buf_size, usage, handle, stride, &handled);
+        if (last_result < 0)
+        {
+            LOG_ERROR("%s: gralloc_alloc_framebuffer (google) failed, %s", __func__, strerror(-last_result));
+            return last_result;
+        }
+
+        if (handled)
+            return 0;
+        else
+            usage &= ~GRALLOC_USAGE_HW_FB;
+    }
+
+    if (!is_non_planar_and_independent_pixel_format(format))
+        usage |= GRALLOC_USAGE_HW_2D;
+
+    hwmem_fd = open(hwmem_files_full_name, O_RDWR);
+    if (hwmem_fd < 0)
+    {
+        LOG_ERROR("%s: open failed, %s", __func__, strerror(errno));
+        return -errno;
+    }
+
+    hwmem_alloc_request.size = (unsigned int)buf_size;
+    hwmem_alloc_request.flags = usage_2_hwmem_alloc_flags(usage);
+    hwmem_alloc_request.default_access =
+        /* TODO: Uncomment when applications learn to allocate buffers with correct usage */
+        /* usage_2_hwmem_access(usage); */
+        HWMEM_ACCESS_READ | HWMEM_ACCESS_WRITE;
+    hwmem_alloc_request.mem_type = usage_2_hwmem_mem_type(usage);
+    if (ioctl(hwmem_fd, HWMEM_ALLOC_FD_IOC, &hwmem_alloc_request) < 0)
+    {
+        LOG_ERROR("%s: HWMEM_ALLOC_IOC failed, %s", __func__, strerror(errno));
+        ret = -errno;
+        goto alloc_failed;
+    }
+
+    buf_handle =
+        (struct hwmem_gralloc_buf_handle_t*)native_handle_create(
+        num_fds_in_hwmem_gralloc_buf_handle, num_ints_in_hwmem_gralloc_buf_handle);
+    if (NULL == buf_handle)
+    {
+        LOG_ERROR("%s: Out of memory!", __func__);
+        ret = -ENOMEM;
+        goto native_handle_create_failed;
+    }
+
+    buf_handle->fd = hwmem_fd;
+    buf_handle->type_identifier = hwmem_gralloc_buf_handle_type_identifier;
+    buf_handle->width = actual_width;
+    buf_handle->height = actual_height;
+    buf_handle->format = format;
+    buf_handle->usage = usage;
+    buf_handle->offset = 0;
+    buf_handle->size = -1;
+    if (hwmem_alloc_request.mem_type == HWMEM_MEM_SCATTERED_SYS)
+    {
+        buf_handle->type = GRALLOC_BUF_TYPE_HWMEM_SCATTERED;
+    }
+    else
+    {
+        buf_handle->type = GRALLOC_BUF_TYPE_HWMEM_CONTIGUOUS;
+    }
+
+    if (!inc_buf_cnt(buf_handle, REGISTER_COUNTER))
+    {
+        ret = -errno;
+        goto inc_buf_cnt_failed;
+    }
+
+    *handle = (buffer_handle_t)buf_handle;
+
+    if (stride != NULL)
+    {
+        *stride = actual_width;
+    }
+
+    goto out;
+
+inc_buf_cnt_failed:
+    last_result = native_handle_delete((native_handle_t *)buf_handle);
+    if (last_result < 0)
+    {
+        LOG_ERROR("%s: native_handle_delete, %s. Resource leak!", __func__, strerror(-last_result));
+    }
+native_handle_create_failed:
+alloc_failed:
+    if (close(hwmem_fd) < 0)
+    {
+        LOG_ERROR("%s: close failed, %s. Resource leak!", __func__, strerror(errno));
+    }
+
+out:
+    return ret;
+}
+
+#endif
 
 static int gralloc_free(alloc_device_t* dev,
         buffer_handle_t handle)
@@ -475,7 +955,6 @@ static int gralloc_free(alloc_device_t* dev,
     return 0;
 }
 
-*/
 
 /*****************************************************************************/
 
@@ -527,7 +1006,7 @@ int module_2_hwmem_gralloc_module(struct gralloc_module_t const* module,
 {
     struct hwmem_gralloc_module_t* gralloc =
             (struct hwmem_gralloc_module_t *)module;
-
+/*
     if (NULL == gralloc || gralloc->base.common.tag != HARDWARE_MODULE_TAG ||
         gralloc->type_identifier != (int)HWMEM_GRALLOC_MODULE_TYPE_IDENTIFIER)
     {
@@ -535,6 +1014,7 @@ int module_2_hwmem_gralloc_module(struct gralloc_module_t const* module,
         errno = EINVAL;
         return 0;
     }
+*/
 
     *gralloc_out = gralloc;
 

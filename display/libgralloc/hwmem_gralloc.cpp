@@ -104,9 +104,21 @@ static int gralloc_open_device(const struct hw_module_t* module, const char* nam
 static int gralloc_register_buffer(struct gralloc_module_t const* module, buffer_handle_t handle);
 static int gralloc_unregister_buffer(struct gralloc_module_t const* module, buffer_handle_t handle);
 
+#if 0
 static int gralloc_lock(struct gralloc_module_t const* module, buffer_handle_t handle, int usage,
     int left, int top, int width, int height, void** addr);
 static int gralloc_unlock(struct gralloc_module_t const* module, buffer_handle_t handle);
+#else
+
+int gralloc_lock(gralloc_module_t const* module,
+        buffer_handle_t handle, int usage,
+        int l, int t, int w, int h,
+        void** vaddr);
+
+int gralloc_unlock(gralloc_module_t const* module,
+        buffer_handle_t handle);
+#endif
+
 
 static int gralloc_perform(struct gralloc_module_t const* module, int operation, ...);
 
@@ -324,6 +336,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module, buffer_hand
     return 0;
 }
 
+#if 0
 static int gralloc_lock(gralloc_module_t const* module, buffer_handle_t handle, int usage,
     int left, int top, int width, int height, void** addr)
 {
@@ -397,6 +410,7 @@ static int gralloc_unlock(gralloc_module_t const* module, buffer_handle_t handle
 
     return 0;
 }
+#endif
 
 static int gralloc_perform(struct gralloc_module_t const* module, int operation, ...)
 {
