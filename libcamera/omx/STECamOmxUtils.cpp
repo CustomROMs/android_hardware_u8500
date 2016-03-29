@@ -711,11 +711,11 @@ OMX_ERRORTYPE OmxUtils::init()
     return bpp;
 }
 
-/*static*/ int32_t OmxUtils::convertOmxErrorToStatus(OMX_ERRORTYPE aOmxErr)
+/*static*/ status_t OmxUtils::convertOmxErrorToStatus(OMX_ERRORTYPE aOmxErr)
 {
     DBGT_PROLOG("OmxError: %s", name(aOmxErr));
 
-    int32_t status = NO_ERROR;
+    status_t status = NO_ERROR;
 
     switch(aOmxErr) {
         case OMX_ErrorNone:

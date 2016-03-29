@@ -857,7 +857,7 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
         }
         if (NULL != buffer) {
             DBGT_PDEBUG("renderNativebuffer to preview window");
-            int32_t err = mPreviewWindow->renderNBuffer(*buffer);
+            status_t err = mPreviewWindow->renderNBuffer(*buffer);
             if (err != OK) {
                 DBGT_CRITICAL("renderNativebuffer failed err %d", (int)err);
             } else if (mPreviewDump) {          // check if preview frame has to be dump
@@ -1379,7 +1379,7 @@ int STEExtIspCamera::previewThread()
     return NO_ERROR;
 }
 
-static int32_t allocNativeBuffer(
+static status_t allocNativeBuffer(
     buffer_handle_t* handle,
     int32_t* stride,
     uint32_t w,
@@ -1392,7 +1392,7 @@ static int32_t allocNativeBuffer(
     return GrallocAlloc.alloc(w, h, format, usage, handle, stride);
 }
 
-static int32_t freeNativeBuffer(
+static status_t freeNativeBuffer(
     buffer_handle_t handle)
 {
     GraphicBufferAllocator &GrallocAlloc = GraphicBufferAllocator::get();
@@ -1417,7 +1417,7 @@ static sp<GraphicBuffer> allocGraphicBuffer(
     return graphicBuffer;
 }
 
-int32_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex)
+status_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex)
 {
     OMX_PARAM_PORTDEFINITIONTYPE dummyport;
     OmxUtils::StructWrapper<OMX_PARAM_PORTDEFINITIONTYPE>::init(dummyport);
@@ -1454,7 +1454,7 @@ int32_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, int aPort
     return OK;
 }
 
-int32_t STEExtIspCamera::setupVideoMetadata(buffer_info_t& aBuffer)
+status_t STEExtIspCamera::setupVideoMetadata(buffer_info_t& aBuffer)
 {
     camera_memory_t* clientMemory = mRequestMemoryFunc(-1,
                                                sizeof(video_metadata_t),
@@ -1473,10 +1473,10 @@ int32_t STEExtIspCamera::setupVideoMetadata(buffer_info_t& aBuffer)
 
 
 
-int32_t STEExtIspCamera::AllocateRecordHeapLocked()
+status_t STEExtIspCamera::AllocateRecordHeapLocked()
 {
     DBGT_PROLOG("");
-    int32_t ret = UNKNOWN_ERROR;
+    status_t ret = UNKNOWN_ERROR;
     if (NULL != mCam && mIsRecordHeapSet == false) {
         int i,k;
 
@@ -1580,10 +1580,10 @@ OMX_ERRORTYPE STEExtIspCamera::enableNativeBuffOnOMXComp
 
 
 
-int32_t STEExtIspCamera::AllocateStillHeapLocked()
+status_t STEExtIspCamera::AllocateStillHeapLocked()
 {
     DBGT_PROLOG("");
-    int32_t ret = OK;
+    status_t ret = OK;
 
     if (NULL != mCam && mIsStillHeapSet == false) {
         //********************************************************************************
@@ -2836,7 +2836,7 @@ OMX_ERRORTYPE STEExtIspCamera::cleanUpDspPanic(void* aArg)
 
 int STEExtIspCamera::beginDispatchThread(void *cookie)
 {
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
     reqDispatchHdl *c = (reqDispatchHdl *)cookie;
 
     if ((c!=NULL) && (c->camera!=NULL))
@@ -2857,7 +2857,7 @@ int STEExtIspCamera::dispatchThread( void* cookie )
 
     DBGT_PROLOG("Msg: 0x%08x(%d) Info1: %d Info2: %d", aMsg, aMsg, aInfo1, aInfo2);
 
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
 
     Mutex::Autolock lock(mLock);
 

@@ -16,7 +16,7 @@ inline PreviewThread<OmxBuffInfo>::PreviewThread(STECamera* aParent) :
     DBGT_EPILOG("");
 }
 
-int32_t PreviewThread<OmxBuffInfo>::handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags)
+status_t PreviewThread<OmxBuffInfo>::handleBuffer(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags)
 {
     DBGT_PROLOG("UpdateFlags: %d", aUpdateFlags);
 

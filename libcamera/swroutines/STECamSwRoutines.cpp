@@ -31,10 +31,10 @@ namespace android {
     "AIQ_UYVY422Itld_270_rotation_inplace" //ERotUYVY422Itld270DEG
 };
 
-int32_t CamSwRoutines::init()
+status_t CamSwRoutines::init()
 {
     DBGT_PROLOG("");
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
 
     mLibHandle = dlopen(STECAMSWROUTINES_SO_FILE, RTLD_NOW);
     if(NULL == mLibHandle) {

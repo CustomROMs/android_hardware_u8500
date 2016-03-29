@@ -125,7 +125,7 @@ public:
      * call back parameter may be null.
      * From CameraHardwareInterface
      */
-    virtual int32_t startPreview();
+    virtual status_t startPreview();
 
     /**
      * Stop a previously started preview, from CameraHardwareInterface
@@ -143,7 +143,7 @@ public:
      * by calling releaseRecordingFrame().
      * From CameraHardwareInterface
      */
-    virtual int32_t startRecording();
+    virtual status_t startRecording();
 
     /**
      * Stop a previously started recording, from CameraHardwareInterface
@@ -168,7 +168,7 @@ public:
      * be called again if another auto focus is needed.
      * From CameraHardwareInterface
      */
-    virtual int32_t autoFocus();
+    virtual status_t autoFocus();
 
     /**
      * Cancels auto-focus function. If the auto-focus is still in progress,
@@ -177,7 +177,7 @@ public:
      * If the camera does not support auto-focus, this is a no-op.
      * From CameraHardwareInterface
      */
-    virtual int32_t    cancelAutoFocus();
+    virtual status_t    cancelAutoFocus();
 
     /**
      * Take a picture. The raw_callback is called when
@@ -187,7 +187,7 @@ public:
      * to each of the call back routines.
      * From CameraHardwareInterface
      */
-    virtual int32_t takePicture();
+    virtual status_t takePicture();
 
     /**
      * Cancel a picture that was started with takePicture.  You may cancel any
@@ -195,7 +195,7 @@ public:
      * picture is being taken is a no-op.
      * From CameraHardwareInterface
      */
-    virtual int32_t cancelPicture();
+    virtual status_t cancelPicture();
 
 
     virtual int setParameters(const char*);
@@ -212,7 +212,7 @@ public:
      * Send command to camera driver.
      * From CameraHardwareInterface
      */
-    virtual int32_t sendCommand(int32_t cmd, int32_t arg1, int32_t arg2);
+    virtual status_t sendCommand(int32_t cmd, int32_t arg1, int32_t arg2);
 
     /**
      * Release the hardware resources owned by this object.  Note that this is
@@ -221,10 +221,10 @@ public:
      */
     virtual void release();
 
-    virtual int32_t dump(int fd) const;
+    virtual status_t dump(int fd) const;
 
 //@TODO: needs to be implemented for recording???
-    int32_t storeMetaDataInBuffers(int enable) {
+    status_t storeMetaDataInBuffers(int enable) {
         return NO_ERROR;
     }
 
@@ -265,7 +265,7 @@ private:
         CAMCORDER_MODE = 1,
         COMMON_MODE = 2
     };
-    int32_t setParameters(const CameraParameters& params);
+    status_t setParameters(const CameraParameters& params);
     static Mutex mCreateLock;
     static int beginPreviewThread(void *cookie);
     static int beginPictureThread(void *cookie);
@@ -275,8 +275,8 @@ private:
     OMX_ERRORTYPE initPrimaryDefaultParameters();
     OMX_ERRORTYPE initSecondaryDefaultParameters();
 
-    int32_t AllocateRecordHeapLocked();
-    int32_t AllocateStillHeapLocked();
+    status_t AllocateRecordHeapLocked();
+    status_t AllocateStillHeapLocked();
     void FreeRecordHeapLocked();
     void FreeStillHeapLocked();
     void cameraConfigSet();
@@ -314,7 +314,7 @@ private:
     OMX_ERRORTYPE setOrientation();
     OMX_ERRORTYPE GetExtradataField(OMX_BUFFERHEADERTYPE *pOmxBufferHdr, OMX_SYMBIAN_CONFIG_EXIFSETTINGSTYPE *pExifSettings);
     void ReconfigurePreview();
-    int32_t doStartPreview();
+    status_t doStartPreview();
     void     doStopPreview();
     void cameraReleaseOnTimeout();
 
@@ -418,9 +418,9 @@ private:
 #endif
 
     OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent,int aportIndex);
-    int32_t shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex);
-    int32_t allocatePreviewHeap();
-    int32_t setupVideoMetadata(buffer_info_t& aBuffer);
+    status_t shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex);
+    status_t allocatePreviewHeap();
+    status_t setupVideoMetadata(buffer_info_t& aBuffer);
     OMX_BOOL mbOneShot;
 };
 

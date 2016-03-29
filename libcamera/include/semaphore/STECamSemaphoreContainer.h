@@ -24,7 +24,7 @@ class SemaphoreContainer
   inline ~SemaphoreContainer();
 
   /* start */
-  inline int32_t init(uint32_t aMaxOutstandingEvents);
+  inline status_t init(uint32_t aMaxOutstandingEvents);
 
   /* Wait */
   inline void wait();
