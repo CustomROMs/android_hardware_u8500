@@ -1,3 +1,4 @@
+#include <string.h>
 /*
  * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
  *
@@ -2682,7 +2683,7 @@ void STECamera::configureVideoHeap()
 
                 DBGT_PTRACE("Extra height = %d", extraDataHeight);
 
-                int stride;
+                uint32_t stride;
                 buffer_handle_t buf;
                 int ret = GrallocAlloc.alloc(
                         w,

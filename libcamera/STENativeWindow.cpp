@@ -1,3 +1,4 @@
+#include <string.h>
  /*
  * Copyright (C) ST-Ericsson SA 2011. All rights reserved.
  *

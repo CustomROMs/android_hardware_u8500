@@ -1,3 +1,4 @@
+#include <string.h>
 /*
  * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
  *
@@ -1381,11 +1382,11 @@ int STEExtIspCamera::previewThread()
 
 static int allocNativeBuffer(
     buffer_handle_t* handle,
-    int32_t* stride,
+    uint32_t* stride,
     uint32_t w,
     uint32_t h,
     PixelFormat format = HAL_PIXEL_FORMAT_YCBCR42XMBN,
-    int usage = CAMHAL_GRALLOC_USAGE)
+    uint32_t usage = CAMHAL_GRALLOC_USAGE)
 {
 
     GraphicBufferAllocator &GrallocAlloc = GraphicBufferAllocator::get();
@@ -1483,7 +1484,7 @@ int STEExtIspCamera::AllocateRecordHeapLocked()
         enableNativeBuffOnOMXComp(mCam, CAM_VPB+0);
         for (int i = 0; i< kRecordBufferCount; i++) {
             buffer_handle_t buf;
-            int32_t stride;
+            uint32_t stride;
 
             int tempVPB0Width= mVPB0Width;
             int tempVPB0Height= mVPB0Height;
@@ -1637,7 +1638,7 @@ int STEExtIspCamera::AllocateStillHeapLocked()
         enableNativeBuffOnOMXComp(mCam, CAM_VPB+1);
 
         buffer_handle_t buf;
-        int stride;
+        uint32_t stride;
         ret = allocNativeBuffer(&buf, &stride, picture_width, virtualHeight);
         if (OK != ret) {
             LOGE("Image Buffer Allocation Failed!!");
