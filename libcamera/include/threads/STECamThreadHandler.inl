@@ -34,7 +34,7 @@ ThreadHandler<T>::~ThreadHandler()
 }
 
 template<typename T>
-inline int32_t ThreadHandler<T>::init(uint32_t aMaxEvents, bool aSignalCompletion, const char* aName,
+inline status_t ThreadHandler<T>::init(uint32_t aMaxEvents, bool aSignalCompletion, const char* aName,
                                        int32_t aPriority, size_t aStack)
 {
     DBGT_PROLOG("Signal completion: %d", aSignalCompletion);
@@ -45,7 +45,7 @@ inline int32_t ThreadHandler<T>::init(uint32_t aMaxEvents, bool aSignalCompletio
     //check
     DBGT_ASSERT(0 != aMaxEvents, "Max events is 0");
 
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
 
     err = mQueue.init(aMaxEvents);
 	if(NO_ERROR != err) {
@@ -126,11 +126,11 @@ inline void ThreadHandler<T>::selfDestroy()
 }
 
 template<typename T>
-inline int32_t ThreadHandler<T>::flush()
+inline status_t ThreadHandler<T>::flush()
 {
     DBGT_PROLOG("");
 
-    int32_t err = NO_ERROR;
+    status_t err = NO_ERROR;
 
     //check thread active
     DBGT_ASSERT(mIsThreadActive, "Thread not active");
@@ -198,14 +198,14 @@ inline void ThreadHandler<T>::request(T& aData, bool aCheckRequestQueueFull/* = 
 }
 
 template<typename T>
-inline int32_t ThreadHandler<T>::waitForCompletion()
+inline status_t ThreadHandler<T>::waitForCompletion()
 {
     DBGT_PROLOG("");
 
     //wait
     mCompletionSem.wait();
 
-    int32_t err = mLastRequest;
+    status_t err = mLastRequest;
 
 	DBGT_EPILOG("");
 	return (int)mLastRequest;
@@ -267,7 +267,7 @@ bool ThreadHandler<T>::threadLoop()
 }
 
 template<typename T>
-inline int32_t ThreadHandler<T>::handleFlush(T& aData)
+inline status_t ThreadHandler<T>::handleFlush(T& aData)
 {
     DBGT_PROLOG("");
 

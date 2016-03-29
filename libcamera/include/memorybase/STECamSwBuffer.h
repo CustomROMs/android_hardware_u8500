@@ -24,7 +24,7 @@ public:
 
 private:
     /* Alloc, from CamBuffer */
-    virtual int32_t alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
+    virtual status_t alloc(const sp<IMemoryHeap>& aHeap, ssize_t aOffset, size_t aSize);
 
     /* De-alloc, from CamBuffer */
     virtual void dealloc();

@@ -59,7 +59,7 @@ class ReqHandlerThread<ReqHandlerThreadData> : public ThreadHandler<ReqHandlerTh
   virtual void request(ReqHandlerThreadData& aData, bool aCheckRequestQueueFull = false);
 
   /* Handle request, from ThreadHandler */
-  virtual int32_t handleRequest(ReqHandlerThreadData& aData);
+  virtual status_t handleRequest(ReqHandlerThreadData& aData);
 
  private:
   STECamera* mParent;
