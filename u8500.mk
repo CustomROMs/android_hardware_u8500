@@ -5,14 +5,13 @@ $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 
 # STE Display 
 PRODUCT_PACKAGES += \
-   lights.montblanc \
+   libblt_hw
    libgralloc-shim \
    libUMP-shim \
-   gralloc.montblanc \
-   libgralloc-shim \
-   hwcomposer.montblanc \
    copybit.montblanc \
-   libblt_hw
+   gralloc.montblanc \
+   hwcomposer.montblanc \
+   lights.montblanc
 
 # STE Media
 PRODUCT_PACKAGES += \
@@ -27,11 +26,14 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
    iw
 
-
 # STE Compat Symbols
 PRODUCT_PACKAGES += \
-    libcamera_symbols \
-    libicuuc_51
+   libste_symbols
+
+# STE Camera
+PRODUCT_PACKAGES += \
+    camera.montblanc \
+    libcamera_symbols 
 
 # RIL
 PRODUCT_PACKAGES += \
