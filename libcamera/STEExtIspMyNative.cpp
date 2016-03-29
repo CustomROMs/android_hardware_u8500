@@ -54,7 +54,7 @@ MyNativeWindow::MyNativeWindow(PFMMCreateNativeBuffer aCreate, PFMMDestroyNative
     DBGT_PTRACE("MyNativeWindow IN");
 }
 
-status_t MyNativeWindow::init(
+int32_t MyNativeWindow::init(
         preview_stream_ops_t* aWindow,
         camera_request_memory aRequestMemoryFunc,
         int width, int height,
@@ -75,7 +75,7 @@ status_t MyNativeWindow::init(
         return NO_MEMORY;
     }
 
-    status_t err = mSTENativeWindow->init(
+    int32_t err = mSTENativeWindow->init(
                        width,
                        height,
                        pixelFormat,
@@ -109,12 +109,12 @@ status_t MyNativeWindow::init(
 
 
 
-status_t MyNativeWindow::fetchNBufferFromNativeWindow_l(void)
+int32_t MyNativeWindow::fetchNBufferFromNativeWindow_l(void)
 {
     DBGT_PROLOG("");
 
     mTotalNumOfNativeBuff = kPreviewBufferCount + mSTENativeWindow->getMinUndequeuedBufferCount();
-    status_t err = mSTENativeWindow->setBufferCount(mTotalNumOfNativeBuff);
+    int32_t err = mSTENativeWindow->setBufferCount(mTotalNumOfNativeBuff);
     if(OK != err) {
         DBGT_CRITICAL("MyNativeWindow::setBufferCount() failed err = %d", err);
         DBGT_EPILOG("");
@@ -168,7 +168,7 @@ CANCEL_BUFFERS:
 }
 
 
-status_t MyNativeWindow::setupNBuffersForPreview_l()
+int32_t MyNativeWindow::setupNBuffersForPreview_l()
 {
 
     buffer_handle_t buf;

@@ -31,7 +31,7 @@ class Queue
         /* Check if queue full */
         inline bool isFull();
         /* Init */
-        inline status_t init(uint32_t aLength);
+        inline int32_t init(uint32_t aLength);
 
         /* Add */
         inline void add(T* const aElem);

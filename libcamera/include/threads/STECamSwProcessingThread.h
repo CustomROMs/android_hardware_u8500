@@ -43,7 +43,7 @@ public:
     inline SwProcessingThread(STECamera* aParent);
 
     /* Handle request, from ThreadHandler */
-    virtual status_t handleRequest(SwProcessingThreadData& aData);
+    virtual int32_t handleRequest(SwProcessingThreadData& aData);
 
 private:
     STECamera* mParent;
