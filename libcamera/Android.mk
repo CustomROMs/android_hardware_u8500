@@ -10,16 +10,16 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 #Detect platform
-include $(LOCAL_PATH)/Android.det
+include $(LOCAL_PATH)/internal.det
 
 #Compile-time options
-include $(LOCAL_PATH)/Android.opt
+include $(LOCAL_PATH)/internal.opt
 
 #Debug options
-include $(LOCAL_PATH)/Android.dbg
+include $(LOCAL_PATH)/internal.dbg
 
 #Work-arounds
-include $(LOCAL_PATH)/Android.wa
+include $(LOCAL_PATH)/internal.wa
 
 #Multimedia includes
 MULTIMEDIA_PATH := $(LOCAL_PATH)/../multimedia
