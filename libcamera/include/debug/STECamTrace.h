@@ -340,33 +340,11 @@
 /* Warning, value to give to setprop is in hexadecimal! */
 #define DBGT_TRACE_INIT(name)                                             \
     do {                                                                  \
-        if (strlen(STR(DBGT_TRACE_NAME(#name))) > PROPERTY_KEY_MAX) {     \
-            ALOGE("[DBGT]! Property key name [" STR(DBGT_TRACE_NAME(#name))\
-                 "] exceed %d char length, will be cut to %d...",         \
-                 PROPERTY_KEY_MAX, PROPERTY_KEY_MAX);                     \
-        } else {                                                          \
-            GET_PROPERTY(STR(DBGT_TRACE_NAME(#name)), value, "0");        \
-            DBGT_VAR = strtoul(value, NULL, 16);                          \
-            if (DBGT_VAR > 0) {                                           \
-                ALOGI("[DBGT]["STR(DBGT_TRACE_NAME(#name))                 \
-                     "] enabled with level 0x%x", DBGT_VAR);              \
-            } else {                                                      \
-                ALOGI("[DBGT]["STR(DBGT_TRACE_NAME(#name))                 \
-                     "] disabled");                                       \
-            }                                                             \
-        }                                                                 \
     } while (0)
 
 /* To allow update of trace level at run-time */
 #define DBGT_SET_TRACE_LEVEL(level)                               \
     do {                                                          \
-            DBGT_VAR = level;                                     \
-            if (DBGT_VAR > 0) {                                   \
-                ALOGI("[DBGT] trace set to level 0x%x", DBGT_VAR); \
-            } else {                                              \
-                ALOGI("[DBGT] trace set to 0, trace is disabled"); \
-            }                                                     \
-        }                                                         \
     } while (0)
 
 

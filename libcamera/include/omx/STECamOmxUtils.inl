@@ -7,6 +7,7 @@
 
 #ifndef STECAMOMXUTILS_INL
 #define STECAMOMXUTILS_INL
+#include <string.h>
 #include "STECamTrace.h"
 
 inline OMXCoreInterface* OmxUtils::interface()

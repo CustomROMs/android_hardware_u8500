@@ -5,7 +5,7 @@ $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 
 # STE Display 
 PRODUCT_PACKAGES += \
-   libblt_hw
+   libblt_hw \
    libgralloc-shim \
    libUMP-shim \
    copybit.montblanc \
