@@ -9,6 +9,8 @@
 #define DBGT_LAYER 1
 #define DBGT_PREFIX "DynSet"
 
+#define CAM_ASSERT_COMPILE(x) ;
+
 //System includes
 #include <string.h>
 

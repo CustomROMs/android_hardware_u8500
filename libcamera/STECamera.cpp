@@ -9,6 +9,8 @@
  * specific written permission of ST-Ericsson SA.
  */
 
+#define CAM_ASSERT_COMPILE(x) ;
+
 //System includes
 #include <sys/ioctl.h>
 #include <dlfcn.h>
