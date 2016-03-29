@@ -42,7 +42,7 @@ public:
      };
 
   /*init to load symbols*/
-  static status_t init();
+  static int32_t init();
 
   /*Deinit to unload symbols*/
   static inline void deinit();

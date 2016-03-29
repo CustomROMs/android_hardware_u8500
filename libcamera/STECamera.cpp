@@ -1286,11 +1286,11 @@ OMX_ERRORTYPE STECamera::initThumbnailHandler()
     return err;
 }
 
-status_t STECamera::initFocusHandler()
+int32_t STECamera::initFocusHandler()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
     mAutoFocusHandler = new AutoFocusHandler(this);
     if (NULL == mAutoFocusHandler) {
@@ -1320,11 +1320,11 @@ status_t STECamera::initFocusHandler()
     return status;
 }
 
-status_t STECamera::initImageRotHandler()
+int32_t STECamera::initImageRotHandler()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
 #if ENABLE_IMAGE_ROTATION==CAM_IMAGE_ROTATION_DEVICE
     mDeviceHwRotation = new DeviceHwRotation(this);
@@ -1409,11 +1409,11 @@ void STECamera::setupReqCbHandlers()
     DBGT_EPILOG("");
 }
 
-status_t STECamera::initGlobalParams()
+int32_t STECamera::initGlobalParams()
 {
     DBGT_PROLOG("");
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     //Port definitions
     OmxUtils::StructWrapper<OMX_PARAM_PORTDEFINITIONTYPE>::init(paramPortVPB0);
@@ -1831,11 +1831,11 @@ OMX_ERRORTYPE STECamera::initSecondaryDefaultParameters()
     return err;
 }
 
-status_t STECamera::initThreads()
+int32_t STECamera::initThreads()
 {
     DBGT_PROLOG("");
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
 #define ALLOC_THREAD(type, data) {\
     type##Thread<data>* thread = new type##Thread<data>(this);\
@@ -3217,7 +3217,7 @@ OMX_ERRORTYPE STECamera::ReconfigureVFStill(bool aReconfigureHeap /*= true*/)
 
     if (previewPortEnabled) {
         if (previewRunning) {
-            status_t status = flushViewFinderBuffers();
+            int32_t status = flushViewFinderBuffers();
             if (NO_ERROR != status) {
                 DBGT_CRITICAL("OMX_ErrorUndefined - flushViewFinderBuffers failed");
                 DBGT_EPILOG("");
@@ -3360,7 +3360,7 @@ OMX_ERRORTYPE STECamera::ReconfigureVFVideo(bool aReconfigureHeap /*= true*/,
     if (aReconfigureVPB0) {
         if (previewPortEnabled)
             if (previewRunning) {
-                status_t status = flushViewFinderBuffers();
+                int32_t status = flushViewFinderBuffers();
                 if (NO_ERROR != status) {
                     DBGT_CRITICAL("OMX_ErrorUndefined - flushViewFinderBuffers failed");
                     DBGT_EPILOG("");
@@ -3379,7 +3379,7 @@ OMX_ERRORTYPE STECamera::ReconfigureVFVideo(bool aReconfigureHeap /*= true*/,
     // If Hi Res VF is enabled then port 2 is already disabled above
     if (!mHiResVFEnabled) {
         //flush pending buffers
-        status_t status = flushVideoBuffers();
+        int32_t status = flushVideoBuffers();
         if (NO_ERROR != status) {
             DBGT_CRITICAL("OMX_ErrorUndefined - flushVideoBuffers failed");
             DBGT_EPILOG("");
@@ -3762,7 +3762,7 @@ STECamera::~STECamera()
 }
 
 
-status_t STECamera::setPreviewWindow(struct preview_stream_ops *window)
+int32_t STECamera::setPreviewWindow(struct preview_stream_ops *window)
 {
     DBGT_PROLOG("");
     DBGT_PTRACE("Preview Native window - %p", window);
@@ -3912,7 +3912,7 @@ OMX_ERRORTYPE STECamera::enableNativeBuffOnOMXComp(
     DBGT_EPILOG("");
     return err;
 }
-status_t STECamera::getNativeBuffFromNativeWindow(void)
+int32_t STECamera::getNativeBuffFromNativeWindow(void)
 {
     DBGT_PROLOG("");
 
@@ -3977,7 +3977,7 @@ status_t STECamera::getNativeBuffFromNativeWindow(void)
             extraDataHeight);
 
     /* Inform display framework about preview frame h, w and format */
-    status_t err = mPreviewWindow->init(
+    int32_t err = mPreviewWindow->init(
             preview_width,
             preview_height + extraDataHeight,
             pixelColor,
@@ -4057,7 +4057,7 @@ CANCEL_BUFFERS:
     return -1;  //unable to get required native buffers from native window
 }
 
-status_t STECamera::shareNativeBuffWithOMXPorts(bool aPreviewRunning /*false*/)
+int32_t STECamera::shareNativeBuffWithOMXPorts(bool aPreviewRunning /*false*/)
 {
     DBGT_PROLOG("aPreviewRunning %d", aPreviewRunning);
 
@@ -4211,7 +4211,7 @@ void  STECamera::cancelAllNativeBuffers(void)
     DBGT_EPILOG("");
 }
 
-status_t STECamera::sendCancelReqToNativeWindow(int index)
+int32_t STECamera::sendCancelReqToNativeWindow(int index)
 {
     DBGT_PROLOG("");
 
@@ -4224,7 +4224,7 @@ status_t STECamera::sendCancelReqToNativeWindow(int index)
             mGraphicBuffer[index]->handle,
             mPreviewOmxBuffInfo[index].mFlags);
 
-    status_t err = mPreviewWindow->cancelBuffer(mGraphicBuffer[index]->handle);
+    int32_t err = mPreviewWindow->cancelBuffer(mGraphicBuffer[index]->handle);
     if (OK != err) {
         DBGT_CRITICAL("STENativeWindow::cancelBuffer() failed");
         DBGT_EPILOG("");
@@ -4249,7 +4249,7 @@ void  STECamera::cancelCameraHalNativeBuffers(void)
     DBGT_EPILOG("");
 }
 
-status_t STECamera::sendCancelReqToCameraHalNativeWindow(int index)
+int32_t STECamera::sendCancelReqToCameraHalNativeWindow(int index)
 {
     DBGT_PROLOG("");
 
@@ -4266,7 +4266,7 @@ status_t STECamera::sendCancelReqToCameraHalNativeWindow(int index)
             mGraphicBuffer[index]->handle,
             mPreviewOmxBuffInfo[index].mFlags);
 
-    status_t err = mPreviewWindow->cancelBuffer(mGraphicBuffer[index]->handle);
+    int32_t err = mPreviewWindow->cancelBuffer(mGraphicBuffer[index]->handle);
     if (OK != err) {
         DBGT_CRITICAL("STENativeWindow::cancelBuffer() failed");
         DBGT_EPILOG("");
@@ -4285,7 +4285,7 @@ status_t STECamera::sendCancelReqToCameraHalNativeWindow(int index)
      collect preview frame.This API should be called from
      "fillthisbuffer" or "fillbuffer" function.
 */
-status_t STECamera::getLockForNativeBuffer(int index)
+int32_t STECamera::getLockForNativeBuffer(int index)
 {
     DBGT_PROLOG("");
 
@@ -4303,7 +4303,7 @@ status_t STECamera::getLockForNativeBuffer(int index)
             mGraphicBuffer[index]->handle,
             mPreviewOmxBuffInfo[index].mFlags);
 
-    status_t err = mPreviewWindow->lockBuffer(mGraphicBuffer[index]->handle);
+    int32_t err = mPreviewWindow->lockBuffer(mGraphicBuffer[index]->handle);
     if (OK != err) {
         DBGT_CRITICAL("STENativeWindow::lockBuffer() failed");
         DBGT_EPILOG("");
@@ -4322,7 +4322,7 @@ int STECamera::dequeueNativeBuffer(void)
 
     /* Get one native buffer from display framework. */
     buffer_handle_t *buf;
-    status_t err = mPreviewWindow->dequeueBuffer(
+    int32_t err = mPreviewWindow->dequeueBuffer(
                     &buf, NULL);
     if (OK != err) {
         DBGT_CRITICAL("STENativeWindow::dequeueBuffer() failed");
@@ -4371,7 +4371,7 @@ int  STECamera::findNativeBuffIndex(buffer_handle_t *bufHandle)
     return index;
 }
 
-status_t STECamera::renderNativeBuffer(int index)
+int32_t STECamera::renderNativeBuffer(int index)
 {
     DBGT_PROLOG("");
 
@@ -4392,7 +4392,7 @@ status_t STECamera::renderNativeBuffer(int index)
             mGraphicBuffer[index]->handle,
             mPreviewOmxBuffInfo[index].mFlags);
 
-    status_t err = mPreviewWindow->enqueueBuffer(mGraphicBuffer[index]->handle);
+    int32_t err = mPreviewWindow->enqueueBuffer(mGraphicBuffer[index]->handle);
     if (OK != err) {
         DBGT_CRITICAL("STENativeWindow::enqueueBuffer() failed");
         DBGT_EPILOG("");
@@ -4456,12 +4456,12 @@ int STECamera::msgTypeEnabled(int32_t msgType)
 }
 
 // ---------------------------------------------------------------------------
-status_t STECamera::doPreviewProcessing(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags)
+int32_t STECamera::doPreviewProcessing(OmxBuffInfo& aData, OMX_BOOL& aUpdateFlags)
 {
     DBGT_PROLOG("");
 
     int  index;
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     Mutex::Autolock prevLock(mPrevLock);
     Mutex::Autolock lock(mLock);
@@ -4675,11 +4675,11 @@ void STECamera::getCropVectorForZoom(int& lx, int& ly, size_t& w, size_t& h, boo
     DBGT_EPILOG();
 }
 
-status_t STECamera::doRecordProcessing(OmxBuffInfo& aData)
+int32_t STECamera::doRecordProcessing(OmxBuffInfo& aData)
 {
     DBGT_PROLOG("");
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     Mutex::Autolock lock(mLock);
 
@@ -4788,7 +4788,7 @@ OMX_ERRORTYPE STECamera::configureCamMode(int aCamMode, bool aStillZSL)
     DBGT_ASSERT((aCamMode == EStill) || (aCamMode == EVideo), "Invalide Camera Mode");
 
     OMX_ERRORTYPE err = OMX_ErrorNone;
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
     DBGT_PINFO("CONFIGURING CAMERA - MODE %d", aCamMode);
 
@@ -5461,7 +5461,7 @@ OMX_ERRORTYPE STECamera::doStillModeConfig(bool aPreviewRunning /*false*/)
     camera_sem_wait(&stateCam_sem, SEM_WAIT_TIMEOUT);
 
 #ifdef CAM_REINIT_CAM_PROP
-    status_t status = applyCameraProperties(mParameters);
+    int32_t status = applyCameraProperties(mParameters);
     if (NO_ERROR != status) {
         DBGT_CRITICAL("OMX_ErrorUndefined - applyCameraProperties failed");
         DBGT_EPILOG("");
@@ -5855,7 +5855,7 @@ OMX_ERRORTYPE STECamera::doVideoModeConfig(bool aPreviewRunning /*false*/)
     camera_sem_wait(&stateCam_sem, SEM_WAIT_TIMEOUT);
 
 #ifdef CAM_REINIT_CAM_PROP
-    status_t status = applyCameraProperties(mParameters);
+    int32_t status = applyCameraProperties(mParameters);
     if (NO_ERROR != status) {
         DBGT_CRITICAL("applyCameraProperties failed - OMX_ErrorUndefined");
         DBGT_EPILOG("");
@@ -5932,11 +5932,11 @@ OMX_ERRORTYPE STECamera::supplyRecordBuffers()
     return err;
 }
 
-status_t STECamera::startPreview()
+int32_t STECamera::startPreview()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     if(mPreviewRunning)
     {
         if((mCamMode == EVideo) && (mPreviousCamMode == EVideo) && !mIsrecordsizechanged  && !mIspreviewsizechanged)
@@ -5964,11 +5964,11 @@ status_t STECamera::startPreview()
     return status;
 }
 
-status_t STECamera::doStartPreview()
+int32_t STECamera::doStartPreview()
 {
     DBGT_PROLOG("");
     OMX_ERRORTYPE err = OMX_ErrorNone;
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
     isStartPreview = true;
 
@@ -6127,11 +6127,11 @@ bool STECamera::checkPreviewEnabled()
     return previewRunning;
 }
 
-status_t STECamera::startRecording()
+int32_t STECamera::startRecording()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     OMX_ERRORTYPE err = OMX_ErrorNone;
     int top, left, width, height;
     OMX_COLOR_FORMATTYPE eColorFormat;
@@ -6658,11 +6658,11 @@ void STECamera::releaseRecordingFrame(const void *mem)
     DBGT_EPILOG("");
 }
 
-status_t STECamera::doAutoFocusProcessing(AutoFocusThreadData &aData)
+int32_t STECamera::doAutoFocusProcessing(AutoFocusThreadData &aData)
 {
     DBGT_PROLOG("Enabled: %d", aData.mEnabled);
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     Mutex::Autolock lock(mLock);
 
@@ -6751,11 +6751,11 @@ OMX_ERRORTYPE STECamera::checkForShakeDetection(void* aArg)
     return err;
 }
 
-status_t STECamera::autoFocus()
+int32_t STECamera::autoFocus()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     OMX_ERRORTYPE err ;
     Mutex::Autolock lock(mLock);
 
@@ -6803,11 +6803,11 @@ status_t STECamera::autoFocus()
     return status;
 }
 
-status_t STECamera::cancelAutoFocus()
+int32_t STECamera::cancelAutoFocus()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     OMX_ERRORTYPE err = OMX_ErrorNone;
 
     Mutex::Autolock lock(mLock);
@@ -7049,11 +7049,11 @@ int STECamera::pictureThread()
     return NO_ERROR;
 }
 
-status_t STECamera::takePicture()
+int32_t STECamera::takePicture()
 {
     DBGT_PROLOG("");
     OMX_ERRORTYPE err = OMX_ErrorNone;
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
     // Check if HiResVF Feature is enabled OR
     // Check if Preview not enabled, dispatch error
@@ -7177,7 +7177,7 @@ status_t STECamera::takePicture()
     return status;
 }
 
-status_t STECamera::cancelPicture()
+int32_t STECamera::cancelPicture()
 {
     DBGT_PROLOG("");
 
@@ -7556,7 +7556,7 @@ OMX_ERRORTYPE STECamera::ReconfigureJpegQuality(const ImageInfo &aPictureInfo)
 }
 
 
-status_t STECamera::setParameters(const char* parameters)
+int32_t STECamera::setParameters(const char* parameters)
 {
     CameraParameters params;
 
@@ -7567,12 +7567,12 @@ status_t STECamera::setParameters(const char* parameters)
     return setParameters(params);
 }
 
-status_t STECamera::setParameters(const CameraParameters &params)
+int32_t STECamera::setParameters(const CameraParameters &params)
 {
     DBGT_PROLOG("");
 
     OMX_ERRORTYPE err = OMX_ErrorNone;
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     bool previewRunning = previewEnabled();
     bool recordRunning = recordingEnabled();
 
@@ -8339,7 +8339,7 @@ bool STECamera::updateThumbnailQuality(int &aThumbnailQuality)
     return false;
 }
 
-status_t STECamera::applyCameraProperties(const CameraParameters &aParams)
+int32_t STECamera::applyCameraProperties(const CameraParameters &aParams)
 {
     DBGT_PROLOG("");
 
@@ -10097,12 +10097,12 @@ OMX_ERRORTYPE STECamera::stopSmoothZoom()
     return err;
 }
 
-status_t STECamera::sendCommand(int32_t command, int32_t arg1,
+int32_t STECamera::sendCommand(int32_t command, int32_t arg1,
                                 int32_t arg2)
 {
     DBGT_EPILOG("Command: %d Arg1: %d Arg2: %d", command, arg1, arg2);
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
     OMX_ERRORTYPE err = OMX_ErrorNone;
 
     switch (command) {
@@ -10282,7 +10282,7 @@ int STECamera::SetPropWhiteBalance(const CameraParameters &params, OMX_HANDLETYP
     return err;
 }
 
-status_t STECamera::SetPropFocus(const CameraParameters &params, OMX_HANDLETYPE mCam,  bool aSetControl /*=false*/)
+int32_t STECamera::SetPropFocus(const CameraParameters &params, OMX_HANDLETYPE mCam,  bool aSetControl /*=false*/)
 {
     DBGT_PROLOG("");
 
@@ -11027,11 +11027,11 @@ void STECamera::resetProperties()
     DBGT_EPILOG("");
 }
 
-status_t STECamera::setupRawSwConProcessing(const char* const aFormat, int aWidth, int aHeight)
+int32_t STECamera::setupRawSwConProcessing(const char* const aFormat, int aWidth, int aHeight)
 {
      DBGT_PROLOG("Format: %s Width: %d Height: %d", aFormat, aWidth, aHeight);
 
-    status_t rc = NO_ERROR;
+    int32_t rc = NO_ERROR;
 
 #ifdef ENABLE_SW_CONVERSION_OF_YUV420PLANAR_PREVIEW_FORMATS
     //check if format requires any sw processing
@@ -11093,11 +11093,11 @@ status_t STECamera::setupRawSwConProcessing(const char* const aFormat, int aWidt
     return rc;
 }
 
-status_t STECamera::setupPreviewSwConProcessing(const char* const aFormat)
+int32_t STECamera::setupPreviewSwConProcessing(const char* const aFormat)
 {
     DBGT_PROLOG("Format: %s", aFormat);
 
-    status_t rc = NO_ERROR;
+    int32_t rc = NO_ERROR;
 
 #ifdef ENABLE_SW_CONVERSION_OF_YUV420PLANAR_PREVIEW_FORMATS
 
@@ -11142,11 +11142,11 @@ status_t STECamera::setupPreviewSwConProcessing(const char* const aFormat)
     return rc;
 }
 
-status_t STECamera::setupPreviewSwBuffers(int aWidth, int aHeight)
+int32_t STECamera::setupPreviewSwBuffers(int aWidth, int aHeight)
 {
     DBGT_PROLOG("Width: %d Height: %d", aWidth, aHeight);
 
-    status_t rc = NO_ERROR;
+    int32_t rc = NO_ERROR;
 
 #ifdef ENABLE_SW_CONVERSION_OF_YUV420PLANAR_PREVIEW_FORMATS
     //Possible HW formats are YUV422I and RGB565, both 16bpp
@@ -11411,11 +11411,11 @@ void STECamera::setupXP70Traces()
     return;
 }
 
-status_t STECamera::flushViewFinderBuffers(bool aFlushCamera /*= true */)
+int32_t STECamera::flushViewFinderBuffers(bool aFlushCamera /*= true */)
 {
     DBGT_PROLOG("FlushCamera: %d", aFlushCamera);
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
     int portIndex = CAM_VPB;
 
     if (mHiResVFEnabled) // If Hi Res VF is enabled flush buffers on port2
@@ -11432,7 +11432,7 @@ status_t STECamera::flushViewFinderBuffers(bool aFlushCamera /*= true */)
     }
 
     //flush all preview threads
-    status_t status = mSwProcessingThread->get()->flush();
+    int32_t status = mSwProcessingThread->get()->flush();
     if (NO_ERROR != status) {
         DBGT_CRITICAL("SwProcessingThread Flush failed status = %d", status);
         DBGT_EPILOG("");
@@ -11450,11 +11450,11 @@ status_t STECamera::flushViewFinderBuffers(bool aFlushCamera /*= true */)
     return err;
 }
 
-status_t STECamera::flushVideoBuffers(bool aFlushCamera /*= true */)
+int32_t STECamera::flushVideoBuffers(bool aFlushCamera /*= true */)
 {
     DBGT_PROLOG("FlushCamera: %d", aFlushCamera);
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     if (aFlushCamera) {
         /* Flush all pending buffers*/
@@ -11467,7 +11467,7 @@ status_t STECamera::flushVideoBuffers(bool aFlushCamera /*= true */)
     }
 
     //flush all preview threads
-    status_t status = mRecordThread->get()->flush();
+    int32_t status = mRecordThread->get()->flush();
     if (NO_ERROR != status) {
         DBGT_CRITICAL("mRecordThread Flush failed status = %d", status);
         DBGT_EPILOG("");
@@ -11478,13 +11478,13 @@ status_t STECamera::flushVideoBuffers(bool aFlushCamera /*= true */)
     return err;
 }
 
-status_t STECamera::doCallbackProcessing(ReqHandlerThreadData &aData)
+int32_t STECamera::doCallbackProcessing(ReqHandlerThreadData &aData)
 {
     DBGT_PROLOG("Msg: %d(0x%08x) Info1: %d Info2: %d",
         aData.mMsg, aData.mMsg,
         aData.mInfo1, aData.mInfo2);
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     Mutex::Autolock lock(mLock);
 
@@ -11594,7 +11594,7 @@ OMX_ERRORTYPE STECamera::doRawProcessing(void* aArg)
             return OMX_ErrorUndefined;
         }
 
-        status_t error = getLockForNativeBuffer(index);
+        int32_t error = getLockForNativeBuffer(index);
         if (error != OK) {
             DBGT_CRITICAL("STENativeWindow::dequeueBuffer() failed buff err (%d)",error);
             err = OMX_ErrorUndefined;
@@ -11709,7 +11709,7 @@ OMX_ERRORTYPE STECamera::doStopRecording()
     }
 
     //flush video buffers
-    status_t status = flushVideoBuffers();
+    int32_t status = flushVideoBuffers();
     if (NO_ERROR != status ) {
         DBGT_CRITICAL("flushVideoBuffers failed err - OMX_ErrorUndefined");
         DBGT_EPILOG("");
@@ -11764,7 +11764,7 @@ OMX_ERRORTYPE STECamera::doStopPreview()
         // mPreviewWindow is initialized or not
         if (mPreviewWindow && !mIsStillZSL) {
             //flush pending buffers
-            status_t status = flushViewFinderBuffers();
+            int32_t status = flushViewFinderBuffers();
             if(NO_ERROR != status) {
                 DBGT_CRITICAL("flushViewFinderBuffers failed err = OMX_ErrorUndefined");
                 DBGT_EPILOG("");
@@ -12143,11 +12143,11 @@ OMX_ERRORTYPE STECamera::postOMXConfigStartVideoRecord()
     return err;
 }
 
-status_t STECamera::initProcessingBuffers()
+int32_t STECamera::initProcessingBuffers()
 {
     DBGT_PROLOG("");
 
-    status_t err = NO_ERROR;
+    int32_t err = NO_ERROR;
 
     /* Processign Buffers are setup one time.
      * They're deleted in ~OmxBuffInfo and not in OmxBuffInfo::clear()
@@ -12256,11 +12256,11 @@ void STECamera::getCropVector(OMX_U8* apTmp, uint32_t& aLx,
     DBGT_EPILOG("");
 }
 
-status_t STECamera::UpdateVideoStabStatus()
+int32_t STECamera::UpdateVideoStabStatus()
 {
     DBGT_PROLOG("");
 
-    status_t status = NO_ERROR;
+    int32_t status = NO_ERROR;
 
 #ifdef ENABLE_VIDEO_STAB
     OMX_ERRORTYPE err = OMX_ErrorNone;

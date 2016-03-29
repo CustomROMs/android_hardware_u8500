@@ -83,7 +83,7 @@ void ReqHandlerThread<ReqHandlerThreadData>::request(ReqHandlerThreadData& aData
     return;
 }
 
-status_t ReqHandlerThread<ReqHandlerThreadData>::handleRequest(ReqHandlerThreadData& aData)
+int32_t ReqHandlerThread<ReqHandlerThreadData>::handleRequest(ReqHandlerThreadData& aData)
 {
     DBGT_PROLOG("Arg: %p", aData.mArg);
 
