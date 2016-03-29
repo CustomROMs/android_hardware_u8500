@@ -928,18 +928,18 @@ namespace android {
 
             ::ImageInfo.ThumbnailSize = inThumbBufSize;
             if(NULL != params.get( CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH)) {
-                ::ImageInfo.ThumbnailWidth = params.getInt( CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH);
-                DBGT_PTRACE("KEY_JPEG_THUMBNAIL_WIDTH value set = %d", ::ImageInfo.ThumbnailWidth);
+               // ::ImageInfo.ThumbnailWidth = params.getInt( CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH);
+               // DBGT_PTRACE("KEY_JPEG_THUMBNAIL_WIDTH value set = %d", ::ImageInfo.ThumbnailWidth);
             }else{
                 DBGT_PTRACE("KEY_JPEG_THUMBNAIL_WIDTH not set");
-                ::ImageInfo.ThumbnailWidth = 0;
+               // ::ImageInfo.ThumbnailWidth = 0;
             }
             if(NULL != params.get( CameraParameters::KEY_JPEG_THUMBNAIL_HEIGHT)) {
-                ::ImageInfo.ThumbnailHeight = params.getInt( CameraParameters::KEY_JPEG_THUMBNAIL_HEIGHT);
-                DBGT_PTRACE("KEY_JPEG_THUMBNAIL_HEIGHT value set = %d", ::ImageInfo.ThumbnailHeight);
+              //  ::ImageInfo.ThumbnailHeight = params.getInt( CameraParameters::KEY_JPEG_THUMBNAIL_HEIGHT);
+              //  DBGT_PTRACE("KEY_JPEG_THUMBNAIL_HEIGHT value set = %d", ::ImageInfo.ThumbnailHeight);
             }else{
-                DBGT_PTRACE("KEY_JPEG_THUMBNAIL_HEIGHT not set");
-                ::ImageInfo.ThumbnailHeight = 0;
+              //  DBGT_PTRACE("KEY_JPEG_THUMBNAIL_HEIGHT not set");
+              //  ::ImageInfo.ThumbnailHeight = 0;
             }
         }else{
             ::ImageInfo.ThumbnailSize = 0;

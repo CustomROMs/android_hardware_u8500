@@ -8,6 +8,8 @@
 #ifndef STECAMUTILS_H
 #define STECAMUTILS_H
 
+#define CAM_ASSERT_COMPILE(x) ;
+
 //Internal Includes
 #include "STECamTrace.h"
 
