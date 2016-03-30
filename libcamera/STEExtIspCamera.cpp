@@ -899,6 +899,7 @@ void STEExtIspCamera::releaseRecordingFrame(const void* mem)
 
 // ---------------------------------------------------------------------------
 
+#if 0
 int STEExtIspCamera::autoFocus()
 {
     DBGT_PROLOG("");
@@ -922,6 +923,7 @@ int STEExtIspCamera::autoFocus()
 
     return NO_ERROR;
 }
+#endif
 
 int STEExtIspCamera::cancelAutoFocus()
 {
@@ -1372,6 +1374,7 @@ int STEExtIspCamera::setParameters(const char* parameters)
     return setParameters(params);
 }
 
+#if 0
 int STEExtIspCamera::setParameters(const CameraParameters& params)
 {
     DBGT_PROLOG("");
@@ -1770,6 +1773,7 @@ int STEExtIspCamera::setParameters(const CameraParameters& params)
 
     return NO_ERROR;
 }
+#endif
 
 char* STEExtIspCamera::getParameters()
 {
