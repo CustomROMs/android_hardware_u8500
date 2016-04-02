@@ -13,20 +13,6 @@
 # limitations under the License.
 
 #
-# compat symbols for camera HAL
-#
-
-LOCAL_PATH := $(call my-dir)
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := ste_camera.cpp
-LOCAL_SHARED_LIBRARIES := libgui libui libutils
-LOCAL_MODULE := libcamera_symbols
-LOCAL_MODULE_TAGS := optional
-
-include $(BUILD_SHARED_LIBRARY)
-
-#
 # compat symbols for gps
 #
 
