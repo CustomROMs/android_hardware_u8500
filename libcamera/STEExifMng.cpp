@@ -197,8 +197,7 @@ namespace android {
         char* outBuffer,
         int outBufSize,
         char* inThumbBuffer,
-        int inThumbBufSize,
-        int cameraId){
+        int inThumbBufSize){
 
         DBGT_PROLOG("");
         ExifElement_t exifElementTable[64];

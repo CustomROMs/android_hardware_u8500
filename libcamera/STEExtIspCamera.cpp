@@ -899,7 +899,6 @@ void STEExtIspCamera::releaseRecordingFrame(const void* mem)
 
 // ---------------------------------------------------------------------------
 
-#if 0
 int STEExtIspCamera::autoFocus()
 {
     DBGT_PROLOG("");
@@ -923,7 +922,6 @@ int STEExtIspCamera::autoFocus()
 
     return NO_ERROR;
 }
-#endif
 
 int STEExtIspCamera::cancelAutoFocus()
 {
@@ -1278,8 +1276,7 @@ int STEExtIspCamera::pictureThread()
             (char*)callbackData->data,
             outSize,
             thumbBuf,
-            thumbSize,
-            mCameraId);
+            thumbSize);
 #else //Using EXIF_MIXER
             char* ExifMixerTempOutBuf = NULL;
             SteExifMng* ExifMng = new SteExifMng(
@@ -1374,7 +1371,6 @@ int STEExtIspCamera::setParameters(const char* parameters)
     return setParameters(params);
 }
 
-#if 0
 int STEExtIspCamera::setParameters(const CameraParameters& params)
 {
     DBGT_PROLOG("");
@@ -1773,11 +1769,9 @@ int STEExtIspCamera::setParameters(const CameraParameters& params)
 
     return NO_ERROR;
 }
-#endif
 
 char* STEExtIspCamera::getParameters()
 {
-    DBGT_PROLOG("");
     String8 params_str8;
     char* params_string;
     if (NO_ERROR != (int)getLensParameters()) {

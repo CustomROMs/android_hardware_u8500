@@ -30,8 +30,7 @@ namespace android {
                     char* outBuffer,
                     int outBufSize,
                     char* inThumbBuffer,
-                    int inThumbBufSize,
-                    int cameraId);
+                    int inThumbBufSize);
 
         private:
 

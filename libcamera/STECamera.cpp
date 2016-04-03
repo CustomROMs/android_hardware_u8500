@@ -63,6 +63,7 @@ extern "C" double ceil(double a);
 
 #define COORDINATES 5
 
+
 namespace android
 {
 
@@ -1288,6 +1289,8 @@ OMX_ERRORTYPE STECamera::initThumbnailHandler()
     DBGT_EPILOG("");
     return err;
 }
+
+#if 0
 
 int STECamera::initFocusHandler()
 {
@@ -13334,5 +13337,6 @@ OMX_ERRORTYPE STECamera::SceneModeController::setGamma(STECamera::SceneModeContr
     return err;
 
 }
+#endif
 
 }; // namespace android
