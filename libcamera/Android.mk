@@ -96,7 +96,8 @@ LOCAL_CAMERA_SRC_FILES += STEExtIspMyNative.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspInternal.cpp
 LOCAL_CAMERA_SRC_FILES += NevenFaceDetector.cpp
 
-LOCAL_SRC_FILES := $(LOCAL_CAMERA_SRC_FILES)
+LOCAL_SRC_FILES := $(LOCAL_CAMERA_SRC_FILES) shim.cpp
+LOCAL_CFLAGS += -Wno-missing-field-initializers
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE := camera.$(TARGET_BOARD_PLATFORM)
@@ -113,7 +114,6 @@ LOCAL_SHARED_LIBRARIES := \
                          libhead \
                          libui \
                          libFFTEm \
-                         libstelpcutils \
-			 libcamera_aptina
+                         libstelpcutils
 
 include $(BUILD_SHARED_LIBRARY)

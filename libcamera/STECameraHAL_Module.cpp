@@ -43,8 +43,7 @@ static int camera_module_get_number_of_cameras(void);
 static int camera_module_get_camera_info(int camera_id, struct camera_info *info);
 
 static struct hw_module_methods_t camera_module_methods = {
-open:
-    camera_device_open
+	.open = camera_device_open
 };
 
 static camera_info sCameraInfo[] = {
@@ -62,22 +61,21 @@ static camera_info sCameraInfo[] = {
     }
 };
 
-camera_module_t HAL_MODULE_INFO_SYM = {
-    common:
-    {
-        tag: HARDWARE_MODULE_TAG,
-        version_major: 1,
-        version_minor: 0,
-        id: CAMERA_HARDWARE_MODULE_ID,
-        name: "STE CameraHal Module",
-        author: "STE",
-        methods: &camera_module_methods,
-        dso:NULL, /* remove compilation warnings */
-        reserved: {0}, /* remove compilation warnings */
-    },
-    get_number_of_cameras: camera_module_get_number_of_cameras,
-    get_camera_info: camera_module_get_camera_info,
-};
+extern "C" {
+	struct camera_module HAL_MODULE_INFO_SYM = {
+	    .common = {
+	        .tag = HARDWARE_MODULE_TAG,
+	        .version_major = 1,
+	        .version_minor = 0,
+	        .id = CAMERA_HARDWARE_MODULE_ID,
+	        .name = "STE CameraHal Module",
+	        .author = "STE",
+	        .methods = &camera_module_methods,
+	    },
+	    .get_number_of_cameras = camera_module_get_number_of_cameras,
+	    .get_camera_info = camera_module_get_camera_info,
+	};
+}
 
 
 int camera_device_close(hw_device_t* aDevice) {
