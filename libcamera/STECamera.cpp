@@ -1290,8 +1290,6 @@ OMX_ERRORTYPE STECamera::initThumbnailHandler()
     return err;
 }
 
-#if 0
-
 int STECamera::initFocusHandler()
 {
     DBGT_PROLOG("");
@@ -13337,6 +13335,5 @@ OMX_ERRORTYPE STECamera::SceneModeController::setGamma(STECamera::SceneModeContr
     return err;
 
 }
-#endif
 
 }; // namespace android
