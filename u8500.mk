@@ -6,7 +6,6 @@ $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 # STE Display 
 PRODUCT_PACKAGES += \
    libblt_hw \
-   libgralloc-shim \
    libUMP-shim \
    copybit.montblanc \
    gralloc.montblanc \
@@ -29,11 +28,6 @@ PRODUCT_PACKAGES += \
 # STE Compat Symbols
 PRODUCT_PACKAGES += \
    libste_symbols
-
-# STE Camera
-PRODUCT_PACKAGES += \
-    camera.montblanc \
-    libcamera_symbols 
 
 # RIL
 PRODUCT_PACKAGES += \
