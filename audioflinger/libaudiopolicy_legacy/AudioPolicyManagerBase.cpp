@@ -216,6 +216,7 @@ status_t AudioPolicyManagerBase::setDeviceConnectionState(AudioSystem::audio_dev
     ALOGW("setDeviceConnectionState() invalid device: %x", device);
     return BAD_VALUE;
 }
+#endif
 
 AudioSystem::device_connection_state AudioPolicyManagerBase::getDeviceConnectionState(audio_devices_t device,
                                                   const char *device_address)
@@ -247,7 +248,6 @@ AudioSystem::device_connection_state AudioPolicyManagerBase::getDeviceConnection
 
     return state;
 }
-#endif
 
 void AudioPolicyManagerBase::setPhoneState(int state)
 {
@@ -470,6 +470,7 @@ AudioPolicyManagerBase::IOProfile *AudioPolicyManagerBase::getProfileForDirectOu
     return 0;
 }
 
+#if 0
 audio_io_handle_t AudioPolicyManagerBase::getOutput(AudioSystem::stream_type stream,
                                     uint32_t samplingRate,
                                     uint32_t format,
@@ -579,6 +580,7 @@ audio_io_handle_t AudioPolicyManagerBase::getOutput(AudioSystem::stream_type str
 
     return output;
 }
+#endif
 
 audio_io_handle_t AudioPolicyManagerBase::selectOutput(const SortedVector<audio_io_handle_t>& outputs,
                                                        AudioSystem::output_flags flags)
@@ -626,6 +628,7 @@ audio_io_handle_t AudioPolicyManagerBase::selectOutput(const SortedVector<audio_
     return outputs[0];
 }
 
+#if 0
 status_t AudioPolicyManagerBase::startOutput(audio_io_handle_t output,
                                              AudioSystem::stream_type stream,
                                              int session)
@@ -750,6 +753,7 @@ status_t AudioPolicyManagerBase::stopOutput(audio_io_handle_t output,
         return INVALID_OPERATION;
     }
 }
+#endif
 
 void AudioPolicyManagerBase::releaseOutput(audio_io_handle_t output)
 {
@@ -930,6 +934,7 @@ void AudioPolicyManagerBase::releaseInput(audio_io_handle_t input)
     ALOGV("releaseInput() exit");
 }
 
+#if 0
 void AudioPolicyManagerBase::initStreamVolume(AudioSystem::stream_type stream,
                                             int indexMin,
                                             int indexMax)
@@ -1022,6 +1027,7 @@ audio_io_handle_t AudioPolicyManagerBase::getOutputForEffect(effect_descriptor_t
     }
     return dstOutputs[outIdx];
 }
+#endif
 
 status_t AudioPolicyManagerBase::registerEffect(effect_descriptor_t *desc,
                                 audio_io_handle_t io,
@@ -1225,6 +1231,8 @@ status_t AudioPolicyManagerBase::dump(int fd)
     return NO_ERROR;
 }
 
+#if 0
+
 // ----------------------------------------------------------------------------
 // AudioPolicyManagerBase
 // ----------------------------------------------------------------------------
@@ -1353,6 +1361,7 @@ AudioPolicyManagerBase::~AudioPolicyManagerBase()
         delete mHwModules[i];
    }
 }
+#endif
 
 status_t AudioPolicyManagerBase::initCheck()
 {
@@ -1714,6 +1723,7 @@ status_t AudioPolicyManagerBase::checkOutputsForDevice(audio_devices_t device,
     return NO_ERROR;
 }
 
+#if 0
 void AudioPolicyManagerBase::closeOutput(audio_io_handle_t output)
 {
     ALOGV("closeOutput(%d)", output);
@@ -1761,6 +1771,7 @@ void AudioPolicyManagerBase::closeOutput(audio_io_handle_t output)
     delete mOutputs.valueFor(output);
     mOutputs.removeItem(output);
 }
+#endif
 
 SortedVector<audio_io_handle_t> AudioPolicyManagerBase::getOutputsForDevice(audio_devices_t device)
 {
@@ -1792,6 +1803,7 @@ bool AudioPolicyManagerBase::vectorsEqual(SortedVector<audio_io_handle_t>& outpu
     return true;
 }
 
+#if 0
 void AudioPolicyManagerBase::checkOutputForStrategy(routing_strategy strategy)
 {
     audio_devices_t oldDevice = getDeviceForStrategy(strategy, true /*fromCache*/);
@@ -1846,6 +1858,7 @@ void AudioPolicyManagerBase::checkOutputForStrategy(routing_strategy strategy)
         }
     }
 }
+#endif
 
 void AudioPolicyManagerBase::checkOutputForAllStrategies()
 {
@@ -1955,6 +1968,7 @@ audio_devices_t AudioPolicyManagerBase::getNewDevice(audio_io_handle_t output, b
     return device;
 }
 
+#if 0
 uint32_t AudioPolicyManagerBase::getStrategyForStream(AudioSystem::stream_type stream) {
     return (uint32_t)getStrategy(stream);
 }
@@ -3659,5 +3673,7 @@ void AudioPolicyManagerBase::defaultAudioPolicyConfig(void)
 
     mHwModules.add(module);
 }
+#endif
+
 
 }; // namespace android
