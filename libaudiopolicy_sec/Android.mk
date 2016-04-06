@@ -4,19 +4,27 @@
 #ENABLE_AUDIO_DUMP := true
 
 LOCAL_PATH := $(call my-dir)
+#include $(CLEAR_VARS)
+
+#LOCAL_SRC_FILES := \
+#    AudioHardwareInterface.cpp \
+#    audio_hw_hal.cpp
+#
+#LOCAL_MODULE := libaudiohw_legacy
+#LOCAL_MODULE_TAGS := optional
+#LOCAL_STATIC_LIBRARIES := libmedia_helper
+#
+#include $(BUILD_STATIC_LIBRARY)
+#
+
+
+
+############################
+# libaudiopolicy_sec
+
+
 include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := \
-    AudioHardwareInterface.cpp \
-    audio_hw_hal.cpp
-
-LOCAL_MODULE := libaudiohw_legacy
-LOCAL_MODULE_TAGS := optional
-LOCAL_STATIC_LIBRARIES := libmedia_helper
-
-include $(BUILD_STATIC_LIBRARY)
-
-include $(CLEAR_VARS)
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../include
 
 #createAudioPolicyManager
 #    AudioPolicyManagerDefault.cpp \
