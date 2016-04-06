@@ -20,13 +20,13 @@ include $(CLEAR_VARS)
 
 #createAudioPolicyManager
 #    AudioPolicyManagerDefault.cpp \
-#    AudioPolicyManagerBase.cpp \
 #audio_policy_hal.cpp
 
 LOCAL_SRC_FILES := \
     AudioPolicyCompatClient.cpp \
     AudioPolicyManagerDefault.cpp \
     AudioPolicyManagerBase.cpp
+
 
 #libaudiopolicy_sec_shim.S
 
