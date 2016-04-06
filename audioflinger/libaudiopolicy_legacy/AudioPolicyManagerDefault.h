@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <hardware_legacy/AudioPolicyManagerBase.h>
+#include "AudioPolicyManagerBase.h"
 
 namespace android {
 

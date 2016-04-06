@@ -37,7 +37,7 @@ namespace android {
 // AudioPolicyInterface implementation
 // ----------------------------------------------------------------------------
 
-
+#if 0
 status_t AudioPolicyManagerBase::setDeviceConnectionState(AudioSystem::audio_devices device,
                                                   AudioSystem::device_connection_state state,
                                                   const char *device_address)
@@ -247,6 +247,7 @@ AudioSystem::device_connection_state AudioPolicyManagerBase::getDeviceConnection
 
     return state;
 }
+#endif
 
 void AudioPolicyManagerBase::setPhoneState(int state)
 {
