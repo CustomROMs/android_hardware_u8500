@@ -26,6 +26,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
     AudioPolicyCompatClient.cpp \
     AudioPolicyManagerDefault.cpp \
+    AudioPolicyManagerBase.cpp
 
 #libaudiopolicy_sec_shim.S
 
