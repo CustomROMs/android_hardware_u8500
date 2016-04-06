@@ -20,11 +20,14 @@ include $(CLEAR_VARS)
 
 #createAudioPolicyManager
 #    AudioPolicyManagerDefault.cpp \
+#    AudioPolicyManagerBase.cpp \
+#audio_policy_hal.cpp
 
 LOCAL_SRC_FILES := \
-    AudioPolicyManagerBase.cpp \
     AudioPolicyCompatClient.cpp \
-    audio_policy_hal.cpp libaudiopolicy_sec_shim.S
+    AudioPolicyManagerDefault.cpp \
+
+#libaudiopolicy_sec_shim.S
 
 ifeq ($(AUDIO_POLICY_TEST),true)
   LOCAL_CFLAGS += -DAUDIO_POLICY_TEST
@@ -40,8 +43,10 @@ include $(BUILD_STATIC_LIBRARY)
 # policy code
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := \
-    AudioPolicyManagerDefault.cpp
+#    AudioPolicyManagerDefault.cpp
+
+#LOCAL_SRC_FILES := \
+#    AudioPolicyManagerBase.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
@@ -56,9 +61,8 @@ LOCAL_SHARED_LIBRARIES := \
     libhardware_legacy \
     libeffects \
     libdl \
-    libpowermanager
-
-#    libaudiopolicy_sam
+    libpowermanager \
+    libaudiopolicy_sam
 
 LOCAL_STATIC_LIBRARIES := \
     libmedia_helper
