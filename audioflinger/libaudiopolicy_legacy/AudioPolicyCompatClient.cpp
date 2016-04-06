@@ -19,12 +19,12 @@
 
 #include <stdint.h>
 
-#include <hardware/hardware.h>
-#include <system/audio.h>
-#include <system/audio_policy.h>
-#include <hardware/audio_policy.h>
+#include "hardware/hardware.h"
+#include "system/audio.h"
+#include "system/audio_policy.h"
+#include "hardware/audio_policy.h"
 
-#include <hardware_legacy/AudioSystemLegacy.h>
+#include "hardware_legacy/AudioSystemLegacy.h"
 
 #include "AudioPolicyCompatClient.h"
 

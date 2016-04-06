@@ -17,12 +17,12 @@
 #ifndef ANDROID_AUDIOPOLICYCLIENTLEGACY_H
 #define ANDROID_AUDIOPOLICYCLIENTLEGACY_H
 
-#include <system/audio.h>
-#include <system/audio_policy.h>
-#include <hardware/audio_policy.h>
+#include "system/audio.h"
+#include "system/audio_policy.h"
+#include "hardware/audio_policy.h"
 
-#include <hardware_legacy/AudioSystemLegacy.h>
-#include <hardware_legacy/AudioPolicyInterface.h>
+#include "hardware_legacy/AudioSystemLegacy.h"
+#include "hardware_legacy/AudioPolicyInterface.h"
 
 /************************************/
 /* FOR BACKWARDS COMPATIBILITY ONLY */

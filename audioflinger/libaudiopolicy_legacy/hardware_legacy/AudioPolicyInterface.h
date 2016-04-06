@@ -17,10 +17,11 @@
 #ifndef ANDROID_AUDIOPOLICYINTERFACE_H
 #define ANDROID_AUDIOPOLICYINTERFACE_H
 
-#include "media/AudioSystem.h"
-#include "media/ToneGenerator.h"
+#include <media/AudioSystem.h>
+#include <media/ToneGenerator.h>
 #include <utils/String8.h>
-#include "hardware_legacy/AudioSystemLegacy.h"
+
+#include <hardware_legacy/AudioSystemLegacy.h>
 
 namespace android {
     using android::Vector;
@@ -65,20 +66,16 @@ public:
     //
 
     // indicate a change in device connection status
-#if 0
     virtual status_t setDeviceConnectionState(AudioSystem::audio_devices device,
                                           AudioSystem::device_connection_state state,
                                           const char *device_address) = 0;
-#endif
     // retrieve a device connection status
     virtual AudioSystem::device_connection_state getDeviceConnectionState(audio_devices_t device,
                                                                           const char *device_address) = 0;
     // indicate a change in phone state. Valid phones states are defined by AudioSystem::audio_mode
     virtual void setPhoneState(int state) = 0;
-#if 0
     // force using a specific device category for the specified usage
     virtual void setForceUse(AudioSystem::force_use usage, AudioSystem::forced_config config) = 0;
-#endif
     // retrieve current device category forced for a given usage
     virtual AudioSystem::forced_config getForceUse(audio_policy_force_use_t usage) = 0;
     // set a system property (e.g. camera sound always audible)
@@ -89,7 +86,7 @@ public:
     //
     // Audio routing query functions
     //
-#if 0
+
     // request an output appropriate for playback of the supplied stream type and parameters
     virtual audio_io_handle_t getOutput(AudioSystem::stream_type stream,
                                         uint32_t samplingRate = 0,
@@ -104,17 +101,15 @@ public:
     virtual status_t stopOutput(audio_io_handle_t output,
                                 AudioSystem::stream_type stream,
                                 int session = 0) = 0;
-#endif
     // releases the output.
     virtual void releaseOutput(audio_io_handle_t output) = 0;
-#if 0
+
     // request an input appropriate for record from the supplied device with supplied parameters.
     virtual audio_io_handle_t getInput(int inputSource,
                                     uint32_t samplingRate = 0,
                                     uint32_t Format = AudioSystem::FORMAT_DEFAULT,
                                     uint32_t channels = 0,
                                     AudioSystem::audio_in_acoustics acoustics = (AudioSystem::audio_in_acoustics)0) = 0;
-#endif
     // indicates to the audio policy manager that the input starts being used.
     virtual status_t startInput(audio_io_handle_t input) = 0;
     // indicates to the audio policy manager that the input stops being used.
@@ -125,7 +120,7 @@ public:
     //
     // volume control functions
     //
-#if 0
+
     // initialises stream volume conversion parameters by specifying volume index range.
     virtual void initStreamVolume(AudioSystem::stream_type stream,
                                       int indexMin,
@@ -150,7 +145,6 @@ public:
 
     // return the enabled output devices for the given stream type
     virtual audio_devices_t getDevicesForStream(AudioSystem::stream_type stream) = 0;
-#endif
 
     // Audio effect management
     virtual audio_io_handle_t getOutputForEffect(effect_descriptor_t *desc) = 0;
