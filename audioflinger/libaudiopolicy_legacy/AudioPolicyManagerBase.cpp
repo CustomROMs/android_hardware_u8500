@@ -216,7 +216,6 @@ status_t AudioPolicyManagerBase::setDeviceConnectionState(AudioSystem::audio_dev
     ALOGW("setDeviceConnectionState() invalid device: %x", device);
     return BAD_VALUE;
 }
-#endif
 
 AudioSystem::device_connection_state AudioPolicyManagerBase::getDeviceConnectionState(audio_devices_t device,
                                                   const char *device_address)
@@ -430,20 +429,15 @@ AudioSystem::forced_config AudioPolicyManagerBase::getForceUse(audio_policy_forc
 {
     return mForceUse[usage];
 }
+#endif
 
 void AudioPolicyManagerBase::setSystemProperty(const char* property, const char* value)
 {
-    ALOGV("setSystemProperty() property %s, value %s", property, value);
-    if (strcmp(property, "ro.camera.sound.forced") == 0) {
-        if (atoi(value)) {
-            ALOGV("ENFORCED_AUDIBLE cannot be muted");
-            mStreams[AudioSystem::ENFORCED_AUDIBLE].mCanBeMuted = false;
-        } else {
-            ALOGV("ENFORCED_AUDIBLE can be muted");
-            mStreams[AudioSystem::ENFORCED_AUDIBLE].mCanBeMuted = true;
-        }
-    }
+	ALOGV("ENFORCED_AUDIBLE can be muted");
+	mStreams[AudioSystem::ENFORCED_AUDIBLE].mCanBeMuted = true;
 }
+
+#if 0
 
 AudioPolicyManagerBase::IOProfile *AudioPolicyManagerBase::getProfileForDirectOutput(
                                                                audio_devices_t device,
@@ -3675,5 +3669,6 @@ void AudioPolicyManagerBase::defaultAudioPolicyConfig(void)
 }
 #endif
 
+#endif
 
 }; // namespace android
