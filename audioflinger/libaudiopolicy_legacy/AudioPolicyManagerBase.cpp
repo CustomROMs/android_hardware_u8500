@@ -25,11 +25,11 @@
 #endif
 
 #include <utils/Log.h>
-#include <hardware_legacy/AudioPolicyManagerBase.h>
-#include <hardware/audio_effect.h>
-#include <hardware/audio.h>
+#include "hardware_legacy/AudioPolicyManagerBase.h"
+#include "hardware/audio_effect.h"
+#include "hardware/audio.h"
 #include <math.h>
-#include <hardware_legacy/audio_policy_conf.h>
+#include "hardware_legacy/audio_policy_conf.h"
 
 namespace android {
 
