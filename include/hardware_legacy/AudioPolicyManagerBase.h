@@ -72,18 +72,6 @@ public:
         virtual ~AudioPolicyManagerBase();
 
         // AudioPolicyInterface
-virtual uint32_t getOutputDevice(audio_io_handle_t output
-#ifdef STD_A2DP_MNGT
-    , bool fromCache
-#endif
-);
-
-virtual void updateOutputRouting(
-#ifdef STD_A2DP_MNGT
-    bool fromCache
-#endif
-);
-
         virtual status_t setDeviceConnectionState(AudioSystem::audio_devices device,
                                                           AudioSystem::device_connection_state state,
                                                           const char *device_address);
