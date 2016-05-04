@@ -8,8 +8,6 @@ PRODUCT_PACKAGES += \
    lights.montblanc \
    libgralloc-shim \
    libUMP-shim \
-   gralloc.montblanc \
-   libgralloc-shim \
    hwcomposer.montblanc \
    copybit.montblanc \
    libblt_hw
