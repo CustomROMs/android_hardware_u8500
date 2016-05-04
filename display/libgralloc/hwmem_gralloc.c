@@ -198,7 +198,7 @@ static int mmap_buf_if_necessary(struct hwmem_gralloc_buf_handle_t *buf, void **
 static void munmap_buf_if_necessary(struct hwmem_gralloc_buf_handle_t* buf);
 
 /* Helpers */
-static __u32 usage_2_hwmem_access(int usage);
+static enum hwmem_access usage_2_hwmem_access(int usage);
 
 static int does_lock_usage_match_alloc_usage(int lock_usage, int alloc_usage);
 static int does_usage_match_mmap_prot(int usage, int mmap_prot);
@@ -225,10 +225,10 @@ static int get_buf_size(int width, int height, int format);
 static int get_hwmem_file_info(dev_t* device, ino_t* serial_number);
 static int is_hwmem_fd(int fd, int* is_hwmem_fd_var);
 
-static __u32 usage_2_hwmem_alloc_flags(int usage);
+static enum hwmem_alloc_flags usage_2_hwmem_alloc_flags(int usage);
 static enum hwmem_mem_type usage_2_hwmem_mem_type(int usage);
 
-static int hwmem_access_2_mmap_prot(__u32 hwmem_access);
+static int hwmem_access_2_mmap_prot(enum hwmem_access hwmem_access);
 static int limit_mmap_prot_to_usage(int mmap_prot, int usage);
 
 static int inc_buf_cnt(struct hwmem_gralloc_buf_handle_t* buf,
@@ -299,6 +299,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module, buffer_handle
 
     if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
         return gralloc_register_buffer_pmem(module, buf);
+
     if (!inc_buf_cnt(buf, REGISTER_COUNTER))
         return -errno;
 
@@ -1183,9 +1184,9 @@ int handle_2_hwmem_gralloc_handle(buffer_handle_t handle,
     return 1;
 }
 
-static __u32 usage_2_hwmem_access(int usage)
+static enum hwmem_access usage_2_hwmem_access(int usage)
 {
-    __u32 hwmem_access = 0;
+    enum hwmem_access hwmem_access = (enum hwmem_access)0;
 
     if (usage & GRALLOC_USAGE_SW_READ_MASK)
         hwmem_access |= HWMEM_ACCESS_READ;
@@ -1591,7 +1592,7 @@ static int is_hwmem_fd(int fd, int* is_hwmem_fd_var)
     return 1;
 }
 
-static __u32 usage_2_hwmem_alloc_flags(int usage)
+static enum hwmem_alloc_flags usage_2_hwmem_alloc_flags(int usage)
 {
     int sw_usage = usage & (GRALLOC_USAGE_SW_READ_MASK | GRALLOC_USAGE_SW_WRITE_MASK);
     int hw_usage = usage & GRALLOC_USAGE_HW_MASK;
@@ -1629,7 +1630,7 @@ static enum hwmem_mem_type usage_2_hwmem_mem_type(int usage)
     return HWMEM_MEM_SCATTERED_SYS;
 }
 
-static int hwmem_access_2_mmap_prot(__u32 hwmem_access)
+static int hwmem_access_2_mmap_prot(enum hwmem_access hwmem_access)
 {
     int mmap_prot = 0;
 

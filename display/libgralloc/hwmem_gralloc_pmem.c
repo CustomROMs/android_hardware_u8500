@@ -20,7 +20,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <sys/mman.h>
@@ -434,7 +433,7 @@ int gralloc_free_pmem(alloc_device_t* dev,
 #if HAVE_ANDROID_OS
         if (hnd->flags & PRIV_FLAGS_USES_PMEM) {
             if (hnd->fd >= 0) {
-                struct pmem_region sub = { (unsigned long)hnd->offset, (unsigned long)hnd->size };
+                struct pmem_region sub = { hnd->offset, hnd->size };
                 int err = ioctl(hnd->fd, PMEM_UNMAP, &sub);
                 ALOGE_IF(err<0, "PMEM_UNMAP failed (%s), "
                         "fd=%d, sub.offset=%i, sub.size=%i",
