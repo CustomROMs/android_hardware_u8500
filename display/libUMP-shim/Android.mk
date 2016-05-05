@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
-LOCAL_SHARED_LIBRARIES := liblog libcutils
+LOCAL_SHARED_LIBRARIES := liblog libcutils libAMP
 
 LOCAL_CFLAGS:= -DLOG_TAG=\"UMP\" -Wa,-mimplicit-it=thumb
 
