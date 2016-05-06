@@ -6,7 +6,6 @@ $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 # STE Display 
 PRODUCT_PACKAGES += \
    lights.montblanc \
-   libUMP \
    hwcomposer.montblanc \
    copybit.montblanc \
    libblt_hw
