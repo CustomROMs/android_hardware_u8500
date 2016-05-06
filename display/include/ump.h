@@ -214,7 +214,7 @@ UMP_API_EXPORT void * ump_mapped_pointer_get(ump_handle mem);
  *
  * @param mem Handle to UMP memory.
  */
-UMP_API_EXPORT void ump_mapped_pointer_release(ump_handle mem);
+//UMP_API_EXPORT void ump_mapped_pointer_release(ump_handle mem);
 
 
 /**

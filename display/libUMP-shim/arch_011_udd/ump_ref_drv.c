@@ -108,12 +108,14 @@ UMP_API_EXPORT int ump_lock( ump_handle memh, ump_lock_usage lock_usage)
 	return ump_arch_lock(mem->secure_id, lock_usage);
 }
 
+/*
 UMP_API_EXPORT int ump_unlock( ump_handle memh )
 {
 	ump_mem * mem = (ump_mem*)memh;
 	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
 	return ump_arch_unlock(mem->secure_id);
 }
+*/
 
 UMP_API_EXPORT int ump_switch_hw_usage_secure_id( ump_secure_id ump_id, ump_hw_usage new_user )
 {
@@ -127,10 +129,12 @@ UMP_API_EXPORT int ump_lock_secure_id( ump_secure_id ump_id, ump_lock_usage lock
 }
 
 /** Unlocking buffer. Let other users lock the buffer for their usage */
+/*
 UMP_API_EXPORT int ump_unlock_secure_id( ump_secure_id ump_id )
 {
 	return ump_arch_unlock(ump_id);
 }
+*/
 
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
 static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_constraints constraints, ump_cache_enabled cache)

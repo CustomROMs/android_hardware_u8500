@@ -69,7 +69,7 @@ int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user );
 int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage );
 
 /** Unlocking buffer. Let other users lock the buffer for their usage */
-int ump_arch_unlock( ump_secure_id secure_id );
+//int ump_arch_unlock( ump_secure_id secure_id );
 
 
 #ifdef __cplusplus
