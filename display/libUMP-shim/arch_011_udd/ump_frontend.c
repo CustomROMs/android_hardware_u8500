@@ -102,7 +102,6 @@ UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_
 #endif /* 0 */
 
 
-/*
 UMP_API_EXPORT void ump_size_get(ump_handle memh)
 {
 	__asm__("cmp     r0, #0");
@@ -115,7 +114,6 @@ UMP_API_EXPORT void ump_size_get(ump_handle memh)
 	__asm__("bx      lr");
 	//return;
 }
-*/
 
 UMP_API_EXPORT void ump_read(void *dst, ump_handle srch, unsigned long offset, unsigned long length)
 {

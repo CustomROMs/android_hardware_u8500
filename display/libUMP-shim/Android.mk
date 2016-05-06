@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
-LOCAL_SHARED_LIBRARIES := liblog libcutils libAMP
+LOCAL_SHARED_LIBRARIES := liblog libcutils
 
 LOCAL_CFLAGS:= -DLOG_TAG=\"UMP\" -Wa,-mimplicit-it=thumb
 
@@ -29,9 +29,11 @@ LOCAL_C_INCLUDES:= \
 
 #	arch_011_udd/ump_frontend/ump_handle_create_from_secure_id.S \
 #	arch_011_udd/ump_arch/ump_arch_open.S \
-#	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
+#	arch_011_udd/ump_frontend/ump_mapped_pointer_get.S \
+#	arch_011_udd/ump_frontend/hwmem_uku.S \
+# 	arch_011_udd/ump_arch/arch.S \
 #	arch_011_udd/ump_frontend/ump_reference_release.S \
-#	arch_011_udd/ump_arch/arch.S \
+#	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
 
 
 UMP_SRCS := \
