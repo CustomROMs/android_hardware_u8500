@@ -57,8 +57,8 @@ void (*fReal_ump_arch_close)(void);
 
 void (*fReal_ump_arch_release)(ump_secure_id secure_id);
 
-ump_secure_id (*fReal_ump_arch_import)(void);
-ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
+//ump_secure_id (*fReal_ump_arch_import)(void);
+//ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 
 
 /* frontend */
@@ -94,8 +94,8 @@ void libEvtLoading(void)
 	//LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
 	//LOAD_SYMBOL(fReal_ump_arch_msync, "ump_arch_msync");
 	LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
-	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
-	LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
+	//LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
+	//LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
 	//LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
         //LOAD_SYMBOL(fReal_ump_open, "ump_open");
         //LOAD_SYMBOL(fReal_ump_close, "ump_close");
@@ -104,7 +104,7 @@ void libEvtLoading(void)
         //LOAD_SYMBOL(fReal_ump_read, "ump_read");
         //LOAD_SYMBOL(fReal_ump_write, "ump_write");
         LOAD_SYMBOL(fReal_ump_mapped_pointer_get, "ump_mapped_pointer_get");
-        LOAD_SYMBOL(fReal_ump_mapped_pointer_release, "ump_mapped_pointer_release");
+        //LOAD_SYMBOL(fReal_ump_mapped_pointer_release, "ump_mapped_pointer_release");
 	//LOAD_SYMBOL(fReal_ump_reference_add, "ump_reference_add");
 	LOAD_SYMBOL(fReal_ump_reference_release, "ump_reference_release");
 
@@ -138,8 +138,8 @@ WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 
 WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
 
-WRAP_FUNCTION(ump_secure_id, ump_arch_import, (void), (), fReal_ump_arch_import)
-WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
+//WRAP_FUNCTION(ump_secure_id, ump_arch_import, (void), (), fReal_ump_arch_import)
+//WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
 
 /* frontend */
 

@@ -42,6 +42,7 @@ UMP_SRCS := \
 	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
 	arch_011_udd/ump_ref_drv.c \
 	arch_011_udd/ump_arch.c \
+	arch_011_udd/ump_arch/arch.S \
 	os/linux/ump_uku.c \
 	os/linux/ump_osu_memory.c \
 	os/linux/ump_osu_locks.c
