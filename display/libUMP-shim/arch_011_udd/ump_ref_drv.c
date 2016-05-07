@@ -31,7 +31,7 @@
 static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_constraints constraints, ump_cache_enabled cache);
 //static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constraints constraints, ump_cache_enabled cache);
 
-
+#if 0
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
 ump_handle ump_ref_drv_allocate(unsigned long size, ump_alloc_constraints constraints)
 {
@@ -42,6 +42,7 @@ ump_handle ump_ref_drv_allocate(unsigned long size, ump_alloc_constraints constr
 	}
 	return ump_ref_drv_allocate_internal(size, constraints, cache);
 }
+#endif
 
 #if 0
 ump_handle ump_ref_drv_ion_import(int ion_fd, ump_alloc_constraints constraints)
@@ -136,6 +137,7 @@ UMP_API_EXPORT int ump_unlock_secure_id( ump_secure_id ump_id )
 }
 */
 
+#if 0
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
 static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_constraints constraints, ump_cache_enabled cache)
 {
@@ -196,6 +198,7 @@ static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_co
 	UMP_DEBUG_PRINT(4, ("Allocation of UMP memory failed"));
 	return UMP_INVALID_MEMORY_HANDLE;
 }
+#endif
 
 #if 0
 static ump_handle ump_ref_drv_ion_import_internal(int ion_fd, ump_alloc_constraints constraints, ump_cache_enabled cache)

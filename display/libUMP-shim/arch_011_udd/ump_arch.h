@@ -46,7 +46,7 @@ ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints cons
 unsigned long ump_arch_size_get(ump_secure_id secure_id);
 
 /** Release a reference from specified UMP memory. */
-void ump_arch_release(ump_secure_id secure_id);
+//void ump_arch_release(ump_secure_id secure_id);
 
 /** Map specified UMP memory into CPU address space */
 void* ump_arch_map(ump_secure_id secure_id, unsigned long size, ump_cache_enabled cache, unsigned long *cookie_out);

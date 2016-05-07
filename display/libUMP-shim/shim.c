@@ -160,4 +160,4 @@ WRAP_FUNCTION(ump_handle, ump_handle_create_from_secure_id, (ump_secure_id secur
 WRAP_FUNCTION(void*, ump_mapped_pointer_get, (ump_handle memh), (memh), fReal_ump_mapped_pointer_get)
 //WRAP_VOID_FUNCTION(ump_mapped_pointer_release, (ump_handle memh), (memh), fReal_ump_mapped_pointer_release)
 //WRAP_VOID_FUNCTION(ump_reference_add, (ump_handle memh), (memh), fReal_ump_reference_add)
-WRAP_VOID_FUNCTION(ump_reference_release, (ump_handle memh), (memh), fReal_ump_reference_release)
+//WRAP_VOID_FUNCTION(ump_reference_release, (ump_handle memh), (memh), fReal_ump_reference_release)
