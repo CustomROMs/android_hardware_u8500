@@ -27,3 +27,14 @@ LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
 
+#
+# open function wrapper
+#
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := open_wrapper.c
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE := libopen
+LOCAL_MODULE_TAGS := optional
+
+include $(BUILD_SHARED_LIBRARY)

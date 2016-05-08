@@ -122,6 +122,7 @@ void libEvtUnloading(void)
 
 /* arch */
 
+#ifndef TEST
 WRAP_FUNCTION(ump_result, ump_arch_open, (void), (), fReal_ump_arch_open)
 WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 //WRAP_FUNCTION(ump_secure_id, ump_arch_allocate, (unsigned long * size, ump_alloc_constraints constraints),
@@ -137,6 +138,7 @@ WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 //		(secure_id, mapping, cookie, address, size, op), fReal_ump_arch_msync)
 
 WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
+#endif
 
 //WRAP_FUNCTION(ump_secure_id, ump_arch_import, (void), (), fReal_ump_arch_import)
 //WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)

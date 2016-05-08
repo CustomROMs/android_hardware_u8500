@@ -66,7 +66,7 @@ int ump_arch_cache_operations_control(ump_cache_op_control op);
 int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user );
 
 /** Locking buffer. Blocking call if the buffer is already locked. */
-int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage );
+//int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage );
 
 /** Unlocking buffer. Let other users lock the buffer for their usage */
 //int ump_arch_unlock( ump_secure_id secure_id );

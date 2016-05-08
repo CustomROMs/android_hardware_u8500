@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#if 0
 .globl _hwmem_uku_open
 .text
 .align 2
@@ -32,6 +32,7 @@ _hwmem_uku_open:
  .1d4c: mvn r0, #0
  .1d50: pop {r4, pc}
  .1d54: andeq r1, r0, r0, lsl #21
+#endif
 
 .globl _hwmem_uku_close
 _hwmem_uku_close:

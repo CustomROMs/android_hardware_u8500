@@ -41,9 +41,9 @@ static int ump_ioctl_api_version_used = UMP_IOCTL_API_VERSION;
  * This is a character special file giving access to the device driver.
  * Usually created using the mknod command line utility.
  */
-static const char ump_device_file_name[] = "/dev/ump";
+static const char ump_device_file_name[] = "/dev/hwmem";
 
-_ump_osu_errcode_t _ump_uku_open( void **context )
+_ump_osu_errcode_t _hwmem_uku_open( void **context )
 {
 	int ump_device_file;
 	if(NULL == context)
@@ -56,28 +56,6 @@ _ump_osu_errcode_t _ump_uku_open( void **context )
 	if (-1 == ump_device_file)
 	{
 		return _UMP_OSU_ERR_FAULT;
-	}
-
-	{
-		struct _ump_uk_api_version_s args;
-		args.ctx     = (void*)ump_device_file;
-		args.version = UMP_IOCTL_API_VERSION;
-		args.compatible = 3;
-		ump_driver_ioctl(args.ctx, UMP_IOC_QUERY_API_VERSION, &args);
-		if ( 1 != args.compatible )
-		{
-			if (IS_API_MATCH(MAKE_VERSION_ID(1), args.version))
-			{
-				ump_ioctl_api_version_used = MAKE_VERSION_ID(1);
-				UMP_PRINTF("The UMP devicedriver does not support cached UMP. Update it if this is needed.\n");
-			}
-			else
-			{
-				UMP_PRINTF("The UMP devicedriver is version: %d, UMP libraries is version: %d.\n", GET_VERSION(args.version), GET_VERSION(UMP_IOCTL_API_VERSION) );
-			   close(ump_device_file);
-			   return _UMP_OSU_ERR_FAULT;
-			}
-		}
 	}
 
 	*context = (void *) ump_device_file;

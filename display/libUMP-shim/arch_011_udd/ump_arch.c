@@ -38,7 +38,7 @@ static volatile int ump_ref_count = 0;
 /** Lock for critical section in open/close */
 _ump_osu_lock_t * ump_lock_arch = NULL;
 
-#if 0
+#ifdef TEST
 ump_result ump_arch_open(void)
 {
 	ump_result retval = UMP_OK;
@@ -67,7 +67,7 @@ ump_result ump_arch_open(void)
 	{
 		/* We are the first, open the UMP device driver */
 
-		if (_UMP_OSU_ERR_OK != _ump_uku_open( &ump_uk_ctx ))
+		if (_UMP_OSU_ERR_OK != _hwmem_uku_open( &ump_uk_ctx ))
 		{
 			UMP_DEBUG_PRINT(1, ("UMP: ump_arch_open() failed to open UMP device driver\n"));
 			retval = UMP_ERROR;
@@ -82,7 +82,7 @@ ump_result ump_arch_open(void)
 }
 #endif
 
-#if 0
+#ifdef TEST
 void ump_arch_close(void)
 {
 	_ump_osu_lock_auto_init( &ump_lock_arch, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0 );
@@ -107,7 +107,7 @@ void ump_arch_close(void)
 		ump_ref_count--;
 		if (0 == ump_ref_count)
 		{
-			_ump_osu_errcode_t retval = _ump_uku_close(&ump_uk_ctx);
+			_ump_osu_errcode_t retval = _hwmem_uku_close(&ump_uk_ctx);
 			UMP_DEBUG_ASSERT(retval == _UMP_OSU_ERR_OK, ("UMP: Failed to close UMP interface"));
 			UMP_IGNORE(retval);
 			ump_uk_ctx = NULL;
@@ -123,9 +123,11 @@ void ump_arch_close(void)
 }
 #endif
 
+#if 0
 ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints constraints)
 {
 	_ump_uk_allocate_s call_arg;
+	ALOGD("ump_arch_allocate: test \n");
 
 	if ( NULL == size )
 	{
@@ -164,6 +166,7 @@ ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints cons
 
 	return call_arg.secure_id;
 }
+#endif
 
 #if 0
 ump_secure_id ump_arch_ion_import(int ion_fd, unsigned long *size, ump_alloc_constraints constraints)
@@ -206,6 +209,25 @@ unsigned long ump_arch_size_get(ump_secure_id secure_id)
 
 	return 0;
 }
+
+#ifdef TEST
+ump_result ump_arch_release(int32_t a1, int32_t a2)
+{
+    if (_hwmem_uku_release(&ump_uk_ctx, a1) == 0) {
+        // if_1bf4_0_true
+        return 0;
+    }
+
+    puts("*********************************************************************");
+    printf("ASSERT EXIT: ");
+    printf("UMP: Failed to release reference to UMP memory");
+    abort();
+
+    // UNREACHABLE
+    return UMP_ERROR;
+}
+#endif
+
 
 #if 0
 void ump_arch_release(ump_secure_id secure_id)
@@ -312,6 +334,7 @@ int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user )
 	return 1; /* Always success */
 }
 
+#if 0
 int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage )
 {
 	_ump_uk_lock_s dd_lock_arg;
@@ -325,7 +348,6 @@ int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage )
 	return 1; /* Always success */
 }
 
-#if 0
 int ump_arch_unlock( ump_secure_id secure_id )
 {
 	_ump_uk_unlock_s dd_unlock_arg;

@@ -15,6 +15,7 @@
  */
 
 
+#if 0
 .globl ump_arch_import
 ump_arch_import:
  .1b74: push {r4, r5, r6, lr}
@@ -38,6 +39,7 @@ ump_arch_import:
  .1bbc: add sp, sp, #16
  .1bc0: pop {r4, r5, r6, pc}
  .1bc4: andeq r3, r0, r4, asr #9
+#endif
 
 .globl ump_arch_export
 ump_arch_export:
