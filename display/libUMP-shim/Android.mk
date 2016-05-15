@@ -31,13 +31,14 @@ LOCAL_C_INCLUDES:= \
 #	arch_011_udd/ump_frontend/ump_mapped_pointer_get.S \
 #	arch_011_udd/ump_arch/ump_arch_release.S \
 #	arch_011_udd/ump_arch/ump_arch_lock.S \
+#	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
 
 
 UMP_SRCS := \
 	shim.c \
 	arch_011_udd/ump_frontend.c \
 	arch_011_udd/ump_frontend/hwmem_uku.S \
-	arch_011_udd/ump_frontend/ump_mapped_pointer_release.S \
+	arch_011_udd/ump_frontend/ump_mapped_pointer_release.c \
 	arch_011_udd/ump_frontend/ump_reference_release.S \
 	arch_011_udd/ump_frontend/ump_arch_unlock.S \
 	arch_011_udd/ump_ref_drv.c \
