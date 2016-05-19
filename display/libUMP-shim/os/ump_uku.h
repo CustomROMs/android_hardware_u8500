@@ -31,7 +31,7 @@ extern "C"
 {
 #endif
 
-_ump_osu_errcode_t _hwmem_uku_open( void **context );
+_ump_osu_errcode_t _ump_uku_open( void **context );
 
 _ump_osu_errcode_t _ump_uku_close( void **context );
 
