@@ -16,7 +16,7 @@
 
 ifeq ($(TARGET_SOC), u8500)
 
-ril-modules := libril libsec-ril-wrapper libsecril-client
+ril-modules := libril libsecril-client rild
 include $(call all-named-subdir-makefiles,$(ril-modules))
 
 endif
