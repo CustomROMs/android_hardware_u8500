@@ -23,22 +23,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
    iw
 
-
-# STE Compat Symbols
-PRODUCT_PACKAGES += \
-    libcamera_symbols \
-    libicuuc_51
-
 # RIL
 PRODUCT_PACKAGES += \
     libril \
     libsecril-client \
     libsec-ril-wrapper
-
-# STE gps Compat Symbols
-PRODUCT_PACKAGES += \
-    libshim_gps
-
 
 # External
 PRODUCT_PACKAGES += \
@@ -46,5 +35,9 @@ PRODUCT_PACKAGES += \
 
 #   whetstone \
 #   whetstone_hard
+
+# Sensors
+PRODUCT_PACKAGES += \
+   sensors.montblanc
 
 BOARD_HAL_STATIC_LIBRARIES := libhealthd.montblanc
