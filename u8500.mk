@@ -12,7 +12,9 @@ PRODUCT_PACKAGES += \
 
 # STE Media
 PRODUCT_PACKAGES += \
+   libnmf \
    libomxil-bellagio \
+   libste_omxil-interface \
    libstelpcutils \
    libstagefrighthw \
    libstagefright_soft_ste_wmapro_v10 \
