@@ -36,6 +36,12 @@ __BEGIN_DECLS
 /*****************************************************************************/
 
 typedef struct framebuffer_device_t {
+    /**
+     * Common methods of the framebuffer device.  This *must* be the first member of
+     * framebuffer_device_t as users of this structure will cast a hw_device_t to
+     * framebuffer_device_t pointer in contexts where it's known the hw_device_t references a
+     * framebuffer_device_t.
+     */
     struct hw_device_t common;
 
     /* flags describing some attributes of the framebuffer */
@@ -49,7 +55,7 @@ typedef struct framebuffer_device_t {
     int       stride;
 
     /* framebuffer pixel format */
-    const int       format;
+    int       format;
 
     /* resolution of the framebuffer's display panel in pixel per inch*/
     float     xdpi;
@@ -64,7 +70,12 @@ typedef struct framebuffer_device_t {
     /* max swap interval supported by this framebuffer */
     const int       maxSwapInterval;
 
-    int reserved[8];
+    /* Number of framebuffers supported*/
+    const int       numFramebuffers;
+
+   int rotate;
+
+    int reserved[7];
 
     /*
      * requests a specific swap-interval (same definition than EGL)
@@ -140,25 +151,6 @@ typedef struct framebuffer_device_t {
      * Returns 0 on success or -errno on error.
      */
     int (*enableScreen)(struct framebuffer_device_t* dev, int enable);
-
-    /*
-     * Sets the number of degrees ccw the framebuffer shall be rotated before
-     * being sent to the display. This call may change the framebuffer's
-     * dimensions.
-     */
-    int (*rotate)(struct framebuffer_device_t* dev, unsigned int absolute_degree);
-
-    /*
-     * Informs gralloc about the UI rotation. This is needed in the mirroring use
-     * case to get the correct orientation on the external device, e.g. HDMI.
-     */
-    void (*UIRotationChange)(struct framebuffer_device_t* dev, int uiRotation);
-
-    /*
-     * Enables the mirroring of the main display content to an external device,
-     * e.g. HDMI.
-     */
-    void (*enableHDMIMirroring)(struct framebuffer_device_t* dev, int enable);
 
     void* reserved_proc[6];
 
