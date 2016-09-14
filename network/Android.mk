@@ -16,7 +16,7 @@
 
 ifeq ($(TARGET_SOC), u8500)
 
-network-libs := iw_util
+network-libs := iw_util cspsa
 include $(call all-named-subdir-makefiles,$(network-libs))
 
 endif
