@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <malloc.h>
 #include "ENS_WrapperLog.h"
 #include "mapinfo.h"
 

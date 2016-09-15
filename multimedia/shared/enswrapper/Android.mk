@@ -16,13 +16,37 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+#ENS_VERSION_SHARED  := 1
+#ENS_VERSION_VIDEO   := 2
+#ENS_VERSION_AUDIO   := 3
+#ENS_VERSION_IMAGING := 4
+#
+#ifeq ($(MEDIUM),shared)
+#   ENS_VERSION := $(ENS_VERSION_SHARED)
+#else ifeq ($(MEDIUM),video)
+#    ENS_VERSION := $(ENS_VERSION_SHARED)
+#else ifeq ($(MEDIUM),imaging)
+#    ENS_VERSION := $(ENS_VERSION_SHARED)
+#else ifeq ($(MEDIUM),audio)
+#    ENS_VERSION := $(ENS_VERSION_SHARED)
+#else
+#    # Used for bellagio_ste_omxloader and others...
+#    ENS_VERSION := $(ENS_VERSION_SHARED)
+#endif
+
+LOCAL_CFLAGS += -DENS_VERSION=1 -DENS_VERSION_SHARED=1 -DENS_VERSION_VIDEO=2 -DENS_VERSION_AUDIO=3 -DENS_VERSION_IMAGING=4
+
+
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/inc $(LOCAL_PATH)/../utils/include $(LOCAL_PATH)/../ens_interface/include/omxil/ \
    $(LOCAL_PATH)/../ens_interface/nmf/mpc/nmf_repository/mmdsp_x \
    $(LOCAL_PATH)/../nmf/linux/api/ \
    $(LOCAL_PATH)/../ens_interface/include \
    $(LOCAL_PATH)/../rme/include \
    $(LOCAL_PATH)/../osttrace/include \
-   $(LOCAL_PATH)/../mmhwbuffer_osi/include
+   $(LOCAL_PATH)/../mmhwbuffer_osi/include \
+   $(LOCAL_PATH)/../ostgrp/include \
+   $(LOCAL_PATH)/../ens/proxy/include/ \
+   $(LOCAL_PATH)/../ens/common/
 
 # We are still using the RME Get_DefaultDDRDomain deprecated api
 LOCAL_CFLAGS += -DDEPRECATED_API
@@ -41,10 +65,10 @@ LOCAL_SRC_FILES := \
         src/ENS_Wrapper_DataDump.cpp \
         src/ENS_Wrapper_Dump.cpp
 
-LOCAL_C_INCLUDES += frameworks/base/include \
-            hardware/libhardware/include \
-            frameworks/native/include \
-            frameworks/native/include/media/hardware
+#LOCAL_C_INCLUDES += frameworks/base/include \
+#            hardware/libhardware/include \
+#            frameworks/native/include \
+#            frameworks/native/include/media/hardware
 
 #ifeq ($(MMCOMPILER),android)
   LOCAL_SRC_FILES += src/ENS_WrapperDumpMemInfo.cpp src/mapinfo.c
