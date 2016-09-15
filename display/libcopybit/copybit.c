@@ -24,7 +24,7 @@
 
 
 // for access to PMEM driver ioctls and structures
-#include "android_pmem.h"
+#include <linux/android_pmem.h>
 #include <linux/fb.h>
 
 #include <cutils/log.h>
@@ -42,12 +42,12 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
-#include "../../include/hardware/copybit.h"
-#include <blt_api.h>
+#include <hardware/copybit.h>
+#include "blt_api.h"
 
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
-#include "gralloc_stericsson_ext.h"
+#include <gralloc_stericsson_ext.h>
 
 
 /* Values returned for copybit_get */
@@ -62,7 +62,7 @@
 /* FB finfo.id identifying the ST frame buffer device */
 #define FINFO_ID "ST MCDE"
 
-#define DEBUG_LOG_COPYBIT 1
+#define DEBUG_LOG_COPYBIT 0
 
 
 /******************************************************************************/
@@ -139,15 +139,12 @@ static enum blt_fmt to_blt_fmt(int copybit_format)
         return BLT_FMT_YUV420_PACKED_SEMI_PLANAR;
     case COPYBIT_FORMAT_YCBCR42XMBN:
         return BLT_FMT_YUV420_PACKED_SEMIPLANAR_MB_STE;
-/*
     case COPYBIT_FORMAT_YCbCr_422_P:
         return BLT_FMT_YUV422_PACKED_PLANAR;
-*/
     case COPYBIT_FORMAT_YCbCr_420_P:
         return BLT_FMT_YUV420_PACKED_PLANAR;
     case COPYBIT_FORMAT_YCbCr_422_I:
 	return BLT_FMT_CB_Y_CR_Y;
-/*
     case COPYBIT_FORMAT_YCrCb_422_SP:
         return BLT_FMT_YVU422_PACKED_SEMI_PLANAR;
     case COPYBIT_FORMAT_YCrCb_420_SP:
@@ -156,7 +153,6 @@ static enum blt_fmt to_blt_fmt(int copybit_format)
         return BLT_FMT_YVU422_PACKED_PLANAR;
     case COPYBIT_FORMAT_YCrCb_420_P:
         return BLT_FMT_YVU420_PACKED_PLANAR;
-*/
     default:
         return BLT_FMT_UNUSED;
     }
@@ -627,16 +623,12 @@ static int copybit_stretch(struct copybit_device_t *dev,
     if (src->format == COPYBIT_FORMAT_RGBX_8888 ||
         dst->format == COPYBIT_FORMAT_YCbCr_422_SP ||
         dst->format == COPYBIT_FORMAT_YCbCr_420_SP ||
-/*
         dst->format == COPYBIT_FORMAT_YCbCr_422_P  ||
-*/
         dst->format == COPYBIT_FORMAT_YCbCr_420_P  ||
-/*
         dst->format == COPYBIT_FORMAT_YCrCb_422_SP ||
         dst->format == COPYBIT_FORMAT_YCrCb_420_SP ||
         dst->format == COPYBIT_FORMAT_YCrCb_422_P  ||
         dst->format == COPYBIT_FORMAT_YCrCb_420_P  ||
-*/
         dst->format == COPYBIT_FORMAT_YCBCR42XMBN) {
         context->blt_req.flags &= ~(BLT_FLAG_PER_PIXEL_ALPHA_BLEND |
                                     BLT_FLAG_SRC_IS_NOT_PREMULT);

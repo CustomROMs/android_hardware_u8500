@@ -17,9 +17,11 @@ LOCAL_PATH:= $(call my-dir)
 # HAL module implemenation, not prelinked and stored in
 # hw/<COPYPIX_HARDWARE_MODULE_ID>.<ro.board.platform>.so
 include $(CLEAR_VARS)
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../multimedia/linux/b2r2lib/include $(GRALLOC_PATH)
+MULTIMEDIA_PATH := hardware/u8500/multimedia
+GRALLOC_PATH := $(LOCAL_PATH)/../libgralloc
+LOCAL_C_INCLUDES := $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(GRALLOC_PATH)
 LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/$(TARGET_COPY_OUT_VENDOR)/lib/hw
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog libblt_hw libhardware
 LOCAL_SRC_FILES := copybit.c
 LOCAL_MODULE := copybit.$(TARGET_BOARD_PLATFORM)

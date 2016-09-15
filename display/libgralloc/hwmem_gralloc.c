@@ -48,12 +48,10 @@
 
 
 /* Use these macro when it's probably a user error. */
-//#define LOG_USER_ERROR_ALWAYS(...) ALOGE("[User error] " __VA_ARGS__);
-#define LOG_USER_ERROR_ALWAYS(...) 
+#define LOG_USER_ERROR_ALWAYS(...) ALOGE("[User error] " __VA_ARGS__);
 
 #ifndef LOG_USER_ERROR
-//#define LOG_USER_ERROR(...) ALOGE("[User error] " __VA_ARGS__);
-#define LOG_USER_ERROR(...)
+#define LOG_USER_ERROR(...) ALOGE("[User error] " __VA_ARGS__);
 #endif
 
 #ifndef LOG_ERROR
@@ -1247,21 +1245,21 @@ static int get_format_bpp(int format, int* bpp)
         case HAL_PIXEL_FORMAT_RGBA_5551:
         case HAL_PIXEL_FORMAT_RGBA_4444:
         case HAL_PIXEL_FORMAT_YCbCr_422_SP:
-        //case HAL_PIXEL_FORMAT_YCbCr_422_P:
+        case HAL_PIXEL_FORMAT_YCbCr_422_P:
         case HAL_PIXEL_FORMAT_YCbCr_422_I:
-        //case HAL_PIXEL_FORMAT_CbYCrY_422_I:
-        //case HAL_PIXEL_FORMAT_YCrCb_422_SP:
-        //case HAL_PIXEL_FORMAT_YCrCb_422_P:
+        case HAL_PIXEL_FORMAT_CbYCrY_422_I:
+        case HAL_PIXEL_FORMAT_YCrCb_422_SP:
+        case HAL_PIXEL_FORMAT_YCrCb_422_P:
             *bpp = 16;
             break;
 
         case HAL_PIXEL_FORMAT_YCBCR42XMBN: /* Interpreted as HAL_PIXEL_FORMAT_YCBCR420MBN */
         case HAL_PIXEL_FORMAT_YCbCr_420_SP:
         case HAL_PIXEL_FORMAT_YCbCr_420_P:
-        //case HAL_PIXEL_FORMAT_YCbCr_420_I:
-        //case HAL_PIXEL_FORMAT_CbYCrY_420_I:
+        case HAL_PIXEL_FORMAT_YCbCr_420_I:
+        case HAL_PIXEL_FORMAT_CbYCrY_420_I:
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-        //case HAL_PIXEL_FORMAT_YCrCb_420_P:
+        case HAL_PIXEL_FORMAT_YCrCb_420_P:
         case HAL_PIXEL_FORMAT_YV12:
             *bpp = 12;
             break;
@@ -1314,23 +1312,23 @@ static int get_format_width_and_height_alignment(int format, int usage,
             break;
 
         case HAL_PIXEL_FORMAT_YCbCr_422_SP:
-        //case HAL_PIXEL_FORMAT_YCbCr_422_P:
+        case HAL_PIXEL_FORMAT_YCbCr_422_P:
         case HAL_PIXEL_FORMAT_YCbCr_422_I:
-        //case HAL_PIXEL_FORMAT_CbYCrY_422_I:
-        //case HAL_PIXEL_FORMAT_YCrCb_422_SP:
-        //case HAL_PIXEL_FORMAT_YCrCb_422_P:
+        case HAL_PIXEL_FORMAT_CbYCrY_422_I:
+        case HAL_PIXEL_FORMAT_YCrCb_422_SP:
+        case HAL_PIXEL_FORMAT_YCrCb_422_P:
             *width_alignment = 2;
             *height_alignment = 1;
             break;
 
-        //case HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED:
+        case HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED:
         case HAL_PIXEL_FORMAT_YCbCr_420_SP:
         case HAL_PIXEL_FORMAT_YCbCr_420_P:
-        //case HAL_PIXEL_FORMAT_YCbCr_420_I:
-        //case HAL_PIXEL_FORMAT_YCrCb_420_SP_TILED:
+        case HAL_PIXEL_FORMAT_YCbCr_420_I:
+        case HAL_PIXEL_FORMAT_YCrCb_420_SP_TILED:
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-        //case HAL_PIXEL_FORMAT_YCrCb_420_P:
-        //case HAL_PIXEL_FORMAT_CbYCrY_420_I:
+        case HAL_PIXEL_FORMAT_YCrCb_420_P:
+        case HAL_PIXEL_FORMAT_CbYCrY_420_I:
             *width_alignment = 2;
             *height_alignment = 2;
             break;

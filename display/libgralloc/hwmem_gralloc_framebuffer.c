@@ -87,13 +87,9 @@ static int fb_setSwapInterval(struct framebuffer_device_t* dev,
             int interval)
 {
     struct fb_context_t* ctx = (struct fb_context_t*)dev;
-    if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval) {
-	ALOGI("Meticulus: interval beyond range: %d (%d - %d)\n",interval ,
-		dev->minSwapInterval, dev->maxSwapInterval); 
-    }
-	//return -EINVAL;
+    if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval)
+        return -EINVAL;
     // FIXME: implement fb_setSwapInterval
-    ALOGE("Meticulus fb_setSwapInterval is not implemented!");
     return 0;
 }
 
@@ -449,7 +445,7 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
 
     xdpi = (info.xres * 25.4f) / info.width;
     ydpi = (info.yres * 25.4f) / info.height;
-    fps  = 60.0f;
+    fps  = refreshRate / 1000.0f;
 
     ALOGI(   "using (fd=%d)\n"
             "id           = %s\n"
@@ -475,7 +471,7 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
 
     ALOGI(   "width        = %d mm (%f dpi)\n"
             "height       = %d mm (%f dpi)\n"
-            "refresh rate = %f Hz\n",
+            "refresh rate = %.2f Hz\n",
             info.width,  xdpi,
             info.height, ydpi,
             fps
