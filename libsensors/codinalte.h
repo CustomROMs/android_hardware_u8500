@@ -55,13 +55,13 @@
 
 /* Magnetometer defines */
 #define HSCDTD008A_POWER 0.2f
-#define HSCDTD008A_RANGE 4800.0f
-#define HSCDTD008A_RESOLUTION 0.14992504f
+#define HSCDTD008A_RANGE 2200.0f
+#define HSCDTD008A_RESOLUTION 0.29411766f
 
 /* Accelerometer defines */
-#define BMA254_POWER  0.2f
-#define BMA254_RANGE  39.24f
-#define BMA254_RESOLUTION  0.009580079f
+#define BMA254_POWER  0.7f
+#define BMA254_RANGE  39.2f
+#define BMA254_RESOLUTION  0.038307227f
 
 /* proximity defines */
 #define TAOS_POWER 0.75f

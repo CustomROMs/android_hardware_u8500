@@ -301,11 +301,11 @@ static int poll_accelerometer(sensors_event_t *values)
 	sscanf(buf, "%d,%d,%d", &data[0], &data[1], &data[2]);
 
 	values->acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
-	values->acceleration.x = (float) data[0];
+	values->acceleration.x = (float) (-data[1]*16.66666666666f);
 	values->acceleration.x *= CONVERT_A;
-	values->acceleration.y = (float) data[1];
+	values->acceleration.y = (float) (data[0]*16.66666666666f);
 	values->acceleration.y *= CONVERT_A;
-	values->acceleration.z = (float) data[2];
+	values->acceleration.z = (float) (data[2]*16.66666666666f);
 	values->acceleration.z *= CONVERT_A;
 
 	values->type = SENSOR_TYPE_ACCELEROMETER;
