@@ -4,8 +4,6 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := sensors.$(TARGET_BOARD_PLATFORM)
 
-LOCAL_CFLAGS := -std=gnu99
-
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_PRELINK_MODULE := false

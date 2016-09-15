@@ -15,7 +15,7 @@
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../multimedia/shared/omxil
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../libomxil-bellagio/include
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(PRODUCT_OUT)/$(TARGET_COPY_OUT_VENDOR)/lib
 LOCAL_SHARED_LIBRARIES := liblog libdl
