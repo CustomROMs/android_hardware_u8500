@@ -1,0 +1,18 @@
+mkdir -p ost
+#                    $(USER_OST_COMPILER_OPTION) \
+
+
+OST_INC_AUTOGEN=ost
+MEDIUM_DIR=/media/ROM/ste_vendor/st-ericsson/multimedia/shared/
+TC_GROUP_MAP=/media/ROM/ste_vendor/st-ericsson/multimedia/shared/ostgrp/include/ste_ost_group_map.h
+TRACECOMPILERDIR=/media/ROM//ste_vendor/st-ericsson/multimedia/shared/osttools/osttc/
+
+perl $TRACECOMPILERDIR/tracecompiler.pl \
+                    --defines=mediaroot=$MEDIUM_DIR \
+                    --inc=$OST_INC_AUTOGEN \
+                    --defines=grpmapfile=$TC_GROUP_MAP \
+                    --defines=strippath \
+                    --name="My blablablah" \
+                    --id=999  $@
+
+#                    --action="GenTraceDefinition" $@
