@@ -40,7 +40,7 @@ PRODUCT_PACKAGES += \
 #   whetstone_hard
 
 # Sensors
-PRODUCT_PACKAGES += \
-   sensors.montblanc
+#PRODUCT_PACKAGES += \
+#   sensors.montblanc
 
 BOARD_HAL_STATIC_LIBRARIES := libhealthd.montblanc
