@@ -27,7 +27,7 @@
    * Proximity  - 					drivers/sensor/proximity/tmd2672.c
    */
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define LOG_TAG "Sensors"
 #include <hardware/sensors.h>
@@ -846,8 +846,9 @@ static int m_poll(struct sensors_poll_device_t *dev,
 	struct timeval time;
 	int events = 0;
 
-	if (stsensor_msgqueue.sensor_data[0].sensor == SENSOR_TYPE_ORIENTATION) {
-		ALOGE("%s: orientation: calling to proprietary blob");
+	if (stsensor_msgqueue.sensor_data[0].sensor == HANDLE_MAGNETIC_FIELD) {
+		ALOGE("%s: orientation: calling to proprietary blob", __func__);
+
 		return mSensorDevice->poll(dev, data, count);
 	}
 
@@ -859,6 +860,7 @@ static int m_poll(struct sensors_poll_device_t *dev,
 		pthread_cond_wait(&data_available_cv, &sensordata_mutex);
 	memcpy(data, &stsensor_msgqueue.sensor_data[0] ,
 			sizeof(stsensor_msgqueue.sensor_data[0]));
+	ALOGE("%s: queued data for sensor type %d", __func__, stsensor_msgqueue.sensor_data[0].sensor);
 	if (stsensor_msgqueue.length > 1) {
 		for (i = 0; i < stsensor_msgqueue.length - 1; i++)
 			memcpy(&stsensor_msgqueue.sensor_data[i],
