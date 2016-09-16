@@ -72,6 +72,7 @@ int continue_next;
 int events = 0;
 static int count_open_sensors = 0;
 static int count_delay_sensors = 0;
+char orien_thread_exit;
 
 Sensor_prox  stprox_val;
 
@@ -268,10 +269,52 @@ static int activate_prox(int enable)
 
 static int activate_orientation(int enable)
 {
-	if(activate_acc(enable) == 0 && activate_mag(enable) == 0)
-		return 0;
-	else
-		return -1;
+	int ret = 0;
+	pthread_attr_t attr;
+	pthread_t orien_thread = -1;
+	ALOGE("%s: enter", __func__);
+
+	if (enable) {
+		ALOGE("%s: enable", __func__);
+
+		if (count_orien == 0) {
+			ALOGE("%s: count_orien == 0", __func__);
+
+			ret = activate_mag(enable);
+				ALOGE("%s: activate_mag(enable) == %d", __func__, ret);
+
+			ret = activate_acc(enable);
+				ALOGE("%s: activate_acc(enable) == %d", __func__, ret);
+
+			if (ret == 0) {
+				orien_thread_exit = 0;
+				pthread_attr_init(&attr);
+				/*
+				 * Create thread in detached state, so that we
+				 * need not join to clear its resources
+				 */
+				pthread_attr_setdetachstate(&attr,
+						PTHREAD_CREATE_DETACHED);
+				ret = pthread_create(&orien_thread, &attr,
+						orien_getdata, NULL);
+				pthread_attr_destroy(&attr);
+				count_orien++;
+			}
+		} else {
+			count_orien++;
+		}
+	} else {
+		if (count_orien == 0)
+			return 0;
+		count_orien--;
+		if (count_orien == 0) {
+			/*
+			 * Enable orien_thread_exit to exit the thread
+			 */
+			orien_thread_exit = 1;
+		}
+	}
+	return ret;
 }
 
 static int poll_accelerometer(sensors_event_t *values)
@@ -384,8 +427,8 @@ static int poll_magnetometer(sensors_event_t *values)
 	close(fd);
 
 	values->magnetic.status = SENSOR_STATUS_ACCURACY_HIGH;
-	values->magnetic.x = (data[0] * HSCDTD008A_RESOLUTION);
-	values->magnetic.y = (data[1] * HSCDTD008A_RESOLUTION);
+	values->magnetic.x = (data[1] * HSCDTD008A_RESOLUTION);
+	values->magnetic.y = (data[0] * HSCDTD008A_RESOLUTION);
 	values->magnetic.z = (data[2] * HSCDTD008A_RESOLUTION);
 	values->sensor = HANDLE_MAGNETIC_FIELD;
 	values->type = SENSOR_TYPE_MAGNETIC_FIELD;
@@ -419,7 +462,7 @@ static int poll_orientation(sensors_event_t *values)
 	float gain_mag[2] = {0.0};
 	char buf[SIZE_OF_BUF];
 	int nread;
-	double mag_x, mag_y, mag_xy;
+	double mag_x, mag_y, mag_z, mag_xy;
 	double acc_x, acc_y, acc_z;
 
 	data_mag[0] = 0;
@@ -450,8 +493,9 @@ static int poll_orientation(sensors_event_t *values)
 	}
 	sscanf(buf, "%d,%d,%d", &data_mag[0], &data_mag[1], &data_mag[2]);
 
-	mag_x = (data_mag[0] * HSCDTD008A_RESOLUTION);
-	mag_y = (data_mag[1] * HSCDTD008A_RESOLUTION);
+	mag_x = (data_mag[1] * HSCDTD008A_RESOLUTION);
+	mag_y = (data_mag[0] * HSCDTD008A_RESOLUTION);
+	mag_z = (data_mag[2] * HSCDTD008A_RESOLUTION);
 	if (mag_x == 0) {
 		if (mag_y < 0)
 			values->orientation.azimuth = 180;
@@ -476,12 +520,14 @@ static int poll_orientation(sensors_event_t *values)
 	}
 	sscanf(buf, "%d,%d,%d", &data_acc[0], &data_acc[1], &data_acc[2]);
 
-	acc_x = (float) data_acc[0];
+	acc_x = (float) (-data_acc[1]*16.66666666666f);
 	acc_x *= CONVERT_A;
-	acc_y = (float) data_acc[1];
+	acc_y = (float) (data_acc[0]*16.66666666666f);
 	acc_y *= CONVERT_A;
-	acc_z = (float) data_acc[2];
+	acc_z = (float) (data_acc[2]*16.66666666666f);
 	acc_z *= CONVERT_A;
+
+	ALOGE("mag: %d, %d, %d; acc: %d, %d, %d;\n", data_mag[0], data_mag[1], data_mag[2], data_acc[0], data_acc[1], data_acc[2]);
 
 	values->sensor = HANDLE_ORIENTATION;
 	values->type = SENSOR_TYPE_ORIENTATION;
@@ -642,15 +688,22 @@ static int m_poll_activate(struct sensors_poll_device_t *dev,
 	switch (handle) {
 	case HANDLE_ORIENTATION:
 		status = activate_orientation(enabled);
+		ALOGE("%s: activate_orientation(%d) == %d", __func__, enabled, status);
 		break;
 	case HANDLE_ACCELEROMETER:
 		status = activate_acc(enabled);
+		ALOGE("%s: activate_acc(%d) == %d", __func__, enabled, status);
+
 		break;
 	case HANDLE_MAGNETIC_FIELD:
 		status = activate_mag(enabled);
+		ALOGE("%s: activate_mag(%d) == %d", __func__, enabled, status);
+
 		break;
 	case HANDLE_PROXIMITY:
 		status = activate_prox(enabled);
+		ALOGE("%s: activate_prox(%d) == %d", __func__, enabled, status);
+
 		break;
 	default:
 		if(DEBUG)
