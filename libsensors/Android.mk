@@ -12,7 +12,7 @@ LOCAL_PRELINK_MODULE := false
 
 LOCAL_MODULE_PATH := $(PRODUCT_OUT)/$(TARGET_COPY_OUT_VENDOR)/lib/hw
 
-LOCAL_SHARED_LIBRARIES := liblog libcutils
+LOCAL_SHARED_LIBRARIES := liblog libcutils libhardware
 
 LOCAL_SRC_FILES := sensors.c
 

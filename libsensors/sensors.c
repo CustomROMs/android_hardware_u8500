@@ -95,6 +95,55 @@ static Sensor_data sensor_data;
 static int on = 1;
 static int off = 0;
 
+extern int hw_get_module_by_path(char *path, const struct hw_module_t **module);
+
+
+#define REAL_SENSORS_NAME				"/system/lib/libsensors_codina.so"
+//struct hw_module_t *realSensorsLibHandle;
+//struct sensors_poll_device_t* realSensorsDevice;
+
+sensors_poll_device_1_t* mSensorDevice;
+struct sensors_module_t* mSensorModule;
+
+/* libril constructor / destructor */
+
+void libEvtLoading(void) __attribute__((constructor));
+void libEvtUnloading(void) __attribute__((destructor));
+
+/* wrapped library handle */
+
+//void *realSensorsLibHandle;
+
+void libEvtLoading(void)
+{
+	int ret;
+
+
+	// open sensors blob
+	ret = hw_get_module_by_path(REAL_SENSORS_NAME, (hw_module_t const**)&mSensorModule);
+
+
+	if (!mSensorModule) {
+		ALOGE("Failed to load sensors blob '" REAL_SENSORS_NAME  "': %s\n", dlerror());
+		return;
+	}
+
+	ret = sensors_open_1(&mSensorModule->common, &mSensorDevice);
+
+	return;
+//out_fail:
+//	dlclose(realRilLibHandle);
+}
+
+void libEvtUnloading(void)
+{
+/*
+	if (realRilLibHandle)
+		 dlclose(realRilLibHandle);
+*/
+}
+
+
 static int write_cmd(char const *path, char *cmd, int size)
 {
 	int fd, ret;
@@ -796,6 +845,11 @@ static int m_poll(struct sensors_poll_device_t *dev,
 	int i;
 	struct timeval time;
 	int events = 0;
+
+	if (stsensor_msgqueue.sensor_data[0].sensor == SENSOR_TYPE_ORIENTATION) {
+		ALOGE("%s: orientation: calling to proprietary blob");
+		return mSensorDevice->poll(dev, data, count);
+	}
 
 	pthread_mutex_lock(&sensordata_mutex);
 	/* If there are no elements in the queue
