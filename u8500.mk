@@ -25,6 +25,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
    iw
 
+# CSPSA 
+PRODUCT_PACKAGES += \
+   cspsa-server \
+   cspsa-cmd \
+   libcspsa
+
 # RIL
 PRODUCT_PACKAGES += \
     libril \
