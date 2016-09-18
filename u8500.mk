@@ -33,8 +33,6 @@ PRODUCT_PACKAGES += \
 
 # RIL
 PRODUCT_PACKAGES += \
-    libril \
-    rild   \
     libsecril-client \
     libsec-ril-wrapper
 
