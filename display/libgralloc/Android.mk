@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MULTIMEDIA_PATH := hardware/u8500/multimedia
 
 LOCAL_PATH := $(call my-dir)
 
@@ -20,14 +19,14 @@ LOCAL_PATH := $(call my-dir)
 # hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_PATH := $(PRODUCT_OUT)/$(TARGET_COPY_OUT_VENDOR)/lib/hw
 LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM
 
 LOCAL_SRC_FILES := 	\
 	hwmem_gralloc.c hwmem_gralloc_pmem.c hwmem_gralloc_framebuffer.c
 
-LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(MULTIMEDIA_PATH)
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../b2r2lib/include/video/
 LOCAL_MODULE := gralloc.$(TARGET_BOARD_PLATFORM)
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\" -std=gnu99
-#include $(BUILD_SHARED_LIBRARY)
+LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\"
+include $(BUILD_SHARED_LIBRARY)
