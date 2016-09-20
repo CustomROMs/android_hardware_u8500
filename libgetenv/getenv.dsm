@@ -1,0 +1,182 @@
+
+../../../out/target/product/codina/obj/lib/libgetenv.so:     file format elf32-littlearm
+
+
+Disassembly of section .plt:
+
+000003d8 <__cxa_finalize@plt-0x14>:
+ 3d8:	e52de004 	push	{lr}		; (str lr, [sp, #-4]!)
+ 3dc:	e59fe004 	ldr	lr, [pc, #4]	; 3e8 <__cxa_finalize@plt-0x4>
+ 3e0:	e08fe00e 	add	lr, pc, lr
+ 3e4:	e5bef008 	ldr	pc, [lr, #8]!
+ 3e8:	00001bf8 	strdeq	r1, [r0], -r8
+
+000003ec <__cxa_finalize@plt>:
+ 3ec:	e28fc600 	add	ip, pc, #0, 12
+ 3f0:	e28cca01 	add	ip, ip, #4096	; 0x1000
+ 3f4:	e5bcfbf8 	ldr	pc, [ip, #3064]!	; 0xbf8
+
+000003f8 <__cxa_atexit@plt>:
+ 3f8:	e28fc600 	add	ip, pc, #0, 12
+ 3fc:	e28cca01 	add	ip, ip, #4096	; 0x1000
+ 400:	e5bcfbf0 	ldr	pc, [ip, #3056]!	; 0xbf0
+
+00000404 <__register_atfork@plt>:
+ 404:	e28fc600 	add	ip, pc, #0, 12
+ 408:	e28cca01 	add	ip, ip, #4096	; 0x1000
+ 40c:	e5bcfbe8 	ldr	pc, [ip, #3048]!	; 0xbe8
+
+00000410 <__android_log_print@plt>:
+ 410:	e28fc600 	add	ip, pc, #0, 12
+ 414:	e28cca01 	add	ip, ip, #4096	; 0x1000
+ 418:	e5bcfbe0 	ldr	pc, [ip, #3040]!	; 0xbe0
+
+0000041c <property_get@plt>:
+ 41c:	e28fc600 	add	ip, pc, #0, 12
+ 420:	e28cca01 	add	ip, ip, #4096	; 0x1000
+ 424:	e5bcfbd8 	ldr	pc, [ip, #3032]!	; 0xbd8
+
+Disassembly of section .text:
+
+00000428 <test-0xe0>:
+ 428:	e92d4800 	push	{fp, lr}
+ 42c:	e28db004 	add	fp, sp, #4
+ 430:	e59f300c 	ldr	r3, [pc, #12]	; 444 <property_get@plt+0x28>
+ 434:	e08f3003 	add	r3, pc, r3
+ 438:	e1a00003 	mov	r0, r3
+ 43c:	ebffffea 	bl	3ec <__cxa_finalize@plt>
+ 440:	e8bd8800 	pop	{fp, pc}
+ 444:	00001bc4 	andeq	r1, r0, r4, asr #23
+ 448:	e92d4800 	push	{fp, lr}
+ 44c:	e28db004 	add	fp, sp, #4
+ 450:	e24dd008 	sub	sp, sp, #8
+ 454:	e50b0008 	str	r0, [fp, #-8]
+ 458:	e51b3008 	ldr	r3, [fp, #-8]
+ 45c:	e3530000 	cmp	r3, #0
+ 460:	0a000001 	beq	46c <property_get@plt+0x50>
+ 464:	e51b3008 	ldr	r3, [fp, #-8]
+ 468:	e12fff33 	blx	r3
+ 46c:	e24bd004 	sub	sp, fp, #4
+ 470:	e8bd8800 	pop	{fp, pc}
+ 474:	e92d4800 	push	{fp, lr}
+ 478:	e28db004 	add	fp, sp, #4
+ 47c:	e24dd008 	sub	sp, sp, #8
+ 480:	e50b0008 	str	r0, [fp, #-8]
+ 484:	e59f302c 	ldr	r3, [pc, #44]	; 4b8 <property_get@plt+0x9c>
+ 488:	e08f3003 	add	r3, pc, r3
+ 48c:	e1a00003 	mov	r0, r3
+ 490:	e51b1008 	ldr	r1, [fp, #-8]
+ 494:	e59f3020 	ldr	r3, [pc, #32]	; 4bc <property_get@plt+0xa0>
+ 498:	e08f3003 	add	r3, pc, r3
+ 49c:	e1a02003 	mov	r2, r3
+ 4a0:	ebffffd4 	bl	3f8 <__cxa_atexit@plt>
+ 4a4:	e1a03000 	mov	r3, r0
+ 4a8:	e1a00000 	nop			; (mov r0, r0)
+ 4ac:	e1a00003 	mov	r0, r3
+ 4b0:	e24bd004 	sub	sp, fp, #4
+ 4b4:	e8bd8800 	pop	{fp, pc}
+ 4b8:	ffffffb8 			; <UNDEFINED> instruction: 0xffffffb8
+ 4bc:	00001b60 	andeq	r1, r0, r0, ror #22
+ 4c0:	e92d4800 	push	{fp, lr}
+ 4c4:	e28db004 	add	fp, sp, #4
+ 4c8:	e24dd010 	sub	sp, sp, #16
+ 4cc:	e50b0008 	str	r0, [fp, #-8]
+ 4d0:	e50b100c 	str	r1, [fp, #-12]
+ 4d4:	e50b2010 	str	r2, [fp, #-16]
+ 4d8:	e51b0008 	ldr	r0, [fp, #-8]
+ 4dc:	e51b100c 	ldr	r1, [fp, #-12]
+ 4e0:	e51b2010 	ldr	r2, [fp, #-16]
+ 4e4:	e59f3018 	ldr	r3, [pc, #24]	; 504 <property_get@plt+0xe8>
+ 4e8:	e08f3003 	add	r3, pc, r3
+ 4ec:	ebffffc4 	bl	404 <__register_atfork@plt>
+ 4f0:	e1a03000 	mov	r3, r0
+ 4f4:	e1a00000 	nop			; (mov r0, r0)
+ 4f8:	e1a00003 	mov	r0, r3
+ 4fc:	e24bd004 	sub	sp, fp, #4
+ 500:	e8bd8800 	pop	{fp, pc}
+ 504:	00001b10 	andeq	r1, r0, r0, lsl fp
+
+00000508 <test>:
+ 508:	4a03      	ldr	r2, [pc, #12]	; (518 <test+0x10>)
+ 50a:	2006      	movs	r0, #6
+ 50c:	4b03      	ldr	r3, [pc, #12]	; (51c <test+0x14>)
+ 50e:	2100      	movs	r1, #0
+ 510:	447a      	add	r2, pc
+ 512:	447b      	add	r3, pc
+ 514:	f000 b848 	b.w	5a8 <property_zet+0x44>
+ 518:	00ac      	lsls	r4, r5, #2
+ 51a:	0000      	movs	r0, r0
+ 51c:	00a2      	lsls	r2, r4, #2
+	...
+
+00000520 <zetenv>:
+ 520:	4a0d      	ldr	r2, [pc, #52]	; (558 <zetenv+0x38>)
+ 522:	2100      	movs	r1, #0
+ 524:	b510      	push	{r4, lr}
+ 526:	4604      	mov	r4, r0
+ 528:	b098      	sub	sp, #96	; 0x60
+ 52a:	4623      	mov	r3, r4
+ 52c:	447a      	add	r2, pc
+ 52e:	2006      	movs	r0, #6
+ 530:	f7ff ef6e 	blx	410 <__android_log_print@plt>
+ 534:	4a09      	ldr	r2, [pc, #36]	; (55c <zetenv+0x3c>)
+ 536:	4620      	mov	r0, r4
+ 538:	ac01      	add	r4, sp, #4
+ 53a:	4621      	mov	r1, r4
+ 53c:	447a      	add	r2, pc
+ 53e:	f7ff ef6e 	blx	41c <property_get@plt>
+ 542:	4a07      	ldr	r2, [pc, #28]	; (560 <zetenv+0x40>)
+ 544:	2100      	movs	r1, #0
+ 546:	4623      	mov	r3, r4
+ 548:	2006      	movs	r0, #6
+ 54a:	447a      	add	r2, pc
+ 54c:	f7ff ef60 	blx	410 <__android_log_print@plt>
+ 550:	4620      	mov	r0, r4
+ 552:	b018      	add	sp, #96	; 0x60
+ 554:	bd10      	pop	{r4, pc}
+ 556:	bf00      	nop
+ 558:	009c      	lsls	r4, r3, #2
+ 55a:	0000      	movs	r0, r0
+ 55c:	00a3      	lsls	r3, r4, #2
+ 55e:	0000      	movs	r0, r0
+ 560:	0096      	lsls	r6, r2, #2
+	...
+
+00000564 <property_zet>:
+ 564:	b573      	push	{r0, r1, r4, r5, r6, lr}
+ 566:	4614      	mov	r4, r2
+ 568:	9200      	str	r2, [sp, #0]
+ 56a:	4606      	mov	r6, r0
+ 56c:	460d      	mov	r5, r1
+ 56e:	4633      	mov	r3, r6
+ 570:	4a0b      	ldr	r2, [pc, #44]	; (5a0 <property_zet+0x3c>)
+ 572:	2100      	movs	r1, #0
+ 574:	2006      	movs	r0, #6
+ 576:	447a      	add	r2, pc
+ 578:	f7ff ef4a 	blx	410 <__android_log_print@plt>
+ 57c:	4629      	mov	r1, r5
+ 57e:	4622      	mov	r2, r4
+ 580:	4630      	mov	r0, r6
+ 582:	f7ff ef4c 	blx	41c <property_get@plt>
+ 586:	4a07      	ldr	r2, [pc, #28]	; (5a4 <property_zet+0x40>)
+ 588:	4606      	mov	r6, r0
+ 58a:	9000      	str	r0, [sp, #0]
+ 58c:	2100      	movs	r1, #0
+ 58e:	462b      	mov	r3, r5
+ 590:	2006      	movs	r0, #6
+ 592:	447a      	add	r2, pc
+ 594:	f7ff ef3c 	blx	410 <__android_log_print@plt>
+ 598:	4630      	mov	r0, r6
+ 59a:	b002      	add	sp, #8
+ 59c:	bd70      	pop	{r4, r5, r6, pc}
+ 59e:	bf00      	nop
+ 5a0:	007c      	lsls	r4, r7, #1
+ 5a2:	0000      	movs	r0, r0
+ 5a4:	008f      	lsls	r7, r1, #2
+ 5a6:	0000      	movs	r0, r0
+ 5a8:	4778      	bx	pc
+ 5aa:	46c0      	nop			; (mov r8, r8)
+ 5ac:	c000      	stmia	r0!, {}
+ 5ae:	e59f      	b.n	f0 <__cxa_finalize@plt-0x2fc>
+ 5b0:	f00f e08c 	blx	40f6cc <__bss_start+0x40d6c8>
+ 5b4:	fe58 ffff 	mrc2	15, 2, pc, cr8, cr15, {7}
