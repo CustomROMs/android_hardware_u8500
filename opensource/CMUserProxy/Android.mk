@@ -20,7 +20,7 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/../nmf/linux/src/common
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../nmf/linux/src/driver
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog libcutils
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/$(TARGET_COPY_OUT_VENDOR)/lib
+LOCAL_MODULE_PATH := $(PRODUCT_OUT)/lib
 LOCAL_SRC_FILES := \
     cmdebugfs.c \
     cmsyscallwrapper.c \

@@ -7,6 +7,7 @@ $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 PRODUCT_PACKAGES += \
    lights.montblanc \
    hwcomposer.montblanc \
+   gralloc.montblanc \
    copybit.montblanc \
    libblt_hw
 
