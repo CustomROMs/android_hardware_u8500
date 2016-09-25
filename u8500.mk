@@ -21,7 +21,8 @@ PRODUCT_PACKAGES += \
    libstagefrighthw \
    libstagefright_soft_ste_wmapro_v10 \
    libstagefright_soft_ste_mp3dec \
-   libstagefright_soft_ste_aacdec
+   libstagefright_soft_ste_aacdec \
+   libtrace
 
 # WLAN
 PRODUCT_PACKAGES += \
@@ -41,6 +42,7 @@ PRODUCT_PACKAGES += \
     libisimessage \
     libshmnetlnk \
     libmalutil \
+    libpscc \
     libsterc \
     libstecom \
     libsms_server \
