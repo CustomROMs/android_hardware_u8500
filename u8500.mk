@@ -13,6 +13,7 @@ PRODUCT_PACKAGES += \
 
 # STE Media
 PRODUCT_PACKAGES += \
+   libbassapp \
    libnmf \
    libomxil-bellagio \
    libste_omxil-interface \
@@ -34,8 +35,16 @@ PRODUCT_PACKAGES += \
 
 # RIL
 PRODUCT_PACKAGES += \
+    msa \
+    libtee \
+    libmpl \
+    libisimessage \
+    libshmnetlnk \
+    libmalutil \
+    libsterc \
+    libstecom \
+    libsms_server \
     libsecril-client \
-    libsec-ril-wrapper
 
 # External
 PRODUCT_PACKAGES += \
