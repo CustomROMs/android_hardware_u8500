@@ -15,6 +15,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
    libbassapp \
    libnmf \
+   liblos \
    libomxil-bellagio \
    libste_omxil-interface \
    libstelpcutils \
