@@ -8,6 +8,8 @@ ifeq ($(strip $(BOARD_USES_ALSA_AUDIO)),true)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
+LOCAL_CLANG := false
+
 LOCAL_MODULE := libasound
 LOCAL_MODULE_TAGS := optional
 

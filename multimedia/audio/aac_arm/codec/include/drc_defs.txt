@@ -1,3 +1,0 @@
-#define DRC_TABLE_SIZE  128 
-extern Float const YMEM aac_drc_hi_table[ 128 ];
-extern Float const YMEM aac_drc_lo_table[ 128 ];

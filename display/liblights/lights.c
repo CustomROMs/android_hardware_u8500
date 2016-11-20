@@ -153,15 +153,15 @@ static int open_lights(const struct hw_module_t *module, char const *name, struc
 /** Method list **/
 static struct hw_module_methods_t lights_methods =
 {
-	.open =  open_lights,
+	.open = open_lights,
 };
 
 /** The backlight module **/
 struct hw_module_t HAL_MODULE_INFO_SYM =
 {
 	.tag = HARDWARE_MODULE_TAG,
-	.version_major = 1,
-	.version_minor = 0,
+	.module_api_version = 1,
+	.hal_api_version = HARDWARE_HAL_API_VERSION,
 	.id = LIGHTS_HARDWARE_MODULE_ID,
 	.name = "Montblanc lights module",
 	.author = "Marcin Chojnacki",

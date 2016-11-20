@@ -14,11 +14,13 @@ LOCAL_SRC_FILES := \
 LOCAL_LDLIBS := -llog
 LOCAL_CFLAGS += -DFREQ_SCALING_ALLOWED -DANDROID
 
+LOCAL_CLANG := false
+
 LOCAL_MODULE:= libstelpcutils
 LOCAL_MODULE_TAGS := optional
 LOCAL_PRELINK_MODULE := false
 
-LOCAL_SHARED_LIBRARIES:= \
+LOCAL_SHARED_LIBRARIES := \
 	libutils \
 	libcutils \
 	liblog

@@ -47,14 +47,9 @@
 #include <error.h>
 #include <conf.h>
 #include <pcm.h>
-#include <rawmidi.h>
 #include <timer.h>
 #include <hwdep.h>
 #include <control.h>
 #include <mixer.h>
-#include <seq_event.h>
-#include <seq.h>
-#include <seqmid.h>
-#include <seq_midi_event.h>
 
 #endif /* __ASOUNDLIB_H */

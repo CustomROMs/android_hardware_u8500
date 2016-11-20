@@ -38,7 +38,7 @@
 #include <system/graphics.h>
 #include <system/window.h>
 
-#if HAVE_ANDROID_OS
+#ifdef __ANDROID__
 #include <linux/fb.h>
 #endif
 
@@ -87,9 +87,13 @@ static int fb_setSwapInterval(struct framebuffer_device_t* dev,
             int interval)
 {
     struct fb_context_t* ctx = (struct fb_context_t*)dev;
-    if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval)
-        return -EINVAL;
+    if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval) {
+        ALOGI("Meticulus: interval beyond range: %d (%d - %d)\n",interval ,
+                dev->minSwapInterval, dev->maxSwapInterval); 
+    }
+        //return -EINVAL;
     // FIXME: implement fb_setSwapInterval
+    ALOGE("Meticulus fb_setSwapInterval is not implemented!");
     return 0;
 }
 
@@ -423,8 +427,8 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
     if (ioctl(fd, FBIOGET_VSCREENINFO, &info) == -1)
         return -errno;
 
-    uint64_t divisor = (info.upper_margin + info.lower_margin + info.yres)
-            * (info.left_margin  + info.right_margin + info.xres)
+    uint64_t divisor = (info.upper_margin + info.lower_margin + info.vsync_len + info.yres)
+            * (info.left_margin  + info.right_margin + info.hsync_len + info.xres)
             * info.pixclock;
 
     int refreshRate = 0;
@@ -445,7 +449,7 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
 
     xdpi = (info.xres * 25.4f) / info.width;
     ydpi = (info.yres * 25.4f) / info.height;
-    fps  = refreshRate / 1000.0f;
+    fps  = 60.0f;
 
     ALOGI(   "using (fd=%d)\n"
             "id           = %s\n"
@@ -471,7 +475,7 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
 
     ALOGI(   "width        = %d mm (%f dpi)\n"
             "height       = %d mm (%f dpi)\n"
-            "refresh rate = %.2f Hz\n",
+            "refresh rate = %f Hz\n",
             info.width,  xdpi,
             info.height, ydpi,
             fps

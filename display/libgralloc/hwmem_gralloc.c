@@ -48,10 +48,12 @@
 
 
 /* Use these macro when it's probably a user error. */
-#define LOG_USER_ERROR_ALWAYS(...) ALOGE("[User error] " __VA_ARGS__);
+//#define LOG_USER_ERROR_ALWAYS(...) ALOGE("[User error] " __VA_ARGS__);
+#define LOG_USER_ERROR_ALWAYS(...) 
 
 #ifndef LOG_USER_ERROR
-#define LOG_USER_ERROR(...) ALOGE("[User error] " __VA_ARGS__);
+//#define LOG_USER_ERROR(...) ALOGE("[User error] " __VA_ARGS__);
+#define LOG_USER_ERROR(...)
 #endif
 
 #ifndef LOG_ERROR

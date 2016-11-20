@@ -36,16 +36,14 @@
 
 #include "hwmem_gralloc.h"
 
-#if HAVE_ANDROID_OS
-#include <linux/android_pmem.h>
-#endif
+#include "../android_pmem.h"
 
 
 // we need this for now because pmem cannot mmap at an offset
 #define PMEM_HACK   1
 
 /* desktop Linux needs a little help with gettid() */
-#if defined(ARCH_X86) && !defined(HAVE_ANDROID_OS)
+#if defined(ARCH_X86) && !defined(__ANDROID__)
 #define __KERNEL__
 # include <linux/unistd.h>
 pid_t gettid() { return syscall(__NR_gettid);}
@@ -430,7 +428,7 @@ int gralloc_free_pmem(alloc_device_t* dev,
         int index = (hnd->base_addr - m->framebuffer->base_addr) / bufferSize;
         m->bufferMask &= ~(1<<index);
     } else {
-#if HAVE_ANDROID_OS
+#ifdef __ANDROID__
         if (hnd->flags & PRIV_FLAGS_USES_PMEM) {
             if (hnd->fd >= 0) {
                 struct pmem_region sub = { hnd->offset, hnd->size };
@@ -440,7 +438,7 @@ int gralloc_free_pmem(alloc_device_t* dev,
                         strerror(errno), hnd->fd, hnd->offset, hnd->size);
             }
         }
-#endif // HAVE_ANDROID_OS
+#endif // __ANDROID__
         terminateBuffer(NULL, hnd); /* NULL is ok here as the parameter is not used by terminateBuffer */
     }
 
