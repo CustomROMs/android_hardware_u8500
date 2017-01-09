@@ -18,7 +18,7 @@
 #include <telephony/ril.h>
 #include <utils/Log.h>
 
-#define RIL_LIB_PATH "/vendor/lib/libsec-ril.so"
+#define RIL_LIB_PATH "/system/lib/libsec-ril.so"
 
 enum variant_type {
 	VARIANT_INIT,

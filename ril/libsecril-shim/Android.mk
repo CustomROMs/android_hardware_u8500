@@ -12,8 +12,8 @@ LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	libbinder
 
-LOCAL_CFLAGS := -Wall -Werror
-LOCAL_CFLAGS += -DSHIM_UPGRADE_VERSION=7
+LOCAL_CFLAGS := -Wall
+#LOCAL_CFLAGS += -DSHIM_UPGRADE_VERSION=7
 
 LOCAL_MODULE := libsecril-shim
 
