@@ -43,11 +43,6 @@ static int decodeVoiceRadioTechnology(RIL_RadioState radioState)
 			/* HAX: See GsmCdmaPhone.java --> phoneObjectUpdater(int newVoiceRadioTech)
 			 * For v6 RILs with LTE_ON_CDMA mode, they ignore reported voice radio tech
 			 * and assume 1xRTT. For toro(plus), we must do the same when upgrading RIL version. */
-			#if 0
-			if (tunaVariant == VARIANT_TORO || tunaVariant == VARIANT_TOROPLUS) {
-				return RADIO_TECH_1xRTT;
-			}
-			#endif
 			return RADIO_TECH_UMTS;
 
 		case RADIO_STATE_RUIM_NOT_READY:
@@ -164,15 +159,8 @@ static void onRequestVoiceRadioTech(RIL_Token t)
 static bool onRequestGetRadioCapability(RIL_Token t)
 {
 	int raf = RAF_UNKNOWN;
-#if 0
-	if (tunaVariant == VARIANT_MAGURO) {
-#endif
-		raf = RAF_GSM | RAF_GPRS | RAF_EDGE | RAF_HSUPA | RAF_HSDPA | RAF_HSPA | RAF_HSPAP | RAF_UMTS;
-#if 0
-	} else if (tunaVariant == VARIANT_TORO || tunaVariant == VARIANT_TOROPLUS) {
-		raf = RAF_LTE | RAF_IS95A | RAF_IS95B | RAF_1xRTT | RAF_EVDO_0 | RAF_EVDO_A | RAF_EVDO_B | RAF_EHRPD;
-	}
-#endif
+	raf = RAF_GSM | RAF_GPRS | RAF_EDGE | RAF_HSUPA | RAF_HSDPA | RAF_HSPA | RAF_HSPAP | RAF_UMTS;
+
 	if (CC_LIKELY(raf != RAF_UNKNOWN)) {
 		RIL_RadioCapability rc[1] =
 		{
@@ -195,7 +183,6 @@ static bool onRequestGetRadioCapability(RIL_Token t)
 
 static void onRequestShim(int request, void *data, size_t datalen, RIL_Token t)
 {
-#if 0
 	switch (request) {
 #if SHIM_UPGRADE_VERSION >= 7
 		case RIL_REQUEST_CDMA_GET_SUBSCRIPTION_SOURCE:
@@ -239,7 +226,6 @@ static void onRequestShim(int request, void *data, size_t datalen, RIL_Token t)
 			rilEnv->OnRequestComplete(t, RIL_E_REQUEST_NOT_SUPPORTED, NULL, 0);
 			return;
 	}
-#endif
 	RLOGD("%s: got request %s: forwarded to RIL.", __FUNCTION__, requestToString(request));
 	origRilFunctions->onRequest(request, data, datalen, t);
 }
@@ -359,7 +345,6 @@ static void onUnsolRadioStateChanged(const void *data, size_t datalen)
 
 static void onUnsolicitedResponseShim(int unsolResponse, const void *data, size_t datalen)
 {
-#if 0
 	switch (unsolResponse) {
 #if SHIM_UPGRADE_VERSION >= 7
 		case RIL_UNSOL_SIM_REFRESH:
@@ -374,7 +359,6 @@ static void onUnsolicitedResponseShim(int unsolResponse, const void *data, size_
 			return;
 #endif
 	}
-#endif
 	rilEnv->OnUnsolicitedResponse(unsolResponse, data, datalen);
 }
 
@@ -404,10 +388,6 @@ static void patchMem(void *libHandle, bool beforeRilInit)
 	RLOGD("%s: hSecOem found at %p!", __FUNCTION__, hSecOem);
 
 	/* hSecOem-based patching. */
-#if 0
-	switch (tunaVariant) {
-		case VARIANT_MAGURO:
-#endif
 			if (!beforeRilInit) {
 				/* 'ril features' is (only) used to enable/disable an extension
 				 * to LAST_CALL_FAIL_CAUSE. Android had just been happily
@@ -426,14 +406,6 @@ static void patchMem(void *libHandle, bool beforeRilInit)
 					RLOGW("%s: rilFeatures was not 1; leaving alone", __FUNCTION__);
 				}
 			}
-#if 0
-			break;
-		case VARIANT_TORO:
-			break;
-		case VARIANT_TOROPLUS:
-			break;
-	}
-#endif
 
 timeout_patch:
 	/* MAX_TIMEOUT patch, works the same for all RILs. */
@@ -461,21 +433,6 @@ const RIL_RadioFunctions* RIL_Init(const struct RIL_Env *env, int argc, char **a
 	static struct RIL_Env shimmedEnv;
 	void *origRil;
 	char propBuf[PROPERTY_VALUE_MAX];
-#if 0
-	if (CC_LIKELY(tunaVariant == VARIANT_INIT)) {
-		property_get("ro.product.subdevice", propBuf, "unknown");
-		if (!strcmp(propBuf, "maguro")) {
-			tunaVariant = VARIANT_MAGURO;
-		} else if (!strcmp(propBuf, "toro")) {
-			tunaVariant = VARIANT_TORO;
-		} else if (!strcmp(propBuf, "toroplus")) {
-			tunaVariant = VARIANT_TOROPLUS;
-		} else {
-			tunaVariant = VARIANT_UNKNOWN;
-		}
-		RLOGD("%s: got tuna variant: %i", __FUNCTION__, tunaVariant);
-	}
-#endif
 	/* Shim the RIL_Env passed to the real RIL, saving a copy of the original */
 	rilEnv = env;
 	shimmedEnv = *env;
@@ -497,7 +454,7 @@ const RIL_RadioFunctions* RIL_Init(const struct RIL_Env *env, int argc, char **a
 	}
 
 	/* Fix RIL issues by patching memory: pre-init pass. */
-	patchMem(origRil, true);
+	//patchMem(origRil, true);
 
 	origRilFunctions = origRilInit(&shimmedEnv, argc, argv);
 	if (CC_UNLIKELY(!origRilFunctions)) {
@@ -506,7 +463,7 @@ const RIL_RadioFunctions* RIL_Init(const struct RIL_Env *env, int argc, char **a
 	}
 
 	/* Fix RIL issues by patching memory: post-init pass. */
-	patchMem(origRil, false);
+	//patchMem(origRil, false);
 
 	/* Shim functions as needed. */
 	shimmedFunctions = *origRilFunctions;
