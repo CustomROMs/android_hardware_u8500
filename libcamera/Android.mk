@@ -8,7 +8,6 @@
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
-
 #Detect platform
 include $(LOCAL_PATH)/internal.det
 
@@ -59,10 +58,12 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/framedumpreplay
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/focus
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/semaphore
 
+LOCAL_CAMERA_SRC_FILES += STECameraHAL_Module.cpp
+
+ifeq (true, false)
 LOCAL_CAMERA_SRC_FILES := STECamCompiletimeCheck.cpp
 LOCAL_CAMERA_SRC_FILES += STEJpegEnc.cpp
 LOCAL_CAMERA_SRC_FILES += STEArmIvProc.cpp
-LOCAL_CAMERA_SRC_FILES += STECameraHAL_Module.cpp
 LOCAL_CAMERA_SRC_FILES += STECamera.cpp
 LOCAL_CAMERA_SRC_FILES += STES5K4ECGX.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspCamera.cpp
@@ -94,9 +95,9 @@ LOCAL_CAMERA_SRC_FILES += STENativeWindow.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspMyNative.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspInternal.cpp
 LOCAL_CAMERA_SRC_FILES += NevenFaceDetector.cpp
+endif
 
 LOCAL_SRC_FILES := $(LOCAL_CAMERA_SRC_FILES)
-
 LOCAL_SRC_FILES += \
     CameraWrapper.cpp
 
