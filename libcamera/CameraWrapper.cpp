@@ -22,6 +22,20 @@
 */
 
 
+//#include <string.h>
+#define DBGT_CONFIG_DEBUG 1
+#define DBGT_CONFIG_AUTOVAR 1
+
+//#undef CAM_LOG_TAG
+//#define CAM_LOG_TAG DBGT_TAG
+
+#define DBGT_DECLARE_AUTOVAR
+#define DBGT_LAYER 0
+#define DBGT_PREFIX "DevBas"
+
+#include "STECamTrace.h"
+#include <STECameraDeviceBase.h>
+
 #define LOG_NDEBUG 0
 #define LOG_PARAMETERS
 
@@ -62,6 +76,331 @@ static int camera_device_close(hw_device_t* device);
 static int camera_get_number_of_cameras(void);
 static int camera_get_camera_info(int camera_id, struct camera_info *info);
 
+
+/* Real functions */
+extern int camera_device_open_real(const hw_module_t* module, const char* name,
+                              hw_device_t** device);
+extern int camera_device_close_real(hw_device_t* device);
+extern int camera_module_get_number_of_cameras_real(void);
+extern int camera_module_get_camera_info_real(int camera_id, struct camera_info *info);
+
+
+#if 0
+extern int set_preview_window_real(camera_device_t* aCameraDevice,
+                                struct preview_stream_ops* aWindow);
+extern void set_callbacks_real(camera_device_t* aCameraDevice,
+                            camera_notify_callback notify_cb,
+                            camera_data_callback data_cb,
+                            camera_data_timestamp_callback data_cb_timestamp,
+                            camera_request_memory get_memory,
+                            void *user);
+extern void enable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type);
+extern void disable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type);
+extern int msg_type_enabled_real(camera_device_t* aCameraDevice, int32_t msg_type);
+extern int start_preview_real(camera_device_t* aCameraDevice);
+extern void stop_preview_real(camera_device_t* aCameraDevice);
+extern int preview_enabled_real(camera_device_t* aCameraDevice);
+extern int store_meta_data_in_buffers_real(camera_device_t* aCameraDevice, int enable);
+extern int start_recording_real(camera_device_t* aCameraDevice);
+extern void stop_recording_real(camera_device_t* aCameraDevice);
+extern int recording_enabled_real(camera_device_t* aCameraDevice);
+extern void release_recording_frame_real(camera_device_t* aCameraDevice,
+                                      const void *opaque);
+extern int auto_focus_real(camera_device_t* aCameraDevice);
+extern int cancel_auto_focus_real(camera_device_t* aCameraDevice);
+extern int take_picture_real(camera_device_t* aCameraDevice);
+extern int cancel_picture_real(camera_device_t* aCameraDevice);
+extern int set_parameters_real(camera_device_t* aCameraDevice, const char *parms);
+extern char* get_parameters_real(camera_device_t* aCameraDevice);
+extern void put_parameters_real(camera_device_t* aCameraDevice, char* aParam);
+extern int send_command_real(camera_device_t* aCameraDevice,
+                          int32_t cmd, int32_t arg1, int32_t arg2);
+extern void release_s_real(camera_device_t* aCameraDevice);
+extern int dump_s_real(camera_device_t* aCameraDevice, int fd);
+#endif
+
+namespace android {
+
+STECameraDeviceBase::STECameraDeviceBase () {
+}
+
+STECameraDeviceBase::~STECameraDeviceBase () {
+}
+
+static STECameraDeviceBase* getSTECameraDevice(camera_device_t* aCamDevice) {
+    //DBGT_PROLOG("");
+    if(NULL == aCamDevice) {
+        ALOGE("aCamDevice = %d", (int)aCamDevice);
+        return NULL;
+    }
+    //DBGT_CRITICAL("");
+    return (STECameraDeviceBase *) aCamDevice->priv;
+}
+} // namespace android
+
+int set_preview_window_real(camera_device_t* aCameraDevice,
+                                struct preview_stream_ops* aWindow) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->setPreviewWindow(aWindow);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+void set_callbacks_real(camera_device_t* aCameraDevice,
+                            camera_notify_callback notify_cb,
+                            camera_data_callback data_cb,
+                            camera_data_timestamp_callback data_cb_timestamp,
+                            camera_request_memory get_memory,
+                            void *user) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->setCallbacks(notify_cb,
+                                     data_cb,
+                                     data_cb_timestamp,
+                                     get_memory,
+                                     user);
+    }
+    DBGT_CRITICAL("");
+}
+
+void enable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->enableMsgType(msg_type);
+    }
+    DBGT_CRITICAL("");
+}
+
+void disable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->disableMsgType(msg_type);
+    }
+    DBGT_CRITICAL("");
+}
+
+int msg_type_enabled_real(camera_device_t* aCameraDevice, int32_t msg_type) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->msgTypeEnabled(msg_type);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int start_preview_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval =  steCam->startPreview();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+void stop_preview_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->stopPreview();
+    }
+    DBGT_CRITICAL("");
+}
+
+int preview_enabled_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->previewEnabled();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int store_meta_data_in_buffers_real(camera_device_t* aCameraDevice, int enable) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->storeMetaDataInBuffers(enable);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int start_recording_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->startRecording();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+void stop_recording_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->stopRecording();
+    }
+    DBGT_CRITICAL("");
+}
+
+int recording_enabled_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->recordingEnabled();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+void release_recording_frame_real(camera_device_t* aCameraDevice,
+                                      const void *opaque) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->releaseRecordingFrame(opaque);
+    }
+    DBGT_CRITICAL("");
+}
+
+int auto_focus_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->autoFocus();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int cancel_auto_focus_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->cancelAutoFocus();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int take_picture_real(camera_device_t* aCameraDevice) {
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->takePicture();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int cancel_picture_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->cancelPicture();
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+int set_parameters_real(camera_device_t* aCameraDevice, const char *parms) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->setParameters(parms);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+char* get_parameters_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        char *retval = steCam->getParameters();
+        DBGT_CRITICAL("");
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return NULL;
+}
+
+void put_parameters_real(camera_device_t* aCameraDevice, char* aParam) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->putParameters(aParam);
+    }
+    DBGT_CRITICAL("");
+}
+
+int send_command_real(camera_device_t* aCameraDevice,
+                          int32_t cmd, int32_t arg1, int32_t arg2) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->sendCommand(cmd, arg1, arg2);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
+void release_real(camera_device_t* aCameraDevice) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        steCam->release();
+    }
+    DBGT_CRITICAL("");
+}
+
+int dump_real(camera_device_t* aCameraDevice, int fd) {
+    DBGT_PROLOG("");
+    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    if (NULL != steCam) {
+        int retval = steCam->dump(fd);
+        ALOGE("retval = %d", retval);
+        return retval;
+    }
+    DBGT_CRITICAL("");
+    return -EINVAL;
+}
+
 static struct hw_module_methods_t camera_module_methods = {
         open: camera_device_open
 };
@@ -93,6 +432,11 @@ typedef struct wrapper_camera_device {
     __wrapper_dev->vendor->ops->func(__wrapper_dev->vendor, ##__VA_ARGS__); \
 })
 
+#define VENDOR_CALL_REAL(device, func, ...) ({ \
+    wrapper_camera_device_t *__wrapper_dev = (wrapper_camera_device_t*) device; \
+    func##_real(__wrapper_dev->vendor, ##__VA_ARGS__); \
+})
+
 #define CAMERA_ID(device) (((wrapper_camera_device_t *)(device))->id)
 
 static int check_vendor_module()
@@ -110,7 +454,7 @@ static int check_vendor_module()
 }
 
 #if 0
-void camera_fixup_capability(android::CameraParameters *params)
+void camera_fixup_capability(CameraParameters *params)
 {
     ALOGV("%s", __FUNCTION__);
     if (params->get(KEY_SONY_IMAGE_STABILISER_VALUES)) {
@@ -233,7 +577,8 @@ int camera_set_preview_window(struct camera_device * device,
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, set_preview_window, window);
+
+    return VENDOR_CALL_REAL(device, set_preview_window, window);
 }
 
 void camera_set_callbacks(struct camera_device * device,
@@ -282,7 +627,7 @@ int camera_msg_type_enabled(struct camera_device * device, int32_t msg_type)
     if(!device)
         return 0;
 
-    return VENDOR_CALL(device, msg_type_enabled, msg_type);
+    return VENDOR_CALL_REAL(device, msg_type_enabled, msg_type);
 }
 
 int camera_start_preview(struct camera_device * device)
@@ -293,7 +638,7 @@ int camera_start_preview(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, start_preview);
+    return VENDOR_CALL_REAL(device, start_preview);
 }
 
 void camera_stop_preview(struct camera_device * device)
@@ -315,7 +660,7 @@ int camera_preview_enabled(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, preview_enabled);
+    return VENDOR_CALL_REAL(device, preview_enabled);
 }
 
 int camera_store_meta_data_in_buffers(struct camera_device * device, int enable)
@@ -326,7 +671,7 @@ int camera_store_meta_data_in_buffers(struct camera_device * device, int enable)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, store_meta_data_in_buffers, enable);
+    return VENDOR_CALL_REAL(device, store_meta_data_in_buffers, enable);
 }
 
 int camera_start_recording(struct camera_device * device)
@@ -337,7 +682,7 @@ int camera_start_recording(struct camera_device * device)
     if(!device)
         return EINVAL;
 
-    return VENDOR_CALL(device, start_recording);
+    return VENDOR_CALL_REAL(device, start_recording);
 }
 
 void camera_stop_recording(struct camera_device * device)
@@ -349,7 +694,7 @@ void camera_stop_recording(struct camera_device * device)
         return;
 
 
-    VENDOR_CALL(device, stop_recording);
+    VENDOR_CALL_REAL(device, stop_recording);
 }
 
 int camera_recording_enabled(struct camera_device * device)
@@ -360,7 +705,7 @@ int camera_recording_enabled(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, recording_enabled);
+    return VENDOR_CALL_REAL(device, recording_enabled);
 }
 
 void camera_release_recording_frame(struct camera_device * device,
@@ -384,7 +729,7 @@ int camera_auto_focus(struct camera_device * device)
         return -EINVAL;
 
 
-    return VENDOR_CALL(device, auto_focus);
+    return VENDOR_CALL_REAL(device, auto_focus);
 }
 
 int camera_cancel_auto_focus(struct camera_device * device)
@@ -395,7 +740,7 @@ int camera_cancel_auto_focus(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, cancel_auto_focus);
+    return VENDOR_CALL_REAL(device, cancel_auto_focus);
 }
 
 int camera_take_picture(struct camera_device * device)
@@ -406,11 +751,11 @@ int camera_take_picture(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    // We safely avoid returning the exact result of VENDOR_CALL here. If ZSL
+    // We safely avoid returning the exact result of VENDOR_CALL_REAL here. If ZSL
     // really bumps fast, take_picture will be called while a picture is already being
     // taken, leading to "picture already running" error, crashing Gallery app. Afaik,
     // there is no issue doing 0 (error appears in logcat anyway if needed).
-    VENDOR_CALL(device, take_picture);
+    VENDOR_CALL_REAL(device, take_picture);
 
     return 0;
 }
@@ -423,7 +768,7 @@ int camera_cancel_picture(struct camera_device * device)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, cancel_picture);
+    return VENDOR_CALL_REAL(device, cancel_picture);
 }
 
 int camera_set_parameters(struct camera_device * device, const char *params)
@@ -442,7 +787,7 @@ int camera_set_parameters(struct camera_device * device, const char *params)
 #endif
 #endif
 
-    int ret = VENDOR_CALL(device, set_parameters, params);
+    int ret = VENDOR_CALL_REAL(device, set_parameters, params);
     return ret;
 }
 
@@ -463,7 +808,7 @@ char* camera_get_parameters(struct camera_device * device)
     char * tmp = camera_fixup_getparams(CAMERA_ID(device), params);
 #endif
 #if 0
-    VENDOR_CALL(device, put_parameters, params);
+    VENDOR_CALL_REAL(device, put_parameters, params);
 #endif
 #if 0
     params = tmp;
@@ -494,7 +839,7 @@ int camera_send_command(struct camera_device * device,
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, send_command, cmd, arg1, arg2);
+    return VENDOR_CALL_REAL(device, send_command, cmd, arg1, arg2);
 }
 
 void camera_release(struct camera_device * device)
@@ -513,7 +858,7 @@ int camera_dump(struct camera_device * device, int fd)
     if(!device)
         return -EINVAL;
 
-    return VENDOR_CALL(device, dump, fd);
+    return VENDOR_CALL_REAL(device, dump, fd);
 }
 
 extern "C" void heaptracker_free_leaked_memory(void);
@@ -666,7 +1011,7 @@ int camera_get_number_of_cameras(void)
     ALOGV("%s", __FUNCTION__);
     if (check_vendor_module())
         return 0;
-    return gVendorModule->get_number_of_cameras();
+    return camera_module_get_number_of_cameras_real();
 }
 
 int camera_get_camera_info(int camera_id, struct camera_info *info)
@@ -674,5 +1019,5 @@ int camera_get_camera_info(int camera_id, struct camera_info *info)
     ALOGV("%s", __FUNCTION__);
     if (check_vendor_module())
         return 0;
-    return gVendorModule->get_camera_info(camera_id, info);
+    return camera_module_get_camera_info_real(camera_id, info);
 }

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <string1.h>
 /*
  * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
  *
@@ -36,16 +36,18 @@
 static unsigned int gCamerasOpen = 0;
 static android::Mutex gCameraHalDeviceLock;
 
-static int camera_device_open(const hw_module_t* module, const char* name,
+int camera_device_open_real(const hw_module_t* module, const char* name,
                               hw_device_t** device);
-static int camera_device_close(hw_device_t* device);
-static int camera_module_get_number_of_cameras(void);
-static int camera_module_get_camera_info(int camera_id, struct camera_info *info);
+int camera_device_close_real(hw_device_t* device);
+int camera_module_get_number_of_cameras_real(void);
+int camera_module_get_camera_info_real(int camera_id, struct camera_info *info);
 
+#if 0
 static struct hw_module_methods_t camera_module_methods = {
 open:
     camera_device_open
 };
+#endif
 
 static camera_info sCameraInfo[] = {
     {
@@ -62,6 +64,7 @@ static camera_info sCameraInfo[] = {
     }
 };
 
+#if 0
 camera_module_t HAL_MODULE_INFO_SYM = {
     common:
     {
@@ -78,9 +81,9 @@ camera_module_t HAL_MODULE_INFO_SYM = {
     get_number_of_cameras: camera_module_get_number_of_cameras,
     get_camera_info: camera_module_get_camera_info,
 };
+#endif
 
-
-int camera_device_close(hw_device_t* aDevice) {
+int camera_device_close_real(hw_device_t* aDevice) {
     DBGT_PROLOG("");
     if(NULL == aDevice) {
         DBGT_CRITICAL("Null Device.....");
@@ -113,8 +116,9 @@ int camera_device_close(hw_device_t* aDevice) {
  * so this function will always only be called once per camera instance
  */
 
-int camera_device_open(const hw_module_t* module, const char* name,
+int camera_device_open_real(const hw_module_t* module, const char* name,
                        hw_device_t** device) {
+#if 0
     DBGT_PROLOG("");
     int num_cameras = 0;
     int cameraId;
@@ -128,7 +132,7 @@ int camera_device_open(const hw_module_t* module, const char* name,
 
     if (name != NULL) {
         cameraId = atoi(name);
-        num_cameras = camera_module_get_number_of_cameras();
+        num_cameras = camera_module_get_number_of_cameras_real();
 
         if(cameraId > num_cameras) {
             DBGT_CRITICAL("camera service provided cameraId out of bounds, "
@@ -185,15 +189,16 @@ int camera_device_open(const hw_module_t* module, const char* name,
             return -ENOMEM;
         }
         camera_device_handle->common.module = (hw_module_t *)(module);
-        camera_device_handle->common.close = camera_device_close;
+        camera_device_handle->common.close = camera_device_close_real;
         *device = (hw_device_t*)camera_device_handle;
         gCamerasOpen++;
     }
     DBGT_EPILOG("");
+#endif
     return 0;
 }
 
-int camera_module_get_number_of_cameras(void) {
+int camera_module_get_number_of_cameras_real(void) {
     DBGT_PROLOG("");
     int num_cameras;
 
@@ -202,7 +207,7 @@ int camera_module_get_number_of_cameras(void) {
     return num_cameras;
 }
 
-int camera_module_get_camera_info(int camera_id, struct camera_info *info) {
+int camera_module_get_camera_info_real(int camera_id, struct camera_info *info) {
     DBGT_PROLOG("");
     int rv = 0;
 
