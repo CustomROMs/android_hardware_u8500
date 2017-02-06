@@ -68,7 +68,12 @@ static char VALUE_SONY_STILL_HDR[] = "on-still-hdr";
 
 
 static android::Mutex gCameraWrapperLock;
+static android::Mutex gCameraLock;
 static camera_module_t *gVendorModule = 0;
+static unsigned int gCamerasOpen = 0;
+static void * gHandle_addr = NULL;
+
+void * _ZN7android9STECameraC2Ei_real;
 
 static int camera_device_open(const hw_module_t* module, const char* name,
                 hw_device_t** device);
@@ -85,7 +90,7 @@ extern int camera_module_get_number_of_cameras_real(void);
 extern int camera_module_get_camera_info_real(int camera_id, struct camera_info *info);
 
 
-#if 0
+//#if 0
 extern int set_preview_window_real(camera_device_t* aCameraDevice,
                                 struct preview_stream_ops* aWindow);
 extern void set_callbacks_real(camera_device_t* aCameraDevice,
@@ -115,39 +120,105 @@ extern char* get_parameters_real(camera_device_t* aCameraDevice);
 extern void put_parameters_real(camera_device_t* aCameraDevice, char* aParam);
 extern int send_command_real(camera_device_t* aCameraDevice,
                           int32_t cmd, int32_t arg1, int32_t arg2);
-extern void release_s_real(camera_device_t* aCameraDevice);
-extern int dump_s_real(camera_device_t* aCameraDevice, int fd);
-#endif
+extern void release_real(camera_device_t* aCameraDevice);
+extern int dump_real(camera_device_t* aCameraDevice, int fd);
+//#endif
 
-namespace android {
+#include <string1.h>
+/*
+ * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
+ *
+ * Code adapted for usage of OMX components. All functions
+ * using OMX functionality are under copyright of ST-Ericsson
+ *
+ * This code is ST-Ericsson proprietary and confidential.
+ * Any use of the code for whatever purpose is subject to
+ * specific written permission of ST-Ericsson SA.
+ */
 
-STECameraDeviceBase::STECameraDeviceBase () {
+//System includes
+#include <semaphore.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <linux/time.h>
+#include <unistd.h>
+#include <utils/Errors.h>
+
+#include "STECamTrace.h"
+
+#include "STECamera.h"
+#include "STEExtIspCamera.h"
+#include "STECameraDeviceBase.h"
+
+//for property
+#include <cutils/properties.h>
+
+int camera_device_open_real(const hw_module_t* module, const char* name,
+                              hw_device_t** device);
+int camera_device_close_real(hw_device_t* device);
+int camera_module_get_number_of_cameras_real(void);
+int camera_module_get_camera_info_real(int camera_id, struct camera_info *info);
+
+
+static camera_info sCameraInfo[] = {
+    {
+        CAMERA_FACING_BACK, // facing
+        90,  // orientation
+        0,   // device_version
+        0    // static_camera_characteristics
+    },
+    {
+        CAMERA_FACING_FRONT, //facing
+        90,  // orientation
+        0,   // device_version
+        0    // static_camera_characteristics
+    }
+};
+
+int camera_device_close_real(hw_device_t* aDevice) {
+    DBGT_PROLOG("");
+    if(NULL == aDevice) {
+        ALOGE("Null Device.....");
+        DBGT_EPILOG("");
+        return 0;
+    }
+    android::Mutex::Autolock lock(gCameraWrapperLock);
+    camera_device_t* camDevice = (camera_device_t*)aDevice;
+    android::STECameraDeviceBase* camDeviceBase = (android::STECameraDeviceBase *) camDevice->priv;
+
+    if (NULL != camDeviceBase) {
+        // may call steCam->release/deinit() if any required
+        camDeviceBase->release();
+        delete camDeviceBase;
+    }
+    if(camDevice->ops) free(camDevice->ops);
+    free(camDevice);
+    gCamerasOpen--;
+    DBGT_EPILOG("");
+    return 0;
 }
 
-STECameraDeviceBase::~STECameraDeviceBase () {
-}
-
-static STECameraDeviceBase* getSTECameraDevice(camera_device_t* aCamDevice) {
+static android::STECameraDeviceBase* getSTECamera(camera_device_t* aCamDevice) {
     //DBGT_PROLOG("");
     if(NULL == aCamDevice) {
         ALOGE("aCamDevice = %d", (int)aCamDevice);
         return NULL;
     }
-    //DBGT_CRITICAL("");
-    return (STECameraDeviceBase *) aCamDevice->priv;
+    //ALOGE("");
+    return (android::STECameraDeviceBase *) aCamDevice->priv;
 }
-} // namespace android
+
 
 int set_preview_window_real(camera_device_t* aCameraDevice,
                                 struct preview_stream_ops* aWindow) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->setPreviewWindow(aWindow);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
@@ -158,7 +229,7 @@ void set_callbacks_real(camera_device_t* aCameraDevice,
                             camera_request_memory get_memory,
                             void *user) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->setCallbacks(notify_cb,
                                      data_cb,
@@ -166,238 +237,238 @@ void set_callbacks_real(camera_device_t* aCameraDevice,
                                      get_memory,
                                      user);
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 void enable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->enableMsgType(msg_type);
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 void disable_msg_type_real(camera_device_t* aCameraDevice, int32_t msg_type) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->disableMsgType(msg_type);
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int msg_type_enabled_real(camera_device_t* aCameraDevice, int32_t msg_type) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->msgTypeEnabled(msg_type);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int start_preview_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval =  steCam->startPreview();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 void stop_preview_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->stopPreview();
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int preview_enabled_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->previewEnabled();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int store_meta_data_in_buffers_real(camera_device_t* aCameraDevice, int enable) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->storeMetaDataInBuffers(enable);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int start_recording_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->startRecording();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 void stop_recording_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->stopRecording();
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int recording_enabled_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->recordingEnabled();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 void release_recording_frame_real(camera_device_t* aCameraDevice,
                                       const void *opaque) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->releaseRecordingFrame(opaque);
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int auto_focus_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->autoFocus();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int cancel_auto_focus_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->cancelAutoFocus();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int take_picture_real(camera_device_t* aCameraDevice) {
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->takePicture();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int cancel_picture_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->cancelPicture();
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 int set_parameters_real(camera_device_t* aCameraDevice, const char *parms) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->setParameters(parms);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 char* get_parameters_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         char *retval = steCam->getParameters();
-        DBGT_CRITICAL("");
+        ALOGE("");
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return NULL;
 }
 
 void put_parameters_real(camera_device_t* aCameraDevice, char* aParam) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->putParameters(aParam);
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int send_command_real(camera_device_t* aCameraDevice,
                           int32_t cmd, int32_t arg1, int32_t arg2) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->sendCommand(cmd, arg1, arg2);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
 void release_real(camera_device_t* aCameraDevice) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         steCam->release();
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
 }
 
 int dump_real(camera_device_t* aCameraDevice, int fd) {
     DBGT_PROLOG("");
-    android::STECameraDeviceBase *steCam = android::getSTECameraDevice(aCameraDevice);
+    android::STECameraDeviceBase *steCam = getSTECamera(aCameraDevice);
     if (NULL != steCam) {
         int retval = steCam->dump(fd);
         ALOGE("retval = %d", retval);
         return retval;
     }
-    DBGT_CRITICAL("");
+    ALOGE("");
     return -EINVAL;
 }
 
@@ -429,28 +500,43 @@ typedef struct wrapper_camera_device {
 
 #define VENDOR_CALL(device, func, ...) ({ \
     wrapper_camera_device_t *__wrapper_dev = (wrapper_camera_device_t*) device; \
+    ALOGV("%s: vendor function address: 0x%08X", __func__, 0x92000 + (uintptr_t)__wrapper_dev->vendor->ops->func - (uintptr_t)HMI_real); \
     __wrapper_dev->vendor->ops->func(__wrapper_dev->vendor, ##__VA_ARGS__); \
 })
 
 #define VENDOR_CALL_REAL(device, func, ...) ({ \
     wrapper_camera_device_t *__wrapper_dev = (wrapper_camera_device_t*) device; \
+    ALOGV("%s: vendor function address: 0x%08X", __func__, 0x92000 + (uintptr_t)__wrapper_dev->vendor->ops->func - (uintptr_t)HMI_real); \
     func##_real(__wrapper_dev->vendor, ##__VA_ARGS__); \
 })
 
 #define CAMERA_ID(device) (((wrapper_camera_device_t *)(device))->id)
 
-static int check_vendor_module()
+void *HMI_real;
+
+//void check_vendor_module(void) __attribute__((constructor));
+__attribute__((constructor)) void* check_vendor_module()
 {
-    int rv = 0;
+    //android::STECameraDeviceBase* cameraDevice = NULL;
+    //int rv = 0;
     ALOGV("%s", __FUNCTION__);
 
     if(gVendorModule)
-        return 0;
+        return gHandle_addr;
 
-    rv = hw_get_module_by_path("/system/lib/camera.montblanc.so", (const hw_module_t **)&gVendorModule);
-    if (rv)
-        ALOGE("failed to open vendor camera module");
-    return rv;
+    gHandle_addr = hw_get_module_by_path("/system/lib/libcamera_codina.so", (const hw_module_t **)&gVendorModule);
+    if (gHandle_addr) {
+	HMI_real = dlsym(gHandle_addr, "HMI");
+	//_ZN7android15STEExtIspCameraC2Ei
+       _ZN7android9STECameraC2Ei_real = dlsym(gHandle_addr, "_ZN7android9STECameraC2Ei");
+    }
+
+    //void *mem = malloc(sizeof(android::STECameraDeviceBase));
+    //android::STECameraDeviceBase* cameraDevice = (android::STECameraDeviceBase*)(new (mem) _ZN7android9STECameraC2Ei_real());
+
+    //if (rv)
+    //    ALOGE("failed to open vendor camera module");
+    return gHandle_addr;
 }
 
 #if 0
@@ -891,6 +977,199 @@ done:
 }
 
 
+namespace android {
+
+
+
+STECameraDeviceBase::STECameraDeviceBase () {
+}
+
+STECameraDeviceBase::~STECameraDeviceBase () {
+}
+
+static STECameraDeviceBase* getSTECameraDevice(camera_device_t* aCamDevice) {
+    //DBGT_PROLOG("");
+    if(NULL == aCamDevice) {
+        ALOGE("aCamDevice = %d", (int)aCamDevice);
+        return NULL;
+    }
+    //ALOGE("");
+    return (STECameraDeviceBase *) aCamDevice->priv;
+}
+
+camera_device_t* STECameraDeviceBase::CreateCameraDevice(STECameraDeviceBase* aCameraDevice) {
+
+    camera_device_t* camera_device = NULL;
+    camera_device_ops_t* camera_ops = NULL;
+
+    DBGT_TRACE_INIT(libcamera);
+    DBGT_PROLOG("");
+     camera_device = (camera_device_t*)malloc(sizeof(*camera_device));
+    if(!camera_device) {
+        //LOGE("camera_device allocation fail");
+        ALOGE("");
+        return NULL;
+    }
+
+    camera_ops = (camera_device_ops_t*)malloc(sizeof(*camera_ops));
+    if(!camera_ops) {
+        //LOGE("camera_ops allocation fail");
+        free(camera_device);
+        camera_device = NULL;
+        ALOGE("");
+        return NULL;
+    }
+
+    memset(camera_device, 0, sizeof(*camera_device));
+    memset(camera_ops, 0, sizeof(*camera_ops));
+
+    camera_device->common.tag = HARDWARE_DEVICE_TAG;
+    camera_device->common.version = 0;
+    camera_device->ops = camera_ops;
+    camera_ops->set_preview_window = camera_set_preview_window;
+    camera_ops->set_callbacks = camera_set_callbacks;
+    camera_ops->enable_msg_type = camera_enable_msg_type;
+    camera_ops->disable_msg_type = camera_disable_msg_type;
+    camera_ops->msg_type_enabled = camera_msg_type_enabled;
+    camera_ops->start_preview = camera_start_preview;
+    camera_ops->stop_preview = camera_stop_preview;
+    camera_ops->preview_enabled = camera_preview_enabled;
+    camera_ops->store_meta_data_in_buffers = camera_store_meta_data_in_buffers;
+    camera_ops->start_recording = camera_start_recording;
+    camera_ops->stop_recording = camera_stop_recording;
+    camera_ops->recording_enabled = camera_recording_enabled;
+    camera_ops->release_recording_frame = camera_release_recording_frame;
+    camera_ops->auto_focus = camera_auto_focus;
+    camera_ops->cancel_auto_focus = camera_cancel_auto_focus;
+    camera_ops->take_picture = camera_take_picture;
+    camera_ops->cancel_picture = camera_cancel_picture;
+    camera_ops->set_parameters = camera_set_parameters;
+    camera_ops->get_parameters = camera_get_parameters;
+    camera_ops->put_parameters = camera_put_parameters;
+    camera_ops->send_command = camera_send_command;
+    camera_ops->release = camera_release;
+    camera_ops->dump = camera_dump;
+
+    camera_device->priv = (void*)aCameraDevice;
+    DBGT_EPILOG("");
+    return camera_device;
+}
+
+} // namespace android
+
+
+/*******************************************************************
+ * implementation of camera_module functions
+ *******************************************************************/
+
+/* open device handle to one of the cameras
+ *
+ * assume camera service will keep singleton of each camera
+ * so this function will always only be called once per camera instance
+ */
+
+int camera_device_open_real(const hw_module_t* module, const char* name,
+                       hw_device_t** device) {
+    DBGT_PROLOG("");
+    int num_cameras = 0;
+    int cameraId;
+    android::STECameraDeviceBase* cameraDevice = NULL;
+    camera_device_t* camera_device_handle = NULL;
+    void *mem = NULL;
+
+    android::Mutex::Autolock lock(gCameraLock);
+
+    ALOGE("camera_device open");
+
+    if (name != NULL) {
+        cameraId = atoi(name);
+        num_cameras = camera_module_get_number_of_cameras_real();
+
+        if(cameraId > num_cameras) {
+            ALOGE("camera service provided cameraId out of bounds, "
+                 "cameraid = %d, num supported = %d",
+                 cameraId, num_cameras);
+            return -EINVAL;
+        }
+
+        if(gCamerasOpen >= MAX_SIMUL_CAMERAS_SUPPORTED) {
+            ALOGE("maximum number of cameras already open");
+            return -ENOMEM;
+        }
+
+        if (sCameraInfo[cameraId].facing == CAMERA_FACING_BACK) {
+	            cameraDevice = new android::STEExtIspCamera(cameraId);
+	            ALOGE("PRIMARY_YUV");
+            if(cameraDevice == NULL) {
+                ALOGE("Primary camera could not be instatiated!!");
+                return -ENOMEM;
+            }
+        } else if (sCameraInfo[cameraId].facing == CAMERA_FACING_FRONT) {
+	            cameraDevice = new android::STEExtIspCamera(cameraId);
+	            ALOGE("SECONDARY_YUV");
+            if(cameraDevice == NULL) {
+                ALOGE("Secondary camera could not be instatiated!!");
+                return -ENOMEM;
+            }
+
+        } else {
+            ALOGE("camera_device_open: unknown camera");
+            return -EINVAL;
+        }
+        if (OMX_ErrorNone != cameraDevice->init()) {
+            ALOGE("camera_device_open: init failed");
+            delete cameraDevice;
+            return -EINVAL;
+        }
+        camera_device_handle = android::STECameraDeviceBase::CreateCameraDevice(cameraDevice);
+        if(NULL == camera_device_handle) {
+            ALOGE("Couldn't create camera device");
+            delete cameraDevice;
+            return -ENOMEM;
+        }
+        camera_device_handle->common.module = (hw_module_t *)(module);
+        camera_device_handle->common.close = camera_device_close_real;
+        *device = (hw_device_t*)camera_device_handle;
+        gCamerasOpen++;
+    }
+    //DBGT_EPILOG("");
+    return 0;
+}
+
+int camera_module_get_number_of_cameras_real(void) {
+    DBGT_PROLOG("");
+    int num_cameras;
+
+    num_cameras = sizeof(sCameraInfo) / sizeof(sCameraInfo[0]);
+    DBGT_EPILOG("");
+    return num_cameras;
+}
+
+int camera_module_get_camera_info_real(int camera_id, struct camera_info *info) {
+    DBGT_PROLOG("");
+    int rv = 0;
+
+    int front_orientation;  //default value is 90
+    int back_orientation;  //default value is 90
+    char value[PROPERTY_VALUE_MAX];
+
+    property_get("ste.cam.front.orientation", value, "90");
+    front_orientation = atoi(value);
+    property_get("ste.cam.back.orientation", value, "90");
+    back_orientation = atoi(value);
+
+    sCameraInfo[0].orientation = back_orientation;
+    sCameraInfo[1].orientation = front_orientation;
+
+    ALOGE("Camera Orientation: ");
+    ALOGE("  Back camera: %d", back_orientation);
+    ALOGE("  Front camera: %d", front_orientation);
+
+    memcpy(info, &sCameraInfo[camera_id], sizeof(camera_info));
+    DBGT_EPILOG("");
+    return rv;
+}
+
 
 /*******************************************************************
  * implementation of camera_module functions
@@ -916,8 +1195,7 @@ int camera_device_open(const hw_module_t* module, const char* name,
     ALOGV("camera_device open");
 
     if (name != NULL) {
-        if (check_vendor_module())
-            return -EINVAL;
+        //gHandle_addr = check_vendor_module();
 
         cameraid = atoi(name);
         num_cameras = gVendorModule->get_number_of_cameras();
@@ -941,12 +1219,26 @@ int camera_device_open(const hw_module_t* module, const char* name,
         memset(camera_device, 0, sizeof(*camera_device));
         camera_device->id = cameraid;
 
+#if 0
+        if(rv = camera_device_open_real((const hw_module_t*)gVendorModule, name, (hw_device_t**)&(camera_device->vendor)))
+#else
         if(rv = gVendorModule->common.methods->open((const hw_module_t*)gVendorModule, name, (hw_device_t**)&(camera_device->vendor)))
+#endif
         {
             ALOGE("vendor camera open fail");
             goto fail;
         }
         ALOGV("%s: got vendor camera device 0x%08X", __FUNCTION__, (uintptr_t)(camera_device->vendor));
+        ALOGV("%s: got vendor camera open func: 0x%08X", __FUNCTION__, (uintptr_t)(gVendorModule->common.methods->open));
+	ALOGV("%s: got vendor _ZN7android9STECameraC2Ei func: 0x%08X", __FUNCTION__, (uintptr_t)(_ZN7android9STECameraC2Ei_real));
+
+        ALOGV("%s: camera open address =0x%08X",
+			 __FUNCTION__, 0x92000 + (uintptr_t)(gVendorModule->common.methods->open) - (uintptr_t)HMI_real );
+
+        //ALOGV("%s: camera open HMI-relative address = hmi address + %d",
+	//		 __FUNCTION__, (uintptr_t)(gVendorModule->common.methods->open) - (uintptr_t)HMI_real );
+        //ALOGV("%s: camera open _ZN7android9STECameraC2Ei-relative address = _ZN7android9STECameraC2Ei address + %d",
+	//		 __FUNCTION__, (uintptr_t)(gVendorModule->common.methods->open) - (uintptr_t)_ZN7android9STECameraC2Ei_real );
 
         camera_ops = (camera_device_ops_t*)malloc(sizeof(*camera_ops));
         if(!camera_ops)
@@ -1009,15 +1301,17 @@ fail:
 int camera_get_number_of_cameras(void)
 {
     ALOGV("%s", __FUNCTION__);
-    if (check_vendor_module())
-        return 0;
+    //check_vendor_module();
+    //if (check_vendor_module())
+    //    return 0;
     return camera_module_get_number_of_cameras_real();
 }
 
 int camera_get_camera_info(int camera_id, struct camera_info *info)
 {
     ALOGV("%s", __FUNCTION__);
-    if (check_vendor_module())
-        return 0;
+    //check_vendor_module();
+    //if (check_vendor_module())
+    //    return 0;
     return camera_module_get_camera_info_real(camera_id, info);
 }

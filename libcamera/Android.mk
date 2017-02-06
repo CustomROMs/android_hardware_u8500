@@ -8,6 +8,7 @@
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
+
 #Detect platform
 include $(LOCAL_PATH)/internal.det
 
@@ -58,13 +59,12 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/framedumpreplay
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/focus
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/semaphore
 
-LOCAL_CAMERA_SRC_FILES += STECameraHAL_Module.cpp
-
-ifeq (true, false)
+ifeq (true,false)
 LOCAL_CAMERA_SRC_FILES := STECamCompiletimeCheck.cpp
 LOCAL_CAMERA_SRC_FILES += STEJpegEnc.cpp
 LOCAL_CAMERA_SRC_FILES += STEArmIvProc.cpp
-LOCAL_CAMERA_SRC_FILES += STECamera.cpp
+#LOCAL_CAMERA_SRC_FILES += STECameraHAL_Module.cpp
+#LOCAL_CAMERA_SRC_FILES += STECamera.cpp
 LOCAL_CAMERA_SRC_FILES += STES5K4ECGX.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspCamera.cpp
 LOCAL_CAMERA_SRC_FILES += STECamDynSetting.cpp
@@ -88,16 +88,16 @@ LOCAL_CAMERA_SRC_FILES += hwconversion/STECamHwConversion.cpp
 LOCAL_CAMERA_SRC_FILES += mmhwbuffers/STECamMMHwBuffer.cpp
 LOCAL_CAMERA_SRC_FILES += b2r2/STECamB2R2Utils.cpp
 LOCAL_CAMERA_SRC_FILES += STECamThumbnailHandler.cpp
-LOCAL_CAMERA_SRC_FILES += STECamImageRotHandler.cpp
+#LOCAL_CAMERA_SRC_FILES += STECamImageRotHandler.cpp
 LOCAL_CAMERA_SRC_FILES += STECamFocusHandler.cpp
 #LOCAL_CAMERA_SRC_FILES += STECameraDeviceBase.cpp
 LOCAL_CAMERA_SRC_FILES += STENativeWindow.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspMyNative.cpp
 LOCAL_CAMERA_SRC_FILES += STEExtIspInternal.cpp
 LOCAL_CAMERA_SRC_FILES += NevenFaceDetector.cpp
-endif
 
 LOCAL_SRC_FILES := $(LOCAL_CAMERA_SRC_FILES)
+endif
 LOCAL_SRC_FILES += \
     CameraWrapper.cpp
 
@@ -120,6 +120,7 @@ LOCAL_SHARED_LIBRARIES := \
                          libhead \
                          libui \
                          libFFTEm \
-                         libstelpcutils
+                         libstelpcutils \
+			 libcamera_codina
 
 include $(BUILD_SHARED_LIBRARY)
