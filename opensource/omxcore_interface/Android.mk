@@ -17,9 +17,9 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../multimedia/shared/omxil
 LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/lib
+#LOCAL_MODULE_PATH := $(PRODUCT_OUT)/lib
 LOCAL_SHARED_LIBRARIES := liblog libdl
 LOCAL_SRC_FILES := ste_omxil_interface.cpp
 LOCAL_MODULE := libste_omxil-interface
-LOCAL_MODULE_TAGS := optional
+#LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)

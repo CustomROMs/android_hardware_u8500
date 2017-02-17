@@ -60,3 +60,4 @@ PRODUCT_PACKAGES += \
 #   sensors.montblanc
 
 BOARD_HAL_STATIC_LIBRARIES := libhealthd.montblanc
+#$(info PRODUCT_PACKAGES $(PRODUCT_PACKAGES) )

@@ -20,7 +20,7 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/../nmf/linux/src/common
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../nmf/linux/src/driver
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog libcutils
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/lib
+#LOCAL_MODULE_PATH := $(PRODUCT_OUT)/lib
 LOCAL_SRC_FILES := \
     cmdebugfs.c \
     cmsyscallwrapper.c \
@@ -40,5 +40,5 @@ LOCAL_SRC_FILES := \
 
 ##LOCAL_SRC_FILES := $(shell cd $(LOCAL_PATH) && find cm -name "*.cpp")
 LOCAL_MODULE := libnmf
-LOCAL_MODULE_TAGS := optional
+#LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
