@@ -642,12 +642,12 @@ static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
         *handled = 0;
         return 0;
     }
-
+/*
     if (bufferMask >= ((1LU<<numBuffers)-1)) {
         // We ran out of buffers.
         return -ENOMEM;
     }
-
+*/
     // create a "fake" handles for it
     vaddr = m->framebuffer->base_addr;
     hnd = malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
