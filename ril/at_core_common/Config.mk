@@ -2,8 +2,19 @@
 # Copyright (C) ST-Ericsson SA 2010
 #
 
+ATC_ENABLE_FEATURE_CN:=true
+ATC_ENABLE_FEATURE_AUDIO:=true
+#ATC_ENABLE_FEATURE_AUDIO_LEGACY
+ATC_ENABLE_FEATURE_COPS:=true
+ATC_ENABLE_FEATURE_PSCC:=true
+#ATC_ENABLE_FEATURE_SIM
+#ATC_ENABLE_FEATURE_SIMPB
+ATC_ENABLE_FEATURE_SMS:=true
+ATC_ENABLE_FEATURE_CSPS:=true
+ATC_ENABLE_FEATURE_ATC_CUSTOMER_EXTENSION:=true
+
 ifeq ($(ATC_ENABLE_FEATURE_CN),true)
-CN := $(ACCESS_SERVICES_PATH)/call_network/call_network
+#CN := $(ACCESS_SERVICES_PATH)/call_network/call_network
 EXE_USE_CN_SERVICE := true
 $(info AT-Core: C&N enabled)
 else
@@ -11,7 +22,7 @@ $(info AT-Core: C&N disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_AUDIO),true)
-AUDIO := $(MULTIMEDIA_PATH)/audio/adm
+#AUDIO := $(MULTIMEDIA_PATH)/audio/adm
 EXE_USE_AUDIO_SERVICE := true
 
 ifeq ($(ATC_ENABLE_FEATURE_AUDIO_LEGACY),true)
@@ -23,7 +34,7 @@ $(info AT-Core: AUDIO disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_COPS),true)
-COPS := $(PROCESSING_PATH)/security_framework/cops
+#COPS := $(PROCESSING_PATH)/security_framework/cops
 EXE_USE_COPS_SERVICE := true
 $(info AT-Core: COPS enabled)
 else
@@ -31,7 +42,7 @@ $(info AT-Core: COPS disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_PSCC),true)
-PSCC := $(CONNECTIVITY_PATH)
+#PSCC := $(CONNECTIVITY_PATH)
 EXE_USE_PSCC_SERVICE := true
 $(info AT-Core: PSCC enabled)
 else
@@ -39,7 +50,7 @@ $(info AT-Core: PSCC disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_SIM),true)
-SIM := $(ACCESS_SERVICES_PATH)/sim/sim
+#SIM := $(ACCESS_SERVICES_PATH)/sim/sim
 EXE_USE_SIM_SERVICE := true
 $(info AT-Core: SIM enabled)
 else
@@ -47,7 +58,7 @@ $(info AT-Core: SIM disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_SIMPB),true)
-SIMPB := $(ACCESS_SERVICES_PATH)/sim/sim_phonebook
+#SIMPB := $(ACCESS_SERVICES_PATH)/sim/sim_phonebook
 EXE_USE_SIMPB_SERVICE := true
 $(info AT-Core: SIMPB enabled)
 else
@@ -56,7 +67,7 @@ endif
 
 
 ifeq ($(ATC_ENABLE_FEATURE_SMS),true)
-SMS := $(ACCESS_SERVICES_PATH)/sms/sms
+#SMS := $(ACCESS_SERVICES_PATH)/sms/sms
 EXE_USE_SMS_SERVICE := true
 $(info AT-Core: SMS enabled)
 else
@@ -64,7 +75,7 @@ $(info AT-Core: SMS disabled)
 endif
 
 ifeq ($(ATC_ENABLE_FEATURE_CSPSA),true)
-CSPSA := $(STORAGE_PATH)/parameter_storage/cspsa
+#CSPSA := $(STORAGE_PATH)/parameter_storage/cspsa
 EXE_USE_CSPSA_SERVICE := true
 $(info AT-Core: CSPSA enabled)
 else

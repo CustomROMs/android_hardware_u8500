@@ -1,0 +1,6 @@
+hardware/u8500/ril/at_core_common/internal/executor/audio/src/exe_audio_requests.c:42: error: undefined reference to 'ste_adm_client_set_cscall_upstream_mute'
+hardware/u8500/ril/at_core_common/internal/executor/audio/src/exe_audio_requests.c:60: error: undefined reference to 'ste_adm_client_get_cscall_upstream_mute'
+hardware/u8500/ril/at_core_common/internal/executor/audio/src/exe_audio_requests.c:91: error: undefined reference to 'ste_adm_client_set_cscall_tty_mode'
+hardware/u8500/ril/at_core_common/internal/executor/audio/src/exe_audio_requests.c:119: error: undefined reference to 'ste_adm_client_get_cscall_tty_mode'
+hardware/u8500/ril/at_core_common/internal/executor/cn/src/exe_cn_events.c:692: error: undefined reference to 'ste_adm_client_set_cscall_downstream_mute'
+hardware/u8500/ril/at_core_common/internal/executor/cn/src/exe_cn_events.c:702: error: undefined reference to 'ste_adm_client_set_cscall_downstream_mute

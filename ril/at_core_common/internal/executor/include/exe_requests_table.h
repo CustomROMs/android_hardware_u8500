@@ -239,7 +239,7 @@ exe_request_table_t exe_request_table[] = {
     {EXE_CSPSA_WRITE_DATA,          request_write_value,                    EXE_SERVICE_CSPSA,  "EXE_CSPSA_WRITE_DATA"},
     {EXE_CSPSA_READ_DATA,           request_read_value,                     EXE_SERVICE_CSPSA,  "EXE_CSPSA_READ_DATA"},
 #endif
-    {EXE_RADIOVER_READ,             request_radiover_read,                  EXE_SERVICE_CN,     "EXE_RADIOVER_READ"},
+//    {EXE_RADIOVER_READ,             request_radiover_read,                  EXE_SERVICE_CN,     "EXE_RADIOVER_READ"},
 #ifdef EXE_USE_ATC_CUSTOMER_EXTENSIONS
 #include <inc_exe_extended_requests_table.h>
 #endif

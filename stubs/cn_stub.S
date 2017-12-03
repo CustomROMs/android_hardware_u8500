@@ -1,0 +1,120 @@
+.globl cn_client_get_event_fd
+cn_client_get_event_fd:
+.globl cn_client_get_request_fd
+cn_client_get_request_fd:
+.globl cn_client_init
+cn_client_init:
+.globl cn_client_shutdown
+cn_client_shutdown:
+.globl cn_message_receive
+cn_message_receive:
+.globl cn_request_answer_call
+cn_request_answer_call:
+.globl cn_request_automatic_network_registration
+cn_request_automatic_network_registration:
+.globl cn_request_change_barring_password
+cn_request_change_barring_password:
+.globl cn_request_clip_status
+cn_request_clip_status:
+.globl cn_request_clir_status
+cn_request_clir_status:
+.globl cn_request_cnap_status
+cn_request_cnap_status:
+.globl cn_request_colr_status
+cn_request_colr_status:
+.globl cn_request_conference_call
+cn_request_conference_call:
+.globl cn_request_conference_call_split
+cn_request_conference_call_split:
+.globl cn_request_current_call_list
+cn_request_current_call_list:
+.globl cn_request_dial
+cn_request_dial:
+.globl cn_request_dtmf_send
+cn_request_dtmf_send:
+.globl cn_request_dtmf_start
+cn_request_dtmf_start:
+.globl cn_request_dtmf_stop
+cn_request_dtmf_stop:
+.globl cn_request_explicit_call_transfer
+cn_request_explicit_call_transfer:
+.globl cn_request_get_call_waiting
+cn_request_get_call_waiting:
+.globl cn_request_get_modem_property
+cn_request_get_modem_property:
+.globl cn_request_get_pp_flags
+cn_request_get_pp_flags:
+.globl cn_request_get_preferred_network_type
+cn_request_get_preferred_network_type:
+.globl cn_request_hangup
+cn_request_hangup:
+.globl cn_request_hold_call
+cn_request_hold_call:
+.globl cn_request_interrupt_network_search
+cn_request_interrupt_network_search:
+.globl cn_request_manual_network_registration
+cn_request_manual_network_registration:
+.globl cn_request_manual_network_registration_with_automatic_fallback
+cn_request_manual_network_registration_with_automatic_fallback:
+.globl cn_request_manual_network_search
+cn_request_manual_network_search:
+.globl cn_request_modem_power_off
+cn_request_modem_power_off:
+.globl cn_request_net_query_mode
+cn_request_net_query_mode:
+.globl cn_request_network_deregister
+cn_request_network_deregister:
+.globl cn_request_query_call_barring
+cn_request_query_call_barring:
+.globl cn_request_query_call_forward
+cn_request_query_call_forward:
+.globl cn_request_rat_name
+cn_request_rat_name:
+.globl cn_request_registration_state_gprs
+cn_request_registration_state_gprs:
+.globl cn_request_registration_state_normal
+cn_request_registration_state_normal:
+.globl cn_request_reg_status_event_config
+cn_request_reg_status_event_config:
+.globl cn_request_reset_modem_with_dump
+cn_request_reset_modem_with_dump:
+.globl cn_request_resume_call
+cn_request_resume_call:
+.globl cn_request_rf_off
+cn_request_rf_off:
+.globl cn_request_rf_on
+cn_request_rf_on:
+.globl cn_request_rf_status
+cn_request_rf_status:
+.globl cn_request_rssi_value
+cn_request_rssi_value:
+.globl cn_request_send_tx_back_off_event
+cn_request_send_tx_back_off_event:
+.globl cn_request_set_call_barring
+cn_request_set_call_barring:
+.globl cn_request_set_call_forward
+cn_request_set_call_forward:
+.globl cn_request_set_call_waiting
+cn_request_set_call_waiting:
+.globl cn_request_set_clir
+cn_request_set_clir:
+.globl cn_request_set_cssn
+cn_request_set_cssn:
+.globl cn_request_set_event_reporting
+cn_request_set_event_reporting:
+.globl cn_request_set_modem_property
+cn_request_set_modem_property:
+.globl cn_request_set_preferred_network_type
+cn_request_set_preferred_network_type:
+.globl cn_request_set_signal_info_reporting
+cn_request_set_signal_info_reporting:
+.globl cn_request_set_user_activity_status
+cn_request_set_user_activity_status:
+.globl cn_request_sleep_test_mode
+cn_request_sleep_test_mode:
+.globl cn_request_swap_calls
+cn_request_swap_calls:
+.globl cn_request_ussd
+cn_request_ussd:
+.globl cn_request_ussd_abort
+cn_request_ussd_abort:

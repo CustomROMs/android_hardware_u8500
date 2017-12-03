@@ -10,6 +10,23 @@ LOCAL_MODULE_CLASS := DATA
 
 include $(CLEAR_VARS)
 
+ACCESS_SERVICES_PATH  := $(LOCAL_PATH)/../access_services
+CONNECTIVITY_PATH := $(LOCAL_PATH)/../connectivity
+MPL := $(CONNECTIVITY_PATH)/psdata/psdata/libmpl
+PSCC := $(CONNECTIVITY_PATH)/psdata/psdata_stepscc/libpscc
+STERC := $(CONNECTIVITY_PATH)/psdata/psdata_sterc/libsterc
+STECOM := $(CONNECTIVITY_PATH)/common/libstecom
+
+AUDIO := $(LOCAL_PATH)/../../multimedia/audio/adm
+CN  := $(ACCESS_SERVICES_PATH)/call_network/call_network
+SMS := $(ACCESS_SERVICES_PATH)/sms/sms
+SIM := $(ACCESS_SERVICES_PATH)/sim/sim
+#COPS := $(TOP)/vendor/st-ericsson/processing/security_framework/cops
+#CSPSA := $(TOP)/vendor/st-ericsson/storage/parameter_storage/cspsa
+COPS := $(LOCAL_PATH)/../processing/security_framework/cops
+CSPSA := $(LOCAL_PATH)/../../network/cspsa
+COMMON_FUNCTIONALITY := $(ACCESS_SERVICES_PATH)/common/common_functionality
+#ATC_ENABLE_FEATURE_ATC_CUSTOMER_EXTENSIONS := true
 ifeq ($(ATC_ENABLE_FEATURE_ATC),true)
 
 ###################################################################
@@ -19,6 +36,15 @@ ifeq ($(ATC_ENABLE_FEATURE_ATC),true)
 ###################################################################
 
 include $(LOCAL_PATH)/Config.mk
+EXE_USE_AUDIO_SERVICE := true
+EXE_USE_CN_SERVICE := true
+
+EXE_USE_COPS_SERVICE := true
+EXE_USE_PSCC_SERVICE := true
+EXE_USE_SMS_SERVICE := true
+EXE_USE_CSPSA_SERVICE := true
+
+
 
 # Make AT responses for ITU V.250 commands easier to read by adding
 # an extra pair of S3+S4 before the final response code.
@@ -40,12 +66,15 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include \
 	$(LOCAL_PATH)/internal/predial/include \
 	$(LOCAL_PATH)/internal/selector/include \
 	$(TOP)/hardware/ril/libril \
-	$(ACCESS_SERVICES_PATH)/common/common_functionality/include
+	$(ACCESS_SERVICES_PATH)/common/common_functionality/include \
+        $(MPL) $(PSCC) $(STERC) $(STECOM)
 
-ifeq ($(EXE_USE_AUDIO_SERVICE),true)
+#$(LOCAL_PATH)/../../multimedia/audio/adm/include
+
+#ifeq ($(EXE_USE_AUDIO_SERVICE),true)
 LOCAL_C_INCLUDES += $(EXE_PATH)/audio/include \
 					$(AUDIO)/include
-endif
+#endif
 
 ifeq ($(EXE_USE_CN_SERVICE),true)
 LOCAL_C_INCLUDES += $(EXE_PATH)/cn/include \
@@ -215,7 +244,7 @@ ifeq ($(EXE_USE_CSPSA_SERVICE),true)
 LOCAL_SHARED_LIBRARIES += libcspsa
 endif
 
-LOCAL_LDLIBS += -lpthread -lm
+#LOCAL_LDLIBS += -lpthread -lm
 
 ###################################################################
 #
@@ -251,14 +280,14 @@ LOCAL_PRELINK_MODULE := false
 
 include $(LOCAL_PATH)/Compile_flags.mk
 
-ifeq ($(ATC_ENABLE_FEATURE_ATC_CUSTOMER_EXTENSIONS),true)
+#ifeq ($(ATC_ENABLE_FEATURE_ATC_CUSTOMER_EXTENSIONS),true)
 # This file describes how to build the at_core_extension so that,
 # those files are built together with at_core_common
-$(info AT-Core: Building with AT_CORE_EXTENSION)
-include $(ACCESS_SERVICES_PATH)/at/at_core_extension/inc_Android.mk
-else
-$(info AT-Core: Building without AT_CORE_EXTENSION)
-endif
+#$(info AT-Core: Building with AT_CORE_EXTENSION)
+#include $(ACCESS_SERVICES_PATH)/at/at_core_extension/inc_Android.mk
+#else
+#$(info AT-Core: Building without AT_CORE_EXTENSION)
+#endif
 
 LOCAL_MODULE:= at_core
 LOCAL_MODULE_TAGS := optional
@@ -266,7 +295,9 @@ LOCAL_MODULE_TAGS := optional
 ifeq ($(ATC_ENABLE_FEATURE_FTD),true)
 LOCAL_CFLAGS += -DENABLE_FTD
 endif
-#include $(BUILD_EXECUTABLE)
+
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
+include $(BUILD_EXECUTABLE)
 
 
 ###################################################################

@@ -74,12 +74,14 @@ static exe_request_result_t util_request_neighbour_cells_info_read(exe_request_r
     case EXE_STATE_REQUEST: {
         ATC_LOG_I(" -> request");
         switch(rat_type){
+#if 0
             case CN_NEIGHBOUR_RAT_TYPE_2G:
                 result = cn_request_get_neighbour_cells_complete_info(cn_client_get_context(), rat_type, request_record_get_client_tag(record_p));
                 break;
             case CN_NEIGHBOUR_RAT_TYPE_3G:
                 result = cn_request_get_neighbour_cells_extd_info(cn_client_get_context(), rat_type, request_record_get_client_tag(record_p));
                 break;
+#endif
             default:
                 ATC_LOG_E("unknown RAT!");
                 goto error;
@@ -149,6 +151,7 @@ static exe_request_result_t util_request_serving_cells_info_read(exe_request_rec
     }
 
     switch (record_p->state) {
+#if 0
     case EXE_STATE_REQUEST: {
         ATC_LOG_I(" -> request");
 
@@ -162,6 +165,7 @@ static exe_request_result_t util_request_serving_cells_info_read(exe_request_rec
         record_p->state = EXE_STATE_RESPONSE;
         return EXE_PENDING;
     }
+#endif
     case EXE_STATE_RESPONSE: {
         exe_2g_3g_neigh_cell_response_t response;
         cn_neighbour_cells_info_t *neighbour_ecid_info_p = NULL;

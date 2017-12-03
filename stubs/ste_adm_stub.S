@@ -1,0 +1,10 @@
+.globl ste_adm_client_set_cscall_upstream_mute
+ste_adm_client_set_cscall_upstream_mute:
+.globl ste_adm_client_set_cscall_tty_mode
+ste_adm_client_set_cscall_tty_mode:
+.globl ste_adm_client_set_cscall_downstream_mute
+ste_adm_client_set_cscall_downstream_mute:
+.globl ste_adm_client_get_cscall_upstream_mute
+ste_adm_client_get_cscall_upstream_mute:
+.globl ste_adm_client_get_cscall_tty_mode
+ste_adm_client_get_cscall_tty_mode:
