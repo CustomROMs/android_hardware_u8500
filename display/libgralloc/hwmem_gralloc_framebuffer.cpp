@@ -182,7 +182,7 @@ static void send_to_compdev(struct fb_context_t* ctx, struct hwmem_gralloc_modul
 
     img.flags = (uint32_t)COMPDEV_FRAMEBUFFER_FLAG;
 
-    img.transform = fb_rotate_to_compdev(m->info.rotate);
+    img.transform = static_cast<compdev_transform>(fb_rotate_to_compdev(m->info.rotate));
 
     ret = ioctl(ctx->compdev, COMPDEV_POST_BUFFER_IOC,
             (struct compdev_img*)&img);
@@ -248,7 +248,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
     return 0;
 }
 
-int fb_compositionComplete()
+int fb_compositionComplete(struct framebuffer_device_t *)
 {
     //Before we start updating applications buffers again i.e. setting up the next frame we need to
     //make sure all buffers have been used by the compositor in *this* frame. This is done by
@@ -502,7 +502,7 @@ static int mapFrameBufferLocked(struct hwmem_gralloc_module_t* module)
         int err;
         void* vaddr;
         size_t fbSize = roundUpToPageSize(finfo.line_length * info.yres_virtual);
-        module->framebuffer = malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
+        module->framebuffer = (struct hwmem_gralloc_buf_handle_t *) malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
         init_hwmem_gralloc_buf_handle(module->framebuffer, dup(fd), fbSize, PRIV_FLAGS_USES_PMEM);
 
         module->numBuffers = info.yres_virtual / info.yres;
@@ -596,7 +596,7 @@ int fb_device_open(hw_module_t const* module, const char* name,
             /* Open the compdev */
             ctx->compdev = open(COMPDEV_PATH, O_RDWR, 0);
             if (ctx->compdev < 0) {
-                ALOGE("%s: Error Opening "COMPDEV_PATH": %s\n",__func__,
+                ALOGE("%s: Error Opening " COMPDEV_PATH ": %s\n",__func__,
                         strerror(errno));
             }
 
@@ -650,7 +650,7 @@ static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
 */
     // create a "fake" handles for it
     vaddr = m->framebuffer->base_addr;
-    hnd = malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
+    hnd = (struct hwmem_gralloc_buf_handle_t *) malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
     init_hwmem_gralloc_buf_handle(hnd, dup(m->framebuffer->fd), size, PRIV_FLAGS_USES_PMEM | PRIV_FLAGS_FRAMEBUFFER);
 
     // find a free slot

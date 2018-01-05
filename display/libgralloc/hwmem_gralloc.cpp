@@ -147,36 +147,36 @@ static int gralloc_get_buf_usage(struct gralloc_module_t const* module,
 
 
 static struct hw_module_methods_t hwmem_gralloc_module_methods = {
-        open: gralloc_open_device
+        .open = gralloc_open_device
 };
 
 struct hwmem_gralloc_module_t HAL_MODULE_INFO_SYM =
 {
-    base:
+    .base =
     {
-        common:
+        .common =
         {
-            tag: HARDWARE_MODULE_TAG,
-            version_major: 1,
-            version_minor: 0,
-            id: GRALLOC_HARDWARE_MODULE_ID,
-            name: "Graphics Memory Allocator Module",
-            author: "ST-Ericsson",
-            methods: &hwmem_gralloc_module_methods
+            .tag = HARDWARE_MODULE_TAG,
+            .version_major = 1,
+            .version_minor = 0,
+            .id = GRALLOC_HARDWARE_MODULE_ID,
+            .name = "Graphics Memory Allocator Module",
+            .author = "ST-Ericsson",
+            .methods = &hwmem_gralloc_module_methods
         },
-        registerBuffer: gralloc_register_buffer,
-        unregisterBuffer: gralloc_unregister_buffer,
-        lock: gralloc_lock,
-        unlock: gralloc_unlock,
-        perform: gralloc_perform
+        .registerBuffer = gralloc_register_buffer,
+        .unregisterBuffer = gralloc_unregister_buffer,
+        .lock = gralloc_lock,
+        .unlock = gralloc_unlock,
+        .perform = gralloc_perform
     },
-    type_identifier: (int)HWMEM_GRALLOC_MODULE_TYPE_IDENTIFIER,
-    framebuffer: 0,
-    flags: 0,
-    numBuffers: 0,
-    bufferMask: 0,
-    lock: PTHREAD_MUTEX_INITIALIZER,
-    currentBuffer: 0
+    .type_identifier = (int)HWMEM_GRALLOC_MODULE_TYPE_IDENTIFIER,
+    .framebuffer = 0,
+    .flags = 0,
+    .numBuffers = 0,
+    .bufferMask = 0,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+    .currentBuffer = 0
 };
 
 
@@ -488,7 +488,7 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
         }
         case GRALLOC_MODULE_PERFORM_COMPOSITION_COMPLETE:
         {
-            return fb_compositionComplete();
+            return fb_compositionComplete(NULL);
         }
 
 
@@ -693,7 +693,7 @@ static int gralloc_get_buf_size(struct gralloc_module_t const* module,
     return buf_size;
 }
 
-static int gralloc_get_buf_width(struct gralloc_module_t const* module,
+static int gralloc_get_buf_width(struct gralloc_module_t const* /*module*/,
     buffer_handle_t handle)
 {
     struct hwmem_gralloc_buf_handle_t* buf;
@@ -1080,7 +1080,7 @@ static int mmap_buf_if_necessary(struct hwmem_gralloc_buf_handle_t *buf, void **
         goto hwmem_get_info_failed;
     }
 
-    buf_tg_info->mmap_prot = hwmem_access_2_mmap_prot(buf_info.access);
+    buf_tg_info->mmap_prot = hwmem_access_2_mmap_prot(static_cast<hwmem_access>(buf_info.access));
     /* TODO: Uncomment when applications learns to allocate buffers with correct usage */
     /*buf_tg_info->mmap_prot = limit_mmap_prot_to_usage(buf_tg_info->mmap_prot,
         buf->usage);*/
@@ -1191,11 +1191,11 @@ static enum hwmem_access usage_2_hwmem_access(int usage)
     enum hwmem_access hwmem_access = (enum hwmem_access)0;
 
     if (usage & GRALLOC_USAGE_SW_READ_MASK)
-        hwmem_access |= HWMEM_ACCESS_READ;
+        hwmem_access = static_cast<enum hwmem_access>(hwmem_access | HWMEM_ACCESS_READ);
     if (usage & GRALLOC_USAGE_SW_WRITE_MASK || usage & GRALLOC_USAGE_HW_RENDER)
-        hwmem_access |= HWMEM_ACCESS_WRITE;
+        hwmem_access = static_cast<enum hwmem_access>(hwmem_access | HWMEM_ACCESS_WRITE);
     if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_FB))
-        hwmem_access |= HWMEM_ACCESS_READ | HWMEM_ACCESS_WRITE;
+        hwmem_access = static_cast<enum hwmem_access>(hwmem_access | HWMEM_ACCESS_READ | HWMEM_ACCESS_WRITE);
 
     return hwmem_access;
 }
@@ -1608,28 +1608,28 @@ static enum hwmem_alloc_flags usage_2_hwmem_alloc_flags(int usage)
         /* Read often, or rarely with no chance of HW write -> SW read (invalidate
         needed) */
         if (sw_usage & GRALLOC_USAGE_SW_WRITE_OFTEN)
-            return HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
-                HWMEM_ALLOC_HINT_CACHE_WB;
+            return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
+                HWMEM_ALLOC_HINT_CACHE_WB);
         else
-            return HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
-                HWMEM_ALLOC_HINT_CACHE_WT;
+            return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
+                HWMEM_ALLOC_HINT_CACHE_WT);
     }
     else
         /* Write often/rarely, read rarely with risk of HW write -> SW read or a
         combination of the two */
-        return HWMEM_ALLOC_HINT_UNCACHED | HWMEM_ALLOC_HINT_WRITE_COMBINE;
+        return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_UNCACHED | HWMEM_ALLOC_HINT_WRITE_COMBINE);
 }
 
 static enum hwmem_mem_type usage_2_hwmem_mem_type(int usage)
 {
     if (usage & GRALLOC_USAGE_PROTECTED) {
-        return HWMEM_MEM_PROTECTED_SYS;
+        return static_cast<hwmem_mem_type>(HWMEM_MEM_PROTECTED_SYS);
     }
     else if (usage & GRALLOC_USAGE_HW_2D) {
-        return HWMEM_MEM_CONTIGUOUS_SYS;
+        return static_cast<hwmem_mem_type>(HWMEM_MEM_CONTIGUOUS_SYS);
     }
 
-    return HWMEM_MEM_SCATTERED_SYS;
+    return static_cast<hwmem_mem_type>(HWMEM_MEM_SCATTERED_SYS);
 }
 
 static int hwmem_access_2_mmap_prot(enum hwmem_access hwmem_access)

@@ -32,6 +32,6 @@ int gralloc_alloc_framebuffer(alloc_device_t* dev,
 int fb_device_open(hw_module_t const* module, const char* name,
     hw_device_t** device);
 
-int fb_compositionComplete();
+int fb_compositionComplete(struct framebuffer_device_t *);
 
 #endif

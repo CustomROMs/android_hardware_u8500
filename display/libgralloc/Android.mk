@@ -24,7 +24,7 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM
 
 LOCAL_SRC_FILES := 	\
-	hwmem_gralloc.c hwmem_gralloc_pmem.c hwmem_gralloc_framebuffer.c
+	hwmem_gralloc.cpp hwmem_gralloc_pmem.cpp hwmem_gralloc_framebuffer.cpp
 
 LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(MULTIMEDIA_PATH)
 LOCAL_MODULE := gralloc.$(TARGET_BOARD_PLATFORM)
