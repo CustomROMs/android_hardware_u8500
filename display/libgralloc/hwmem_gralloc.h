@@ -8,7 +8,7 @@
  *
  */
 
-
+//#define LOG_NDEBUG 0
 #ifndef HWMEM_GRALLOC_H_
 #define HWMEM_GRALLOC_H_
 
@@ -56,6 +56,11 @@ struct hwmem_gralloc_buf_handle_t
     int     lockState;
     int     writeOwner;
     int     pid;
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+    uint64_t backing_store;
+    uint64_t producer_usage;
+    uint64_t consumer_usage;
+#endif
 };
 
 extern const int num_fds_in_hwmem_gralloc_buf_handle;

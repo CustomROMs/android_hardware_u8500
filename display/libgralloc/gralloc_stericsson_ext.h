@@ -12,6 +12,15 @@
 #ifndef GRALLOC_STERICSSON_EXT_H
 #define GRALLOC_STERICSSON_EXT_H
 
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+#include <cutils/atomic.h>
+
+static uint64_t next_backing_store_id()
+{
+    static std::atomic<uint64_t> next_id(1);
+    return next_id++;
+}
+#endif
 
 enum {
     GRALLOC_BUF_TYPE_HWMEM,

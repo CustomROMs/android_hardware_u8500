@@ -198,6 +198,9 @@ int gralloc_create_handle_from_buffer_pmem(int fd, size_t size, size_t offset, v
         return -ENOMEM;
     }
 
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+    hwmem_gralloc_buf_handle->backing_store = next_backing_store_id();
+#endif
     hwmem_gralloc_buf_handle->fd = fd;
     hwmem_gralloc_buf_handle->flags = PRIV_FLAGS_USES_PMEM;
     hwmem_gralloc_buf_handle->type_identifier = hwmem_gralloc_buf_handle_type_identifier;

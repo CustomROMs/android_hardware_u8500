@@ -35,6 +35,11 @@
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
 #include <system/graphics.h>
+
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+#include <gralloc1-adapter.h>
+#endif
+
 #include "gralloc_stericsson_ext.h"
 
 #include "hwmem_gralloc.h"
@@ -157,7 +162,11 @@ struct hwmem_gralloc_module_t HAL_MODULE_INFO_SYM =
         .common =
         {
             .tag = HARDWARE_MODULE_TAG,
-            .version_major = 1,
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+             version_major: GRALLOC1_ADAPTER_MODULE_API_VERSION_1_0,
+#else
+             version_major: 1,
+#endif
             .version_minor = 0,
             .id = GRALLOC_HARDWARE_MODULE_ID,
             .name = "Graphics Memory Allocator Module",
@@ -271,12 +280,18 @@ static int gralloc_open_device(const struct hw_module_t* module, const char* nam
         (struct hwmem_gralloc_module_t**)&gralloc))
         return -errno;
 
-    if (0 == strcmp(name, GRALLOC_HARDWARE_GPU0))
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+    if (!strcmp(name, GRALLOC_HARDWARE_MODULE_ID)) {
+        return gralloc1_adapter_device_open(module, name, device);
+    }
+#endif
+
+    if (!strcmp(name, GRALLOC_HARDWARE_GPU0))
     {
         if (!open_alloc_device(gralloc, (struct alloc_device_t**)device))
             return -errno;
     }
-    else if (0 == strcmp(name, GRALLOC_HARDWARE_FB0))
+    else if (!strcmp(name, GRALLOC_HARDWARE_FB0))
         return fb_device_open(module, name, device);
     else
     {
@@ -298,8 +313,15 @@ static int gralloc_register_buffer(gralloc_module_t const* module, buffer_handle
     if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
         !handle_2_hwmem_gralloc_handle(handle, &buf))
         return -errno;
+		
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT		
+	if (buf->type == GRALLOC_BUF_TYPE_FB)
+		return 0;
 
+    if (buf->type == GRALLOC_BUF_TYPE_PMEM)
+#else
     if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
+#endif
         return gralloc_register_buffer_pmem(module, buf);
 
     if (!inc_buf_cnt(buf, REGISTER_COUNTER))
@@ -834,6 +856,9 @@ static int gralloc_alloc(struct alloc_device_t* device, int width, int height, i
         goto native_handle_create_failed;
     }
 
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+    buf_handle->backing_store = next_backing_store_id();
+#endif
     buf_handle->fd = hwmem_fd;
     buf_handle->type_identifier = hwmem_gralloc_buf_handle_type_identifier;
     buf_handle->width = actual_width;

@@ -663,6 +663,9 @@ static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
     }
     vaddr += bufferSize * m->currentBufferIndex;
 
+#ifdef NEEDS_GRALLOC1_ADAPTER_SUPPORT
+    hnd->backing_store = next_backing_store_id();
+#endif
     hnd->base_addr = vaddr;
     hnd->offset = vaddr - m->framebuffer->base_addr;
     *pHandle = (buffer_handle_t)hnd;
