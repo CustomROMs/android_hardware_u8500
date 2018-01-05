@@ -123,4 +123,4 @@ LOCAL_SHARED_LIBRARIES := \
                          libstelpcutils \
 			 libcamera_codina
 
-include $(BUILD_SHARED_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)
