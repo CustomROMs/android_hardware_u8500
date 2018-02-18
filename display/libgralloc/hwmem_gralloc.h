@@ -83,6 +83,7 @@ struct hwmem_gralloc_module_t {
     float xdpi;
     float ydpi;
     float fps;
+    int swapInterval;
 };
 
 #define HWMEM_GRALLOC_MODULE_TYPE_IDENTIFIER 0xCC20FA38

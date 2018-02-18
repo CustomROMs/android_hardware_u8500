@@ -20,6 +20,7 @@
 
 #include <cutils/ashmem.h>
 #include <cutils/log.h>
+#include <cutils/properties.h>
 
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
@@ -86,14 +87,31 @@ static void init_hwmem_gralloc_buf_handle(struct hwmem_gralloc_buf_handle_t* han
 static int fb_setSwapInterval(struct framebuffer_device_t* dev,
             int interval)
 {
-    struct fb_context_t* ctx = (struct fb_context_t*)dev;
+    //XXX: Get the value here and implement along with
+    //single vsync in HWC
+    char pval[PROPERTY_VALUE_MAX];
+    property_get("debug.egl.swapinterval", pval, "1");
+    int property_interval = atoi(pval);
+    if (property_interval >= 0)
+        interval = property_interval;
+
+    struct hwmem_gralloc_module_t* m = (struct hwmem_gralloc_module_t*)
+            dev->common.module;
+
+    if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval)
+        return -EINVAL;
+
     if (interval < dev->minSwapInterval || interval > dev->maxSwapInterval) {
 	ALOGI("Meticulus: interval beyond range: %d (%d - %d)\n",interval ,
 		dev->minSwapInterval, dev->maxSwapInterval); 
     }
 	//return -EINVAL;
     // FIXME: implement fb_setSwapInterval
-    ALOGE("Meticulus fb_setSwapInterval is not implemented!");
+    //ALOGE("Meticulus fb_setSwapInterval is not implemented!");
+    //XXX: Get the value here and implement along with
+    //single vsync in HWC
+
+    m->swapInterval = interval;
     return 0;
 }
 
@@ -644,12 +662,15 @@ static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
         *handled = 0;
         return 0;
     }
-
+    ALOGI("numBuffers = %d", numBuffers);
+/*
     if (bufferMask >= ((1LU<<numBuffers)-1)) {
         // We ran out of buffers.
-        return -ENOMEM;
+        //return -ENOMEM;
+	ALOGE("out of memory: bufferMask ((1LU<<(numBuffers = %d))-1) 0x%08x 0x%08x",
+		numBuffers, bufferMask, ((1LU<<numBuffers)-1));
     }
-
+*/
     // create a "fake" handles for it
     vaddr = m->framebuffer->base_addr;
     hnd = malloc(sizeof(struct hwmem_gralloc_buf_handle_t));
@@ -660,6 +681,7 @@ static int gralloc_alloc_framebuffer_locked(alloc_device_t* dev,
         m->currentBufferIndex = (m->currentBufferIndex + 1) % numBuffers;
         if ((bufferMask & (1LU<<m->currentBufferIndex)) == 0) {
             m->bufferMask |= (1LU<<m->currentBufferIndex);
+            //ALOGE("bufferMask = 0x%08x", bufferMask);
             break;
         }
     }
