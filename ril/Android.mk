@@ -2,7 +2,7 @@
 
 ifeq ($(TARGET_SOC), u8500)
 
-ril-modules := libsecril-client libisimessage libmpl libpscc libshmnetlnk libstecom libsterc libtee mal_util sms
+ril-modules := libsecril-client libisimessage libmpl libpscc libshmnetlnk libstecom libsterc mal_util sms
 include $(call all-named-subdir-makefiles,$(ril-modules))
 
 endif
