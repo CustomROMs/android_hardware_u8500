@@ -331,7 +331,7 @@ struct tee_cmd {
 	__u32 data_size;
 	struct tee_operation *op;
 };
-
+#if 0
 /**
  * struct tee_session - The session data of an open tee device.
  * @uc: The command struct
@@ -346,6 +346,44 @@ struct tee_session {
 	__u32 login;
 	__u32 *vaddr[TEEC_CONFIG_PAYLOAD_REF_COUNT];
 };
+#endif
+
+/**
+ * struct tee_session - The session of an open tee device.
+ * @state: The current state in the linux kernel.
+ * @err: Error code (as in Global Platform TEE Client API spec)
+ * @origin: Origin for the error code (also from spec).
+ * @id: Implementation defined type, 0 if not used.
+ * @vaddr: Virtual address for the memrefs.
+ * @ta: The trusted application.
+ * @uuid: The uuid for the trusted application.
+ * @cmd: The command to be executed in the trusted application.
+ * @driver_cmd: The command type in the driver. This is used from a client (user
+ *              space to tell the Linux kernel whether it's a open-,
+ *              close-session or if it is an invoke command.
+ * @ta_size: The size of the trusted application.
+ * @op: The payload for the trusted application.
+ * @sync: Mutex to handle multiple use of clients.
+ *
+ * This structure is mainly used in the Linux kernel as a session context for
+ * ongoing operations. Other than that it is also used in the communication with
+ * the user space.
+ */
+struct tee_session {
+        uint32_t state;
+        uint32_t err;
+        uint32_t origin;
+        uint32_t id;
+        uint32_t *vaddr[TEEC_CONFIG_PAYLOAD_REF_COUNT];
+        void *ta;
+        struct tee_uuid *uuid;
+        unsigned int cmd;
+        unsigned int driver_cmd;
+        unsigned int ta_size;
+        struct tee_operation *op;
+        struct mutex *sync;
+};
+
 
 /**
  * struct tee_read - Contains the error message and the origin.

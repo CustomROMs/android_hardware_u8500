@@ -17,7 +17,9 @@
 #define PREFIX_LENGTH 37
 #define MAX_PRINT_SIZE 256
 #define MAX_FUNC_PRINT_SIZE 16
-
+#ifndef BASS_APP_LOG_FILE
+#error BASS_APP_LOG_FILE not defined!
+#endif
 #ifdef BASS_APP_LOG_FILE
 static void log_to_file(const char *buffer)
 {
@@ -110,8 +112,8 @@ int _dprintf(const char *function, int flen, int line, int level,
 }
 #endif
 
-#if !defined(OS_FREE) && (defined(DEBUGLEVEL_3) || defined(DEBUGLEVEL_true) || \
-    defined(DEBUGLEVEL_4))
+//#if !defined(OS_FREE) && (defined(DEBUGLEVEL_3) || defined(DEBUGLEVEL_true) || \
+//    defined(DEBUGLEVEL_4))
 void dump_buffer(const char *bname, const uint8_t *buffer, size_t blen)
 {
     fprintf(stderr, "#### %s\n", bname);
@@ -149,7 +151,7 @@ void dump_buffer(const char *bname, const uint8_t *buffer, size_t blen)
         buffer += 16;
     }
 }
-#else
+/*#else
 void dump_buffer(const char *bname, const uint8_t *buffer, size_t blen)
 {
     (void)bname;
@@ -157,3 +159,4 @@ void dump_buffer(const char *bname, const uint8_t *buffer, size_t blen)
     (void)blen;
 }
 #endif
+*/

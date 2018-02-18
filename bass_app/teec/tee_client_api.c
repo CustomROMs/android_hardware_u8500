@@ -21,6 +21,9 @@
 #include <debug.h>
 #include <bass_app.h>
 #include <uuid.h>
+#include <log/log.h>
+
+#define LOG_TAG "LIBTEE"
 
 #define TEE_CONTEXT_TZ 0
 
@@ -41,6 +44,7 @@
 #define TA_BINARY_FOUND 0
 #define TA_BINARY_NOT_FOUND -1
 
+#define _GNU_SOURCE
 #ifdef _GNU_SOURCE
 static pthread_mutex_t mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
 #else
@@ -65,7 +69,7 @@ static void copy_tee_op_to_legacy(TEEC_Operation *dest,
     size_t i;
 
     if (src == NULL || dest == NULL) {
-        dprintf(ERROR, "NULL parameter as inparameter src: 0x%08x, dest: "
+        ALOGE("NULL parameter as inparameter src: 0x%08x, dest: "
                 "0x%08x\n", (uint32_t)src, (uint32_t)dest);
         return;
     }
@@ -84,7 +88,7 @@ static void copy_tee_op_from_legacy(struct tee_operation *dest,
     size_t i;
 
     if (src == NULL || dest == NULL) {
-        dprintf(ERROR, "NULL parameter as inparameter src: 0x%08x, dest: "
+        ALOGE("NULL parameter as inparameter src: 0x%08x, dest: "
                 "0x%08x\n", (uint32_t)src, (uint32_t)dest);
         return;
     }
@@ -102,14 +106,14 @@ static bool get_size_of_file(FILE *file, size_t *size)
     long tmp_size;
 
     if (fseek(file, 0, SEEK_END) != 0) {
-        dprintf(ERROR, "fseek file failed\n");
+        ALOGE("fseek file failed\n");
         return false;
     }
     tmp_size = ftell(file);
     if (tmp_size >= 0) {
         *size = tmp_size;
     } else {
-        dprintf(ERROR, "failed to get size of file\n");
+        ALOGE("failed to get size of file\n");
         return false;
     }
     return true;
@@ -120,14 +124,14 @@ static bool get_header_size(FILE *file, uint16_t *signed_header_size)
     /* Get the offset to the signed header element */
     if (fseek(file, offsetof(struct ta_signed_header,
                              size_of_signed_header), SEEK_SET) != 0) {
-        dprintf(ERROR, "failed to get the signed header offset\n");
+        ALOGE("failed to get the signed header offset\n");
         return false;
     }
 
     /* Read the signed header size */
     if (fread(signed_header_size, 1, sizeof(uint16_t), file) !=
         sizeof(uint16_t)) {
-        dprintf(ERROR, "failed to read the header size\n");
+        ALOGE("failed to read the header size\n");
         return false;
     }
     return true;
@@ -140,32 +144,32 @@ static bool get_file_size_in_header(FILE *file, size_t *size)
     struct tee_ta_head ta_header;
 
     if (get_header_size(file, &header_size) == false) {
-        dprintf(ERROR, "get header size failed\n");
+        ALOGE("get header size failed\n");
         return false;
     }
     /* Get the offset to the payload size in the signed header element */
     if (fseek(file, offsetof(struct ta_signed_header,
                              size_of_payload), SEEK_SET) != 0) {
-        dprintf(ERROR, "failed to get payload size offset\n");
+        ALOGE("failed to get payload size offset\n");
         return false;
     }
     /* Read the payload size */
     if (fread(&payload_size, 1, sizeof(uint32_t), file) !=
         sizeof(uint32_t)) {
-        dprintf(ERROR, "failed to read payload size\n");
+        ALOGE("failed to read payload size\n");
         return false;
     }
 
    /* Set file to point to the ta_header */
     if (fseek(file, header_size, SEEK_SET) != 0) {
-        dprintf(ERROR, "failed to point to ta header\n");
+        ALOGE("failed to point to ta header\n");
         return false;
     }
 
     /* Read the ta_header from file */
     if (fread((void *) &ta_header, 1, sizeof(ta_header), file) !=
         sizeof(ta_header)) {
-        dprintf(ERROR, "failed to read ta header\n");
+        ALOGE("failed to read ta header\n");
         return false;
     }
 
@@ -187,12 +191,12 @@ static bool compare_ta_key_hash(FILE *file)
 
     if ((get_size_of_file(file, &total_file_size) == false) ||
         (get_file_size_in_header(file, &size_from_file) == false)) {
-        dprintf(ERROR, "failed to get file size\n");
+        ALOGE("failed to get file size\n");
         return false;
     }
 
     if (total_file_size != (size_from_file + SHA256_HASH_SIZE)) {
-        dprintf(FLOOD, "no ta key hash attached to the TA.\n");
+        ALOGI("no ta key hash attached to the TA.\n");
         return true;
     }
 
@@ -209,7 +213,7 @@ static bool compare_ta_key_hash(FILE *file)
 
     pthread_mutex_lock(&mutex);
     if (memcmp(issw_ta_key_hash, ta_key_hash_from_ta, SHA256_HASH_SIZE)) {
-        dprintf(FLOOD, "not correct ta\n");
+        ALOGI("not correct ta\n");
         pthread_mutex_unlock(&mutex);
         return false;
     }
@@ -232,20 +236,20 @@ static bool check_uuid(const TEEC_UUID *destination, FILE *file)
     /* Set file to point to the uuid */
     if (fseek(file, signed_header_size +
               offsetof(struct tee_ta_head, uuid), SEEK_SET) != 0) {
-        dprintf(ERROR, "fail to point to uuid\n");
+        ALOGE("fail to point to uuid\n");
         return false;
     }
 
     /* Read the uuid from file */
     if (fread((void *) &uuid, 1, sizeof(TEEC_UUID), file) !=
         sizeof(TEEC_UUID)) {
-        dprintf(ERROR, "not a valid ta\n");
+        ALOGE("not a valid ta\n");
         return false;
     }
 
     /* Check if it is the TA that we are looking for. */
     if (memcmp(&uuid, destination, sizeof(TEEC_UUID)) != 0) {
-        dprintf(FLOOD, "wrong ta\n");
+        ALOGI("wrong ta\n");
         return false;
     }
     return true;
@@ -259,22 +263,22 @@ static bool create_and_populate_ta(FILE *file, void **ta, size_t *ta_size)
         return false;
     }
 
-    dprintf(FLOOD, "ta_size is %zu\n", *ta_size);
+    ALOGI("ta_size is %zu\n", *ta_size);
     /* Allocate and read the ta into the provided pointer. */
     *ta = malloc(*ta_size);
 
     if (*ta == NULL) {
-        dprintf(INFO, "failed allocating ta\n");
+        ALOGI("failed allocating ta\n");
         return false;
     }
 
     if (fseek(file, 0, SEEK_SET) != 0) {
-        dprintf(ERROR, "fseek file failed\n");
+        ALOGE("fseek file failed\n");
         return TEEC_ERROR_GENERIC;
     }
 
     if (*ta_size != fread(*ta, 1, *ta_size, file)) {
-        dprintf(ERROR, "error fread hdfile\n");
+        ALOGE("error fread hdfile\n");
         return false;
     }
     return true;
@@ -287,12 +291,12 @@ static bool check_magic_header(FILE *file)
 
     if (fread(&magic_nbr_file, 1, sizeof(magic_nbr_file), file) !=
         sizeof(magic_nbr_file)) {
-        dprintf(FLOOD, "failed to read file\n");
+        ALOGI("failed to read file\n");
         return false;
     }
 
     if (memcmp(magic_nbr_file, magic_nbr, sizeof(magic_nbr_file)) != 0) {
-        dprintf(INFO, "memcmp magic nbr failed %s\n", magic_nbr_file);
+        ALOGI("memcmp magic nbr failed %s\n", magic_nbr_file);
         return false;
     }
     return true;
@@ -322,14 +326,14 @@ static int TEECI_LoadSecureModule(const TEEC_UUID *destination, void **ta,
 
     pthread_mutex_lock(&mutex);
     if (!got_ta_key_hash) {
-        dprintf(INFO, "ta key hash is not yet found\n");
+        ALOGI("ta key hash is not yet found\n");
         pthread_mutex_unlock(&mutex);
         return TA_BINARY_NOT_FOUND;
     }
     pthread_mutex_unlock(&mutex);
 
     if (!ta_size || !ta || !destination) {
-        dprintf(INFO, "wrong inparameter to TEECI_LoadSecureModule\n");
+        ALOGI("wrong inparameter to TEECI_LoadSecureModule\n");
         return TA_BINARY_NOT_FOUND;
     }
 
@@ -340,7 +344,7 @@ static int TEECI_LoadSecureModule(const TEEC_UUID *destination, void **ta,
     dirp = opendir(TEEC_LOAD_PATH);
 
     if (!dirp) {
-        dprintf(ERROR, "couldn't find folder: %s\n", TEEC_LOAD_PATH);
+        ALOGE("couldn't find folder: %s\n", TEEC_LOAD_PATH);
         return TEEC_ERROR_GENERIC;
     }
 
@@ -354,41 +358,41 @@ static int TEECI_LoadSecureModule(const TEEC_UUID *destination, void **ta,
         file = fopen(fname, "r");
 
         if (file == NULL) {
-            dprintf(INFO, "failed to open the ta TA-file\n");
+            ALOGI("failed to open the ta TA-file\n");
             continue;
         }
         if (check_magic_header(file) != true) {
-            dprintf(FLOOD, "magic header check failed\n");
+            ALOGI("magic header check failed\n");
             fclose(file);
             continue;
         }
         if (compare_ta_key_hash(file) == false) {
-            dprintf(FLOOD, "ta key hash compare failed\n");
+            ALOGI("ta key hash compare failed\n");
             fclose(file);
             continue;
         }
 
         if (check_uuid(destination, file) == false) {
-            dprintf(FLOOD, "uuid check failed\n");
+            ALOGI("uuid check failed\n");
             fclose(file);
             continue;
         }
 
         if (create_and_populate_ta(file, ta, ta_size) != true) {
-            dprintf(ERROR, "population of ta failed\n");
+            ALOGE("population of ta failed\n");
             ret = TA_BINARY_NOT_FOUND;
             fclose(file);
             break;
         }
 
-        dprintf(FLOOD, "binary found %zu\n", *ta_size);
+        ALOGI("binary found %zu\n", *ta_size);
         ret = TA_BINARY_FOUND;
         fclose(file);
         break;
     }
 
     closedir(dirp);
-    dprintf(FLOOD, "returning 0x%x\n", ret);
+    ALOGI("returning 0x%x\n", ret);
     return ret;
 }
 
@@ -420,7 +424,7 @@ static TEEC_Result teec_get_ta_key_hash(uint8_t *ta_key_hash)
         {0x8E, 0x12, 0xEC, 0xDB, 0xDF, 0xD7, 0x20, 0x85} };
 
     if (NULL == ta_key_hash) {
-        dprintf(ERROR, "NULL == ta_key_hash buffer\n");
+        ALOGE("NULL == ta_key_hash buffer\n");
         goto function_exit;
     }
 
@@ -441,27 +445,27 @@ static TEEC_Result teec_get_ta_key_hash(uint8_t *ta_key_hash)
     result = TEEC_OpenSession(&context, &session, &ta_static_uuid,
                               TEEC_LOGIN_PUBLIC, NULL, NULL, &errorOrigin);
     if (TEEC_SUCCESS != result) {
-        dprintf(ERROR, "TEEC_OpenSession error\n");
+        ALOGE("TEEC_OpenSession error\n");
         goto finalize;
     }
 
     result = TEEC_InvokeCommand(&session, BASS_APP_GET_TA_KEY_HASH,
                                 &operation, &errorOrigin);
     if (TEEC_SUCCESS != result) {
-        dprintf(ERROR, "TEEC_InvokeCommand error\n");
+        ALOGE("TEEC_InvokeCommand error\n");
         goto close;
     }
 
 close:
     result = TEEC_CloseSession(&session);
     if (result != TEEC_SUCCESS) {
-        dprintf(ERROR, "TEEC_CloseSession error\n");
+        ALOGE("TEEC_CloseSession error\n");
     }
 
 finalize:
     result = TEEC_FinalizeContext(&context);
     if (result != TEEC_SUCCESS) {
-        dprintf(ERROR, "TEEC_FinalizeContext error\n");
+        ALOGE("TEEC_FinalizeContext error\n");
     }
 
 function_exit:
@@ -490,7 +494,7 @@ TEEC_Result TEEC_InitializeContext(const char *name,
     if (!got_ta_key_hash) {
         result = teec_get_ta_key_hash(issw_ta_key_hash);
         if (result != TEEC_SUCCESS) {
-            dprintf(ERROR, "failed to get ta_key hash %d\n", result);
+            ALOGE("failed to get ta_key hash %d\n", result);
             pthread_mutex_unlock(&mutex);
             return result;
         }
@@ -572,7 +576,7 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context,
     size_t out_size;
     size_t ta_size = 0;
     struct tee_read ret;
-    struct tee_cmd tc;
+    struct tee_session tc;
     TEEC_ErrorOrigin error_origin = TEEC_ORIGIN_API;
     TEEC_Result res = TEEC_SUCCESS;
     void *ta = NULL;
@@ -592,22 +596,25 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context,
         goto error;
     }
 
-    memset(&tc, 0, sizeof(struct tee_cmd));
+    memset(&tc, 0, sizeof(struct tee_session));
 
     /*
      * If the TA binary is found on the filesystem then use that, otherwise
      * check if the uuid is available as a static TA. If that is not the case
      * return an error.
      */
-    if (TEECI_LoadSecureModule(destination, &ta, &ta_size) == TA_BINARY_FOUND) {
+    int load_res = TEECI_LoadSecureModule(destination, &ta, &ta_size);
+    ALOGE("TEEC_OpenSession: load_res == %d", load_res);
+    if (load_res == TA_BINARY_FOUND) {
         tc.uuid = NULL;
-        tc.data = ta;
-        tc.data_size = ta_size;
+        tc.ta = ta;
+        tc.ta_size = ta_size;
     } else if (is_static_ta_available(destination)) {
         tc.uuid = (struct tee_uuid *)destination;
-        tc.data = NULL;
-        tc.data_size = 0;
+        tc.ta = NULL;
+        tc.ta_size = 0;
     } else {
+        ALOGE("TEEC_OpenSession: destination is not available", load_res);
         error_origin = TEEC_ORIGIN_API;
         res = TEEC_ERROR_ITEM_NOT_FOUND;
         goto error;
@@ -622,13 +629,13 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context,
     tc.driver_cmd = TEED_OPEN_SESSION;
 
     /* Call kernel to open the session. */
-    out_size = write(session->ctx, &tc, sizeof(struct tee_cmd));
+    out_size = write(session->ctx, &tc, sizeof(struct tee_session));
 
-    if (out_size != sizeof(struct tee_cmd)) {
+    if (out_size != sizeof(struct tee_session)) {
         error_origin = tc.origin;
-        dprintf(ERROR, "Data returned (write) not size of struct tee_cmd, "
-                "(out_size: %d, sizeof(struct tee_cmd): %d, " "errno: %s\n",
-                out_size, sizeof(struct tee_cmd), strerror(errno));
+        ALOGE("%s: Data returned (write) not size of struct tee_session, "
+                "(out_size: %d, sizeof(struct tee_session): %d, " "errno: %s\n", __func__,
+                out_size, sizeof(struct tee_session), strerror(errno));
         res = TEEC_ERROR_ITEM_NOT_FOUND;
         goto error;
     }
@@ -638,8 +645,8 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context,
 
     if (out_size != sizeof(struct tee_read)) {
         error_origin = TEEC_ORIGIN_API;
-        dprintf(ERROR, "Data returned (read) not size of struct tee_read, "
-                "(out_size: %d, sizeof(struct tee_read): %d, " "errno: %s\n",
+        ALOGE("%s: Data returned (read) not size of struct tee_read, "
+                "(out_size: %d, sizeof(struct tee_read): %d, " "errno: %s\n", __func__,
                 out_size, sizeof(struct tee_read), strerror(errno));
         res = TEEC_ERROR_COMMUNICATION;
         goto error;
@@ -670,17 +677,17 @@ error:
  */
 TEEC_Result TEEC_CloseSession(TEEC_Session *session)
 {
-    struct tee_cmd tc;
+    struct tee_session tc;
     size_t out_size;
 
-    memset(&tc, 0, sizeof(struct tee_cmd));
+    memset(&tc, 0, sizeof(struct tee_session));
     tc.driver_cmd = TEED_CLOSE_SESSION;
-    out_size = write(session->ctx, &tc, sizeof(struct tee_cmd));
+    out_size = write(session->ctx, &tc, sizeof(struct tee_session));
 
-    if (out_size != sizeof(struct tee_cmd)) {
-        dprintf(ERROR, "Data returned (write) not size of struct tee_cmd, "
-                "(out_size: %d, sizeof(struct tee_cmd): %d, errno: %s\n",
-                out_size, sizeof(struct tee_cmd), strerror(errno));
+    if (out_size != sizeof(struct tee_session)) {
+        ALOGE("%s: Data returned (write) not size of struct tee_session, "
+                "(out_size: %d, sizeof(struct tee_session): %d, errno: %s\n", __func__,
+                out_size, sizeof(struct tee_session), strerror(errno));
         return TEEC_ERROR_COMMUNICATION;
     }
 
@@ -695,7 +702,7 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session,
                                TEEC_Operation *operation,
                                TEEC_ErrorOrigin *errorOrigin)
 {
-    struct tee_cmd tc;
+    struct tee_session tc;
     size_t out_size;
     struct tee_read ret;
 
@@ -707,29 +714,29 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session,
         return TEEC_ERROR_BAD_PARAMETERS;
     }
 
-    memset(&tc, 0, sizeof(struct tee_cmd));
+    memset(&tc, 0, sizeof(struct tee_session));
     memset(&ret, 0, sizeof(struct tee_read));
 
     tc.driver_cmd = TEED_INVOKE;
     tc.cmd = commandID;
     tc.op = malloc(sizeof(struct tee_operation));
     if (!tc.op) {
-        dprintf(ERROR, "Couldn't allocate memory for tc.op\n");
+        ALOGE("Couldn't allocate memory for tc.op\n");
         return TEEC_ERROR_OUT_OF_MEMORY;
     }
     copy_tee_op_from_legacy(tc.op, operation);
-    out_size = write(session->ctx, &tc, sizeof(struct tee_cmd));
+    out_size = write(session->ctx, &tc, sizeof(struct tee_session));
     copy_tee_op_to_legacy(operation, tc.op);
     free(tc.op);
 
-    if (out_size != sizeof(struct tee_cmd)) {
+    if (out_size != sizeof(struct tee_session)) {
         if (errorOrigin != NULL) {
             *errorOrigin = TEEC_ORIGIN_API;
         }
 
-        dprintf(ERROR, "Data returned (write) not size of struct tee_cmd, "
-                "(out_size: %d, sizeof(struct tee_cmd): %d, errno: %s\n",
-                out_size, sizeof(struct tee_cmd), strerror(errno));
+        ALOGE("%s: Data returned (write) not size of struct tee_session, "
+                "(out_size: %d, sizeof(struct tee_session): %d, errno: %s\n", __func__,
+                out_size, sizeof(struct tee_session), strerror(errno));
         return TEEC_ERROR_COMMUNICATION;
     }
 
@@ -740,8 +747,8 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session,
             *errorOrigin = TEEC_ORIGIN_API;
         }
 
-        dprintf(ERROR, "Data returned (read) not size of struct tee_read, "
-                "(out_size: %d, sizeof(struct tee_read): %d, errno: %s\n",
+        ALOGE("%s: Data returned (read) not size of struct tee_read, "
+                "(out_size: %d, sizeof(struct tee_read): %d, errno: %s\n", __func__,
                 out_size, sizeof(struct tee_read), strerror(errno));
         return TEEC_ERROR_COMMUNICATION;
     }

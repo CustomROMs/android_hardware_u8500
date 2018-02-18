@@ -11,9 +11,11 @@ BASS_APP_DRM_KEY_SET_STORAGE ?= cspsa
 # There are 5 supported levels, see include/debug.h. We want to have 2 as
 # default.
 BASS_APP_DEBUG_PRINT ?= 2
+BASS_APP_BUILD_DEBUG := true
+BASS_APP_LOG_TO_FILE := true
 
 # The location of the log file when logging to file is enabled.
-BASS_APP_LOG_FILE ?= \"/data/bass_app.log\"
+BASS_APP_LOG_FILE := \"/data/bass_app.log\"
 
 SSW_OUT_PATH = /system/lib/tee
 
@@ -58,12 +60,13 @@ LOCAL_CFLAGS += -DDEBUGLEVEL_$(BASS_APP_DEBUG_PRINT) \
 LOCAL_PATH:= $(BASS_APP_PATH)
 LOCAL_SRC_FILES := teec/tee_client_api.c
 LOCAL_SRC_FILES += $(call all-c-files-under, util)
+LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/teec/include \
 		    $(LOCAL_PATH)/include
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE := libtee
 LOCAL_MODULE_TAGS := optional
-#include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 ################################################################################
 # Build libtee_static.a - TEE (Trusted Execution Environment) static library   #
