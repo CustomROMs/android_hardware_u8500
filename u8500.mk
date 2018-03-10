@@ -46,7 +46,7 @@ PRODUCT_PACKAGES += \
     libsterc \
     libstecom \
     libsms_server \
-    libsecril-client \
+    libsecril-client
 
 # External
 PRODUCT_PACKAGES += \
