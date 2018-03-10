@@ -27,7 +27,7 @@ common_cflags := -Wall -Werror -std=gnu99 -ffunction-sections -fdata-sections -W
 include $(CLEAR_VARS)
 
 LOCAL_CFLAGS += $(common_cflags)
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../ril/libshmnetlnk/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../ril/libshmnetlnk/include $(LOCAL_PATH)/../../ril/access_services/modem_adaptations/mal/modem_lib/mal/libshmnetlnk/include
 
 LOCAL_SHARED_LIBRARIES += libshmnetlnk
 
