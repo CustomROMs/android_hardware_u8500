@@ -37,6 +37,8 @@ PRODUCT_PACKAGES += \
 # RIL
 PRODUCT_PACKAGES += \
     msa \
+    at_core \
+    libcn \
     libtee \
     libmpl \
     libisimessage \

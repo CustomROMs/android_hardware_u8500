@@ -8,6 +8,7 @@
 ## 
 ###############################################################################
 
+ifeq (true, false)
 LOCAL_PATH := $(call my-dir)
 SIM_PATH := $(LOCAL_PATH)/..
 CN_PATH := $(ACCESS_SERVICES_PATH)/call_network/call_network
@@ -34,3 +35,4 @@ LOCAL_C_INCLUDES := \
         $(PROCESSING_PATH)/security_framework/cops/cops-api/include
 
 include $(BUILD_STATIC_LIBRARY)
+endif

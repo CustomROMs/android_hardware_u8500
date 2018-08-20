@@ -27,18 +27,18 @@ $(info CALL_NETWORK: Building for MAL backend)
 CN_ENABLE_FEATURE_MAL := true
 CN_ENABLE_FEATURE_MFL := false
 
-CN_ENABLE_FEATURE_MAL_CS := true
-CN_ENABLE_FEATURE_MAL_GSS := true
-CN_ENABLE_FEATURE_MAL_MCE := true
-CN_ENABLE_FEATURE_MAL_MIS := true
-CN_ENABLE_FEATURE_MAL_NET := true
-CN_ENABLE_FEATURE_MAL_MIS := true
-CN_ENABLE_FEATURE_MAL_RF := true
-CN_ENABLE_FEATURE_MAL_MTE := true
-CN_ENABLE_FEATURE_MAL_NETLNK := true
-CN_ENABLE_FEATURE_MAL_NVD := true
+CN_ENABLE_FEATURE_MAL_CS := false
+CN_ENABLE_FEATURE_MAL_GSS := false
+#CN_ENABLE_FEATURE_MAL_MCE := true
+#CN_ENABLE_FEATURE_MAL_MIS := true
+#CN_ENABLE_FEATURE_MAL_NET := true
+#CN_ENABLE_FEATURE_MAL_MIS := true
+#CN_ENABLE_FEATURE_MAL_RF := true
+#CN_ENABLE_FEATURE_MAL_MTE := true
+#CN_ENABLE_FEATURE_MAL_NETLNK := true
+#CN_ENABLE_FEATURE_MAL_NVD := true
 ifeq ($(CN_ENABLE_FEATURE_FTD),true)
-CN_ENABLE_FEATURE_MAL_FTD := true
+#CN_ENABLE_FEATURE_MAL_FTD := true
 endif
 MAL := $(ACCESS_SERVICES_PATH)/modem_adaptations/mal/modem_lib/mal
 
@@ -220,7 +220,7 @@ endif
 ### Server executable ###
 LOCAL_MODULE:=cn_server
 LOCAL_MODULE_TAGS := optional
-include $(BUILD_EXECUTABLE)
+#include $(BUILD_EXECUTABLE)
 
 
 ################## Client library ##################
@@ -238,7 +238,7 @@ LOCAL_SRC_FILES:= \
 	libcn/src/cn_client.c \
 	libcn/src/cn_log.c
 
-LOCAL_SHARED_LIBRARIES := libutils
+LOCAL_SHARED_LIBRARIES := libutils liblog
 LOCAL_STATIC_LIBRARIES := libaccsutil_security
 
 LOCAL_MODULE:=libcn
