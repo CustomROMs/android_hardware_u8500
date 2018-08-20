@@ -52,7 +52,7 @@
 /* Functions */
 #define CONVERT_A  (GRAVITY_EARTH * (1.0f/1000.0f))
 
-#pragma message(VAR_NAME_VALUE(CONVERT_A))
+//#pragma message(VAR_NAME_VALUE(CONVERT_A))
 
 /* Alps defines (kyle) */
 #define ALPSIO	0xAF
@@ -141,9 +141,9 @@ static const struct sensor_t sSensorList[] = {
 		0,
 		"vu.co.meticulus.taos.proximity",
 		"",
-		200000,
 		0,
-		NULL,
+		SENSOR_FLAG_WAKE_UP | SENSOR_FLAG_ON_CHANGE_MODE,
+		{0, 0},
 	},
 	{"ALPS 3-axis Magnetic field sensor",
 		"alps electric co., ltd.",
@@ -158,9 +158,9 @@ static const struct sensor_t sSensorList[] = {
 		0,
 		"vu.co.meticulus.alps.magnetic",
 		"",
-		200000,
 		0,
-		NULL,
+		0,
+		{0, 0},
 	},
 	{"ST Accelerometer",
 		"ST Microelectronics",
@@ -175,9 +175,9 @@ static const struct sensor_t sSensorList[] = {
 		0,
 		"vu.co.meticulus.bosch.accerometer",
 		"",
-		200000,
 		0,
-		NULL,
+		0,
+		{0, 0},
 	},
 	{"ALPS Orientation Sensor",
 		"alps electric co., ltd",
@@ -192,9 +192,9 @@ static const struct sensor_t sSensorList[] = {
 		0,
 		"vu.co.meticulus.alps.orientation",
 		"",
-		200000,
 		0,
-		NULL,
+		0,
+		{0, 0},
 	},
 };
 
