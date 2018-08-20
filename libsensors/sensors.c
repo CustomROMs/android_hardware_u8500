@@ -50,7 +50,7 @@
 
 #include <linux/ioctl.h>
 
-#include "codinalte.h"
+#include "sensors.h"
 
 static unsigned int count_mag;
 static unsigned int count_acc;
@@ -60,7 +60,7 @@ static unsigned int count_orien;
 unsigned int delay_mag = MINDELAY_MAGNETIC_FIELD;
 unsigned int delay_acc = MINDELAY_ACCELEROMETER;
 unsigned int delay_prox = MINDELAY_PROXIMITY;
-unsigned int delay_orien = MINDELAY_ORIENTATION;
+unsigned int delay_orient = MINDELAY_ORIENTATION;
 
 static pthread_cond_t data_available_cv;
 
@@ -71,7 +71,9 @@ static pthread_mutex_t mutex_proxval = PTHREAD_MUTEX_INITIALIZER;
 int continue_next;
 int events = 0;
 static int count_open_sensors = 0;
+static int count_orient = 0;
 static int count_delay_sensors = 0;
+static int orient_thread_exit = 0;
 
 Sensor_prox  stprox_val;
 
@@ -79,13 +81,15 @@ Sensor_prox  stprox_val;
 void *proximity_getdata();
 void *acc_getdata();
 void *mag_getdata();
-void *orien_getdata();
+void *orient_getdata();
 void *poll_proximity();
 
 char acc_thread_exit;
 char mag_thread_exit;
 char orien_thread_exit;
-char prox_thread_exit  = 1;
+char prox_thread_exit; //= 1;
+
+static int orient_enabled = 0;
 
 static Sensor_data sensor_data;
 
@@ -117,7 +121,6 @@ static int write_cmd(char const *path, char *cmd, int size)
 	return ret;
 }
 
-
 /* implement individual sensor enable and disables */
 static int activate_acc(int enable)
 {
@@ -127,8 +130,8 @@ static int activate_acc(int enable)
 	int fd = -1;
 
 	if (enable) {
-		if(DEBUG)
-			ALOGD("Meticulus: %s: ========= count_acc = %d, accid = %d\n", __func__, count_acc, acc_id);
+		//if(DEBUG)
+		//	ALOGD("Meticulus: %s: ========= count_acc = %d, accid = %d\n", __func__, count_acc, acc_id);
 		if (count_acc == 0) {
 			fd = open(PATH_IO_ALPS, O_WRONLY);
 			if(fd >= 0){
@@ -260,59 +263,95 @@ static int activate_prox(int enable)
 			 */
 			prox_thread_exit = 1;
 			write_cmd(PATH_POWER_PROX, "0",2);
-			
 		}
 	}
 	return 0;
 }
-
-static int activate_orientation(int enable)
+static int poll_orientation(sensors_event_t *o)
 {
-	if(activate_acc(enable) == 0 && activate_mag(enable) == 0)
-		return 0;
-	else
-		return -1;
-}
-
-static int poll_accelerometer(sensors_event_t *values)
-{
-	int fd;
-	int nread;
-	int data[3];
+	int fd_mag;
+	int fd_acc;
+	int data_mag[3];
+	int data_acc[3];
+	float reading[3];
+	float gain_mag[2] = {0.0};
 	char buf[SIZE_OF_BUF];
+	int nread;
+	double mag_x, mag_y, mag_xy;
+	double acc_x, acc_y, acc_z;
 
-	data[0] = 0;
-	data[1] = 0;
-	data[2] = 0;
+	data_mag[0] = 0;
+	data_mag[1] = 0;
+	data_mag[2] = 0;
 
-	fd = open(PATH_DATA_ACC, O_RDONLY);
-	if (fd < 0) {
-		ALOGE("Meticulus: Cannot open %s\n", PATH_DATA_ACC);
+	data_acc[0] = 0;
+	data_acc[1] = 0;
+	data_acc[2] = 0;
+
+	fd_acc = open(PATH_DATA_ACC, O_RDONLY);
+	if (fd_acc < 0) {
+		ALOGE("orient:Cannot open %s\n", PATH_DATA_ACC);
+		return -ENODEV;
+	}
+	fd_mag = open(PATH_DATA_MAG, O_RDONLY);
+	if (fd_mag < 0) {
+		ALOGE("orien:Cannot open %s\n", PATH_DATA_MAG);
 		return -ENODEV;
 	}
 
 	memset(buf, 0x00, sizeof(buf));
-	lseek(fd, 0, SEEK_SET);
-	nread = read(fd, buf, SIZE_OF_BUF);
+	lseek(fd_mag, 0, SEEK_SET);
+	nread = read(fd_mag, buf, SIZE_OF_BUF);
 	if (nread < 0) {
-		ALOGE("Meticulus: Error in reading data from accelerometer\n");
+		ALOGE("orien:Error in reading data from Magnetometer\n");
 		return -1;
 	}
-	sscanf(buf, "%d,%d,%d", &data[0], &data[1], &data[2]);
+	sscanf(buf, "%d %d %d", &data_mag[0], &data_mag[1], &data_mag[2]);
 
-	values->acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
-	values->acceleration.x = (float) (-data[1]*16.66666666666f);
-	values->acceleration.x *= CONVERT_A;
-	values->acceleration.y = (float) (data[0]*16.66666666666f);
-	values->acceleration.y *= CONVERT_A;
-	values->acceleration.z = (float) (data[2]*16.66666666666f);
-	values->acceleration.z *= CONVERT_A;
+	mag_x = (data_mag[1] * MAG_RESOLUTION);
+	mag_y = (data_mag[0] * MAG_RESOLUTION);
+	if (mag_x == 0) {
+		if (mag_y < 0)
+			reading[0] = 180;
+		else
+			reading[0] = 0;
+	} else {
+		mag_xy = mag_y / mag_x;
+		if (mag_x > 0)
+			reading[0] = round(270 +
+						(atan(mag_xy) * RADIANS_TO_DEGREES));
+		else
+			reading[0] = round(90 +
+						(atan(mag_xy) * RADIANS_TO_DEGREES));
+	}
 
-	values->type = SENSOR_TYPE_ACCELEROMETER;
-	values->sensor = HANDLE_ACCELEROMETER;
-	values->version = sizeof(struct sensors_event_t);
+	memset(buf, 0x00, sizeof(buf));
+	lseek(fd_acc, 0, SEEK_SET);
+	nread = read(fd_acc, buf, SIZE_OF_BUF);
+	if (nread < 0) {
+		ALOGE("orient:Error in reading data from Accelerometer\n");
+		return -1;
+	}
+	sscanf(buf, "%d %d %d", &data_acc[0], &data_acc[1], &data_acc[2]);
 
-	close(fd);
+        acc_x = (float) (-data_acc[1] * BMA254_RESOLUTION * 2.34);
+        acc_y = (float) (data_acc[0] * BMA254_RESOLUTION * 2.34);
+        acc_z = (float) (data_acc[2] * BMA254_RESOLUTION * 2.34);
+
+	reading[1] = round(atan(acc_y / sqrt(acc_x*acc_x + acc_z*acc_z)) * RADIANS_TO_DEGREES);
+	reading[2] = round(atan(acc_x / sqrt(acc_y*acc_y + acc_z*acc_z)) * RADIANS_TO_DEGREES);
+
+	ALOGE("Orien: azimut %d pitch %d poll %d", reading[0], reading[1], reading[2]);
+	o->sensor = HANDLE_ORIENTATION;
+	o->type = SENSOR_TYPE_ORIENTATION;
+	o->version = sizeof(struct sensors_event_t);
+	o->orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
+	o->orientation.azimuth = reading[0];
+	o->orientation.pitch = reading[1];
+	o->orientation.roll = reading[2];
+
+	close(fd_acc);
+	close(fd_mag);
 	return 0;
 }
 
@@ -340,6 +379,109 @@ void add_queue(int sensor_type, sensors_event_t data)
 	return;
 }
 
+void *orient_getdata()
+{
+	sensors_event_t orient;
+	int ret;
+
+	while (!orient_thread_exit) {
+		usleep(delay_orient);
+		ret = poll_orientation(&orient);
+		/* If return value = 0 queue the element */
+		if (ret)
+			return NULL;
+		if(orient_enabled)
+		    add_queue(HANDLE_ORIENTATION, orient);
+	}
+	return NULL;
+}
+
+static int activate_orientation(int enable)
+{
+	int ret = -1;
+	pthread_attr_t attr;
+	pthread_t orient_thread = -1;
+ 	if (enable) {
+		if (count_orient == 0) {
+			activate_acc(enable);
+			activate_mag(enable);
+			/*
+			 * check for the file path
+			 * Initialize prox_thread_exit flag
+			 * every time thread is created
+			 */
+			orient_thread_exit = 0;
+			pthread_attr_init(&attr);
+			/*
+			 * Create thread in detached state, so that we
+			 * need not join to clear its resources
+			 */
+			pthread_attr_setdetachstate(&attr,
+					PTHREAD_CREATE_DETACHED);
+			ret = pthread_create(&orient_thread, &attr,
+					orient_getdata, NULL);
+			pthread_attr_destroy(&attr);
+			count_orient++;
+		} else {
+			count_orient++;
+		}
+	} else {
+		if (count_orient == 0)
+			return 0;
+		count_orient--;
+		if (count_orient == 0) {
+			/*
+			 * Enable prox_thread_exit to exit the thread
+			 */
+			orient_thread_exit = 1;
+			activate_acc(enable);
+			activate_mag(enable);
+		}
+	}
+
+	return 0;
+}
+
+static int poll_accelerometer(sensors_event_t *values)
+{
+	int fd;
+	int nread;
+	int data[3];
+	char buf[SIZE_OF_BUF];
+
+	data[0] = 0;
+	data[1] = 0;
+	data[2] = 0;
+
+	fd = open(PATH_DATA_ACC, O_RDONLY);
+	if (fd < 0) {
+		ALOGE("Meticulus: Cannot open %s\n", PATH_DATA_ACC);
+		return -ENODEV;
+	}
+
+	memset(buf, 0x00, sizeof(buf));
+	lseek(fd, 0, SEEK_SET);
+	nread = read(fd, buf, SIZE_OF_BUF);
+	//ALOGE("ACC_POLL: %s", buf);
+	if (nread < 0) {
+		ALOGE("Meticulus: Error in reading data from accelerometer\n");
+		return -1;
+	}
+	sscanf(buf, "%d,%d,%d", &data[0], &data[1], &data[2]);
+
+	values->acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
+	values->acceleration.x = (float) (-data[1] * BMA254_RESOLUTION * 2.34);
+	values->acceleration.y = (float) (data[0] * BMA254_RESOLUTION * 2.34);
+	values->acceleration.z = (float) (data[2] * BMA254_RESOLUTION * 2.34);
+
+	values->type = SENSOR_TYPE_ACCELEROMETER;
+	values->sensor = HANDLE_ACCELEROMETER;
+	values->version = sizeof(struct sensors_event_t);
+
+	close(fd);
+	return 0;
+}
+
 void *acc_getdata()
 {
 	sensors_event_t data;
@@ -359,6 +501,7 @@ void *acc_getdata()
 static int poll_magnetometer(sensors_event_t *values)
 {
 	int fd;
+	int raw_data;
 	int data[3];
 	char buf[SIZE_OF_BUF];
 	int nread;
@@ -384,9 +527,9 @@ static int poll_magnetometer(sensors_event_t *values)
 	close(fd);
 
 	values->magnetic.status = SENSOR_STATUS_ACCURACY_HIGH;
-	values->magnetic.x = (data[0] * HSCDTD008A_RESOLUTION);
-	values->magnetic.y = (data[1] * HSCDTD008A_RESOLUTION);
-	values->magnetic.z = (data[2] * HSCDTD008A_RESOLUTION);
+	values->magnetic.x = data[1] * MAG_RESOLUTION;
+	values->magnetic.y = data[0] * MAG_RESOLUTION;
+	values->magnetic.z = data[2] * MAG_RESOLUTION;
 	values->sensor = HANDLE_MAGNETIC_FIELD;
 	values->type = SENSOR_TYPE_MAGNETIC_FIELD;
 	values->version = sizeof(struct sensors_event_t);
@@ -410,107 +553,6 @@ void *mag_getdata()
 	return NULL;
 }
 
-static int poll_orientation(sensors_event_t *values)
-{
-	int fd_mag;
-	int fd_acc;
-	int data_mag[3];
-	int data_acc[3];
-	float gain_mag[2] = {0.0};
-	char buf[SIZE_OF_BUF];
-	int nread;
-	double mag_x, mag_y, mag_xy;
-	double acc_x, acc_y, acc_z;
-
-	data_mag[0] = 0;
-	data_mag[1] = 0;
-	data_mag[2] = 0;
-
-	data_acc[0] = 0;
-	data_acc[1] = 0;
-	data_acc[2] = 0;
-
-	fd_acc = open(PATH_DATA_ACC , O_RDONLY);
-	if (fd_acc < 0) {
-		ALOGE("Meticulus: orien:Cannot open %s\n", sensor_data.path_data);
-		return -ENODEV;
-	}
-	fd_mag = open(PATH_DATA_MAG, O_RDONLY);
-	if (fd_mag < 0) {
-		ALOGE("Meticulus: orien:Cannot open %s\n", PATH_DATA_MAG);
-		return -ENODEV;
-	}
-
-	memset(buf, 0x00, sizeof(buf));
-	lseek(fd_mag, 0, SEEK_SET);
-	nread = read(fd_mag, buf, SIZE_OF_BUF);
-	if (nread < 0) {
-		ALOGE("Meticulus: orien:Error in reading data from Magnetometer\n");
-		return -1;
-	}
-	sscanf(buf, "%d,%d,%d", &data_mag[0], &data_mag[1], &data_mag[2]);
-
-	mag_x = (data_mag[0] * HSCDTD008A_RESOLUTION);
-	mag_y = (data_mag[1] * HSCDTD008A_RESOLUTION);
-	if (mag_x == 0) {
-		if (mag_y < 0)
-			values->orientation.azimuth = 180;
-		else
-			values->orientation.azimuth = 0;
-	} else {
-		mag_xy = mag_y / mag_x;
-		if (mag_x > 0)
-			values->orientation.azimuth = round(270 +
-						(atan(mag_xy) * RADIANS_TO_DEGREES));
-		else
-			values->orientation.azimuth = round(90 +
-						(atan(mag_xy) * RADIANS_TO_DEGREES));
-	}
-
-	memset(buf, 0x00, sizeof(buf));
-	lseek(fd_acc, 0, SEEK_SET);
-	nread = read(fd_acc, buf, SIZE_OF_BUF);
-	if (nread < 0) {
-		ALOGE("Meticulus orien:Error in reading data from Accelerometer\n");
-		return -1;
-	}
-	sscanf(buf, "%d,%d,%d", &data_acc[0], &data_acc[1], &data_acc[2]);
-
-	acc_x = (float) data_acc[0];
-	acc_x *= CONVERT_A;
-	acc_y = (float) data_acc[1];
-	acc_y *= CONVERT_A;
-	acc_z = (float) data_acc[2];
-	acc_z *= CONVERT_A;
-
-	values->sensor = HANDLE_ORIENTATION;
-	values->type = SENSOR_TYPE_ORIENTATION;
-	values->version = sizeof(struct sensors_event_t);
-	values->orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
-	values->orientation.pitch = round(atan(acc_y / sqrt(acc_x*acc_x + acc_z*acc_z)) * RADIANS_TO_DEGREES);
-	values->orientation.roll = round(atan(acc_x / sqrt(acc_y*acc_y + acc_z*acc_z)) * RADIANS_TO_DEGREES);
-
-	close(fd_acc);
-	close(fd_mag);
-	return 0;
-}
-
-void *orien_getdata()
-{
-	sensors_event_t data;
-	int ret;
-
-	while (!orien_thread_exit) {
-		usleep(delay_orien);
-		ret = poll_orientation(&data);
-		/* If return value = 0 queue the element */
-		if (ret)
-			return NULL;
-		add_queue(HANDLE_ORIENTATION, data);
-	}
-	return NULL;
-}
-
 void *poll_proximity()
 {
 	int ret;
@@ -528,7 +570,7 @@ void *poll_proximity()
 		 values.type = SENSOR_TYPE_PROXIMITY;
 		 values.version = sizeof(struct sensors_event_t);
 		 add_queue(HANDLE_PROXIMITY, values);
-		 
+
 		 continue_next = 0;
 		 events = 1;
 	} else {
@@ -641,15 +683,20 @@ static int m_poll_activate(struct sensors_poll_device_t *dev,
 
 	switch (handle) {
 	case HANDLE_ORIENTATION:
+		ALOGE("orientation enabled=%d", enabled);
+		orient_enabled = enabled;
 		status = activate_orientation(enabled);
 		break;
 	case HANDLE_ACCELEROMETER:
+		ALOGE("accel enabled=%d", enabled);
 		status = activate_acc(enabled);
 		break;
 	case HANDLE_MAGNETIC_FIELD:
+		ALOGE("magnetic enabled=%d", enabled);
 		status = activate_mag(enabled);
 		break;
 	case HANDLE_PROXIMITY:
+		ALOGE("proximity enabled=%d", enabled);
 		status = activate_prox(enabled);
 		break;
 	default:
@@ -705,7 +752,7 @@ static int m_poll_set_delay(struct sensors_poll_device_t *dev,
 	switch (handle) {
 	case HANDLE_ORIENTATION:
 		if (microseconds >= MINDELAY_ORIENTATION) {
-			delay_orien = microseconds;
+			delay_orient = microseconds;
 			ret = set_delay_acc(microseconds);
 		}
 		break;
