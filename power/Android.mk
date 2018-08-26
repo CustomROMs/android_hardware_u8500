@@ -1,4 +1,4 @@
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2011 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#LOCAL_CLANG_EXCEPTION_PROJECTS += hardware/u8500/power
+
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := healthd_board_montblanc.cpp
-LOCAL_MODULE := libhealthd.$(TARGET_BOARD_PLATFORM)
-LOCAL_C_INCLUDES := system/core/healthd/include system/core/base/include
-LOCAL_STATIC_LIBRARIES := libcutils
-include $(BUILD_STATIC_LIBRARY)
+
+#LOCAL_CLANG := false
+
+LOCAL_MODULE := power.$(TARGET_BOARD_PLATFORM)
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_SRC_FILES := power.c
+LOCAL_SHARED_LIBRARIES := liblog libcutils
+LOCAL_MODULE_TAGS := optional
+
+include $(BUILD_SHARED_LIBRARY)

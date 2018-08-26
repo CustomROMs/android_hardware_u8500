@@ -939,7 +939,7 @@ int snd_pcm_hwsync(snd_pcm_t *pcm)
 	return pcm->fast_ops->hwsync(pcm->fast_op_arg);
 }
 #ifndef DOC_HIDDEN
-link_warning(snd_pcm_hwsync, "Warning: snd_pcm_hwsync() is deprecated, consider to use snd_pcm_avail()");
+//link_warning(snd_pcm_hwsync, "Warning: snd_pcm_hwsync() is deprecated, consider to use snd_pcm_avail()");
 #endif
 
 /**
@@ -6131,6 +6131,12 @@ snd_pcm_sframes_t snd_pcm_status_get_delay(const snd_pcm_status_t *obj)
 {
 	assert(obj);
 	return obj->delay;
+}
+
+snd_pcm_sframes_t snd_pcm_status_get_ex_size(const snd_pcm_status_t *obj)
+{
+    assert(obj);
+    return obj->ex_size;
 }
 
 /** 

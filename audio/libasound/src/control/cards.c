@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <cutils/properties.h>
 #include "control_local.h"
 
 #ifndef DOC_HIDDEN
@@ -212,5 +213,66 @@ int snd_card_get_longname(int card, char **name)
 	*name = strdup((const char *)info.longname);
 	if (*name == NULL)
 		return -ENOMEM;
+	return 0;
+}
+
+int snd_card_get_aml_card(void)
+{
+	int card = -1;
+	char *cardname;
+	char value[64];
+	
+	if (snd_card_next(&card) < 0 || card < 0) {
+		return -1;
+	}
+	while (card>=0){
+		snd_card_get_name(card, &cardname);
+		SYSERR("cardname =%s, card = %d\n", cardname, card);
+		if ((strncmp(cardname,"AML",3)==0)){
+			free(cardname);
+			return card;
+		}
+		free(cardname);
+		if (snd_card_next(&card) < 0) {
+			break;
+		}
+	}
+	return card;
+}
+
+int snd_card_refresh_info(void)
+{
+	int card = -1;
+	int num =0;
+	char *cardname;
+	char value[64];
+	
+	if (snd_card_next(&card) < 0 || card < 0) {
+		property_set("snd.card.totle.num", "0");
+		return -1;
+	}
+	while (card>=0){
+		snd_card_get_name(card, &cardname);
+		sprintf(value,"snd.card.%d.name", num);
+		property_set(value, cardname);
+		num++;
+		free(cardname);
+		
+	    if (snd_card_next(&card) < 0) {
+			break;
+		}
+	}
+	sprintf(value,"%d'",num);
+	property_set("snd.card.totle.num", value);
+	return num;
+}
+
+int snd_card_set_default(int card)
+{
+	char value[4];
+
+	sprintf(value,"%d'",card);
+
+	property_set("snd.card.default.card", value);
 	return 0;
 }

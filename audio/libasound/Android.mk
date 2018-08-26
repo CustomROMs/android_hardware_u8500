@@ -8,7 +8,7 @@ ifeq ($(strip $(BOARD_USES_ALSA_AUDIO)),true)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_CLANG := true
+# LOCAL_CLANG := false
 
 LOCAL_MODULE := libasound
 LOCAL_MODULE_TAGS := optional
@@ -42,6 +42,8 @@ LOCAL_SRC_FILES := $(filter-out src/pcm/scopes/level.c, $(LOCAL_SRC_FILES))
 LOCAL_SRC_FILES := $(filter-out src/shmarea.c, $(LOCAL_SRC_FILES))
 
 LOCAL_SHARED_LIBRARIES := \
+    libcutils \
+    libutils \
     libdl
 
 include $(BUILD_SHARED_LIBRARY)

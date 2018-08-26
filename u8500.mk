@@ -28,6 +28,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libsecril-client
 
+# Legacy RIL
+#PRODUCT_PACKAGES += \
+#    libsecril-shim
+
 # power
 #PRODUCT_PACKAGES += \
 #    power.montblanc

@@ -841,6 +841,7 @@ snd_pcm_sframes_t snd_pcm_status_get_delay(const snd_pcm_status_t *obj);
 snd_pcm_uframes_t snd_pcm_status_get_avail(const snd_pcm_status_t *obj);
 snd_pcm_uframes_t snd_pcm_status_get_avail_max(const snd_pcm_status_t *obj);
 snd_pcm_uframes_t snd_pcm_status_get_overrange(const snd_pcm_status_t *obj);
+snd_pcm_sframes_t snd_pcm_status_get_ex_size(const snd_pcm_status_t *obj);
 
 /** \} */
 

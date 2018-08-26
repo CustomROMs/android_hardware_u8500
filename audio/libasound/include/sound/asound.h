@@ -418,7 +418,8 @@ struct sndrv_pcm_status {
 	sndrv_pcm_uframes_t avail_max;	/* max frames available on hw since last status */
 	sndrv_pcm_uframes_t overrange;	/* count of ADC (capture) overrange detections from last status */
 	int suspended_state;		/* suspended stream state */
-	unsigned char reserved[60];	/* must be filled with zero */
+	sndrv_pcm_uframes_t ex_size;    /* extra size ketp not be put into HW buf */
+	unsigned char reserved[56];	/* must be filled with zero */
 };
 
 struct sndrv_pcm_mmap_status {
