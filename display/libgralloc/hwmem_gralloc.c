@@ -36,6 +36,7 @@
 #include <hardware/gralloc.h>
 #include <system/graphics.h>
 #include <system/graphics-base.h>
+#include <gralloc1-adapter.h>
 #include "gralloc_stericsson_ext.h"
 
 #include "hwmem_gralloc.h"
@@ -155,7 +156,7 @@ struct hwmem_gralloc_module_t HAL_MODULE_INFO_SYM = {
     .base = {
         .common = {
             .tag = HARDWARE_MODULE_TAG,
-            .version_major = 1,
+            .version_major = GRALLOC1_ADAPTER_MODULE_API_VERSION_1_0,
             .version_minor = 0,
             .id = GRALLOC_HARDWARE_MODULE_ID,
             .name = "Graphics Memory Allocator Module",
@@ -262,6 +263,12 @@ static int gralloc_open_device(const struct hw_module_t* module, const char* nam
         LOG_USER_ERROR("%s: NULL == name || NULL == device", __func__);
         return -EINVAL;
     }
+
+#ifdef ADVERTISE_GRALLOC1
+    if (!strcmp(name, GRALLOC_HARDWARE_MODULE_ID)) {
+        return gralloc1_adapter_device_open(module, name, device);
+    }
+#endif
 
     /* module_2_hwmem_gralloc_module does not write to module so the const to non
     const cast is ok */
