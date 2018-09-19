@@ -3,7 +3,11 @@ PRODUCT_PACKAGES += \
    libasound
 $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 
-# STE Display 
+# STE Sensors
+PRODUCT_PACKAGES += \
+   sensors.montblanc
+
+# STE Display
 PRODUCT_PACKAGES += \
    lights.montblanc \
    gralloc.montblanc \
