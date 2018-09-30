@@ -404,13 +404,13 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
     va_list args;
     va_start(args, operation);
 
-    LOG_API_CALL("%s(%p, %i, ...)", __func__, module, operation);
+    //LOG_API_CALL("%s(%p, %i, ...)", __func__, module, operation);
 
     switch (operation)
     {
         case GRALLOC_MODULE_PERFORM_GET_BUF_ALLOCATOR_HANDLE:
         {
-            ALOGE("GRALLOC: %s(%p, %i, ...)", __func__, module, operation);;
+            //ALOGE("GRALLOC: %s(%p, %i, ...)", __func__, module, operation);;
 
             buffer_handle_t handle = va_arg(args, buffer_handle_t);
             va_end(args);
@@ -495,8 +495,8 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
         default:
             va_end(args);
 
-	    ALOGE("%s: Unknown operation, %i", __func__, operation);
-            LOG_USER_ERROR("%s: Unknown operation, %i", __func__, operation);
+	    //ALOGE("%s: Unknown operation, %i", __func__, operation);
+            //LOG_USER_ERROR("%s: Unknown operation, %i", __func__, operation);
             return -EINVAL;
     }
 }
