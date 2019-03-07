@@ -23,27 +23,27 @@ LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	liblog
 
-MULTIMEDIA_PATH := $(LOCAL_PATH)/../../multimedia
+_MULTIMEDIA_PATH := $(LOCAL_PATH)/../../multimedia
 
 LOCAL_C_INCLUDES += \
 	$(TOP)/hardware/libhardware/include  \
 	$(TOP)/frameworks/native/include/media/hardware \
 	$(TOP)/frameworks/native/include \
-	$(MULTIMEDIA_PATH)/shared/utils/include \
-	$(MULTIMEDIA_PATH)/shared/omxilosalservices_api \
-	$(MULTIMEDIA_PATH)/shared/ens_interface/nmf/common \
-	$(MULTIMEDIA_PATH)/shared/ens_interface/include \
-	$(MULTIMEDIA_PATH)/shared/ens_interface/omxil \
-	$(MULTIMEDIA_PATH)/shared/omxil \
-	$(MULTIMEDIA_PATH)/linux/trace/api \
-	$(MULTIMEDIA_PATH)/audio/drc/proxy \
-	$(MULTIMEDIA_PATH)/audio/afm/proxy/include \
-	$(MULTIMEDIA_PATH)/audio/audio_chipset_apis \
-	$(MULTIMEDIA_PATH)/audio/speech_proc_vcs/wrapper/inc \
-	$(MULTIMEDIA_PATH)/video/video_chipset_apis \
-	$(MULTIMEDIA_PATH)/video/vfm/include \
-	$(MULTIMEDIA_PATH)/audio/comfortnoise/proxy \
-	$(MULTIMEDIA_PATH)/shared/ste_shai/include \
+	$(_MULTIMEDIA_PATH)/shared/utils/include \
+	$(_MULTIMEDIA_PATH)/shared/omxilosalservices_api \
+	$(_MULTIMEDIA_PATH)/shared/ens_interface/nmf/common \
+	$(_MULTIMEDIA_PATH)/shared/ens_interface/include \
+	$(_MULTIMEDIA_PATH)/shared/ens_interface/omxil \
+	$(_MULTIMEDIA_PATH)/shared/omxil \
+	$(_MULTIMEDIA_PATH)/linux/trace/api \
+	$(_MULTIMEDIA_PATH)/audio/drc/proxy \
+	$(_MULTIMEDIA_PATH)/audio/afm/proxy/include \
+	$(_MULTIMEDIA_PATH)/audio/audio_chipset_apis \
+	$(_MULTIMEDIA_PATH)/audio/speech_proc_vcs/wrapper/inc \
+	$(_MULTIMEDIA_PATH)/video/video_chipset_apis \
+	$(_MULTIMEDIA_PATH)/video/vfm/include \
+	$(_MULTIMEDIA_PATH)/audio/comfortnoise/proxy \
+	$(_MULTIMEDIA_PATH)/shared/ste_shai/include \
 	$(LOCAL_PATH)/../../
 
 include $(BUILD_SHARED_LIBRARY)
