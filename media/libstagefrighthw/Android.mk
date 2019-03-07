@@ -31,20 +31,20 @@ LOCAL_SHARED_LIBRARIES += liblog libcutils libstelpcutils
 LOCAL_CFLAGS += -DBOARD_USES_OVERLAY=1
 LOCAL_CFLAGS += -DDBGT_CONFIG_DEBUG -DDBGT_CONFIG_AUTOVAR -DLOG_TAG=\"libstagefrighthw\"
 
-MULTIMEDIA_PATH := $(LOCAL_PATH)/../../multimedia
+_MULTIMEDIA_PATH := $(LOCAL_PATH)/../../multimedia
 
 LOCAL_C_INCLUDES += \
 	$(TOP)/frameworks/native/include/media/hardware \
 	$(TOP)/frameworks/av/include/media/stagefright/foundation \
-	$(MULTIMEDIA_PATH)/shared/mmhwbuffer_api/include \
-	$(MULTIMEDIA_PATH)/shared/mmhwbuffer_osi/include \
-	$(MULTIMEDIA_PATH)/shared/omxil \
-	$(MULTIMEDIA_PATH)/linux/bellagio_omxcore/omxcore_interface \
-	$(MULTIMEDIA_PATH)/shared/mmhwbuffer_osi \
-	$(MULTIMEDIA_PATH)/audio/audiolibs
+	$(_MULTIMEDIA_PATH)/shared/mmhwbuffer_api/include \
+	$(_MULTIMEDIA_PATH)/shared/mmhwbuffer_osi/include \
+	$(_MULTIMEDIA_PATH)/shared/omxil \
+	$(_MULTIMEDIA_PATH)/linux/bellagio_omxcore/omxcore_interface \
+	$(_MULTIMEDIA_PATH)/shared/mmhwbuffer_osi \
+	$(_MULTIMEDIA_PATH)/audio/audiolibs
 
-LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/shared/utils/include
-LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/shared/host_trace
+LOCAL_C_INCLUDES += $(_MULTIMEDIA_PATH)/shared/utils/include
+LOCAL_C_INCLUDES += $(_MULTIMEDIA_PATH)/shared/host_trace
 
 LOCAL_MODULE:= libstagefrighthw
 LOCAL_MODULE_TAGS := optional

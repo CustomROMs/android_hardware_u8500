@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-MULTIMEDIA_PATH := hardware/u8500/multimedia
+_MULTIMEDIA_PATH := hardware/u8500/multimedia
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_SRC_FILES := src/blt_b2r2.c
-LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include
+LOCAL_C_INCLUDES += $(_MULTIMEDIA_PATH)/linux/b2r2lib/include
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE := libblt_hw
 LOCAL_MODULE_TAGS := optional
