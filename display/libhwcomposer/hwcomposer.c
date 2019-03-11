@@ -1401,32 +1401,30 @@ static int hwcomposer_query(struct hwc_composer_device* dev, int what, int* valu
 static int hwcomposer_eventControl(struct hwc_composer_device* dev, int event, int enabled)
 {
     struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    int ret = -EINVAL;
+
+    if (enabled != 0 && enabled != 1)
+        return -EINVAL;
 
     switch (event) {
-        case HWC_EVENT_VSYNC:
-        {
-            //int val = !!enabled;
-            int err;
+    case HWC_EVENT_VSYNC:
+    {
+        if (enabled) {
+            if (ctx->procs && ctx->procs->vsync) {
+                ret = vsync_monitor_enable(ctx->procs);
+            } else {
+                ALOGW("%s: Enable VSYNC called without a registered callback", __func__);
+            }
+        } else {
+            ret = vsync_monitor_disable();
+        }
+    }
+    break;
+    default:
+        ALOGW("%s: got unknown event id: %d", __func__, event);
+    }
 
-            //if (hwc_dev->use_sw_vsync) {
-            if (1) {
-                if (enabled)
-                    vsync_monitor_enable();
-                    //start_sw_vsync(hwc_dev);
-                else
-                    vsync_monitor_disable();
-                    //stop_sw_vsync();
-                return 0;
-             }
-
-             /* we never reach here */
-             return 0;
-         }
-
-        default:
-            return -EINVAL;
-     }
-
+    return ret;
 }
 
 static enum compdev_transform get_dst_transform(uint32_t hw_rot, enum compdev_transform img_transform)
@@ -1647,7 +1645,7 @@ static int hwcomposer_close(struct hw_device_t *dev)
         if (worker_destroy(ctx))
             ALOGE("Error destroying egl worker");
 
-        //vsync_monitor_destroy();
+        vsync_monitor_destroy();
 
         close(ctx->compdev);
         close(ctx->hwmem);
@@ -1733,7 +1731,10 @@ static int hwcomposer_device_open(const struct hw_module_t *module,
             goto worker_error;
         }
 
-        vsync_monitor_init(ctx);
+        if (vsync_monitor_init(ctx->compdev)) {
+            ALOGE("Error initializing VSync monitor");
+            goto worker_error;
+        }
 
 #ifdef ENABLE_HDMI
         ctx->hdmi_settings.hdmid_sockfd = open_hdmid_socket();
