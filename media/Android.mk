@@ -17,7 +17,8 @@
 ifeq ($(TARGET_SOC), u8500)
 
 #libomxil-bellagio
-#media-libs := libstelpcutils libstagefrighthw
-#include $(call all-named-subdir-makefiles,$(media-libs))
+media-libs := libstelpcutils libstagefrighthw
+media-libs := libomxil-bellagio libstelpcutils libstagefrighthw
+include $(call all-named-subdir-makefiles,$(media-libs))
 
 endif
