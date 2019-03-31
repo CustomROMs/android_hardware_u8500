@@ -24,6 +24,9 @@
 #include "ZXImgCommon.h"
 #include "ZXImgFilterClahe.h"
 //#include "arm.h"
+
+#include <utils/Log.h>
+
 const int32_t    uiMAX_REG_X = 32;      // max. # contextual regions in x-direction
 const int32_t    uiMAX_REG_Y = 32;      // max. # contextual regions in y-direction
 //////////////////////////////////////////////////////////////////////////

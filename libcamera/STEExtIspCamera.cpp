@@ -120,11 +120,12 @@ STEExtIspCamera::STEExtIspCamera(int cameraId)
     memset(&mRecordBufferInfo, 0, sizeof(mRecordBufferInfo));
     memset(&mImageBufferInfo, 0, sizeof(mImageBufferInfo));
 
-	/*added by dyron for flash control*/
+    /*added by dyron for flash control*/
     char *mmiodevice = (char *) "/dev/mmio_camera";
     MMIO_Camera_fd = open(mmiodevice, O_RDWR);
 
     // get the omx pixel format on record path
+//    char pixFmt[32]; DynSetting::get(DynSetting::EExtIspRecordPixFmt, pixFmt);
     char pixFmt[PROPERTY_VALUE_MAX]; DynSetting::get(DynSetting::EExtIspRecordPixFmt, pixFmt);
     mOmxRecordPixFmt = getOmxPixFmtFromKeyStr(pixFmt);
 #ifdef ENABLE_FACE_DETECTION
@@ -137,10 +138,10 @@ exit:
 
 void STEExtIspCamera::MMIO_Camera_flash_control(int val) 
 {
-        int  ioctl_arg = val; 
-	    LOGE("MMIO_Camera_flash_control: %d", val);
-	        if (MMIO_Camera_fd>=0)
-		            ioctl(MMIO_Camera_fd, MMIO_CAM_FLASH_ENABLE, ioctl_arg);
+    int ioctl_arg = val; 
+        LOGE("MMIO_Camera_flash_control: %d", val);
+        if (MMIO_Camera_fd >= 0)
+            ioctl(MMIO_Camera_fd, MMIO_CAM_FLASH_ENABLE, ioctl_arg);
 }
 
 int STEExtIspCamera::setPreviewWindow(struct preview_stream_ops *window)
@@ -178,7 +179,7 @@ int STEExtIspCamera::setPreviewWindow(struct preview_stream_ops *window)
     }
 
     //check the key preview format
-    int halPreviewFmt = HAL_PIXEL_FORMAT_RGB_565;
+    int halPreviewFmt = HAL_PIXEL_FORMAT_YCBCR42XMBN;
 
     if (strcmp( mParameters.getPreviewFormat(), CameraParameters::PIXEL_FORMAT_YUV420MB) == 0) {
         halPreviewFmt = HAL_PIXEL_FORMAT_YCBCR42XMBN;
@@ -249,7 +250,6 @@ void STEExtIspCamera::cleanUp()
     DBGT_EPILOG("");
 }
 
-
 STEExtIspCamera::~STEExtIspCamera()
 {
     DBGT_PROLOG("");
@@ -269,15 +269,16 @@ STEExtIspCamera::~STEExtIspCamera()
         }
         mIsRecordHeapSet = false;
     }
+
     // preview buffers De-allocation
     if (NULL != mPreviewWindow) {
         mPreviewWindow->deinit();
         delete mPreviewWindow;
         mPreviewWindow = NULL;
     }
-	/*added by dyron for disable flash*/
-	
-    if (MMIO_Camera_fd>=0) {
+
+    /*added by dyron for disable flash*/
+    if (MMIO_Camera_fd >= 0) {
         MMIO_Camera_flash_control(0);
 //        close(MMIO_Camera_fd);
     }
@@ -286,6 +287,7 @@ STEExtIspCamera::~STEExtIspCamera()
     if (NULL != mLibHandle) dlclose(mLibHandle);
     DBGT_EPILOG("");
 }
+
 void STEExtIspCamera::setCallbacks(camera_notify_callback notify_cb,
                                    camera_data_callback data_cb,
                                    camera_data_timestamp_callback data_cb_timestamp,
@@ -318,7 +320,6 @@ int STEExtIspCamera::msgTypeEnabled(int32_t msgType)
     return (mMsgEnabled & msgType);
 }
 
-
 status_t STEExtIspCamera::doStartPreview()
 {
     DBGT_PROLOG("");
@@ -349,7 +350,7 @@ status_t STEExtIspCamera::doStartPreview()
         }
 
         //check the key preview format
-        OMX_COLOR_FORMATTYPE omxPreviewFmt = OMX_COLOR_FormatYUV420SemiPlanar;
+        OMX_COLOR_FORMATTYPE omxPreviewFmt = (OMX_COLOR_FORMATTYPE)OMX_SYMBIAN_COLOR_FormatYUV420MBPackedSemiPlanar;
 
         if (strcmp( mParameters.getPreviewFormat(), CameraParameters::PIXEL_FORMAT_YUV420MB) == 0) {
             omxPreviewFmt = (OMX_COLOR_FORMATTYPE)OMX_SYMBIAN_COLOR_FormatYUV420MBPackedSemiPlanar;
@@ -408,10 +409,10 @@ end_fmt:
         ConfigureStill();
 
         // set parameters for the 1st time
-        if ( mbOneShot == OMX_TRUE )
+        if (mbOneShot == OMX_TRUE)
             setFirstFrameParameters(PREVIEW_MODE);
 
-        if ( mbOneShot == OMX_FALSE )
+        if (mbOneShot == OMX_FALSE)
             setFirstFrameParameters(CAMCORDER_MODE);
 
         setFirstFrameParameters(COMMON_MODE);
@@ -474,8 +475,7 @@ status_t STEExtIspCamera::startPreview()
     int preview_width, preview_height;
     mParameters.getPreviewSize(&preview_width, &preview_height);
 
-
-#ifndef  STE_SENSOR_MT9P111  //fix no picture data bug after switch from picture preview mode to camera record preview mode
+#ifndef STE_SENSOR_MT9P111  //fix no picture data bug after switch from picture preview mode to camera record preview mode
     if (mOldPreviewWidth  != preview_width  || mOldPreviewHeight != preview_height) {
         if (mPreviewState == EPreviewEnabled)
             doStopPreview();
@@ -718,7 +718,6 @@ status_t STEExtIspCamera::startRecording()
     }
 #endif
 
-
     property_get("debug.libcamera.record.dump", value, "0");
     DBGT_PTRACE("debug.libcamera.record.dump %s", value);
 
@@ -795,7 +794,6 @@ status_t STEExtIspCamera::startRecording()
     DBGT_EPILOG("");
     return NO_ERROR;
 }
-
 
 void STEExtIspCamera::stopRecording()
 {
@@ -905,11 +903,11 @@ status_t STEExtIspCamera::autoFocus()
     mPerfManager.init(PerfManager::EAutoFocusRequested);
     Mutex::Autolock lock(mLock);
 
-    if ( mCameraId == CAMERA_FACING_BACK ) {
+    if (mCameraId == CAMERA_FACING_BACK) {
         if (NULL != mParameters.get(CameraParameters::KEY_FOCUS_MODE)) {
             if (strcmp(CameraParameters::FOCUS_MODE_CONTINUOUS_VIDEO, mParameters.get(CameraParameters::KEY_FOCUS_MODE))) {
                 DBGT_PTRACE("Call touch focus");
-                SetPropTouchAF();	// Call SetPropTouchAF() function to calculate focus region and transfer data to OMX_CORE
+                SetPropTouchAF(); // Call SetPropTouchAF() function to calculate focus region and transfer data to OMX_CORE
             }
         }
         SetPropFocus();
@@ -1318,17 +1316,16 @@ status_t STEExtIspCamera::takePicture()
     DBGT_PROLOG("");
     mPerfManager.init(PerfManager::ETakePictureRequested);
 
-	if( strcmp(mParameters.get(CameraParameters::KEY_FLASH_MODE),
-												CameraParameters::FLASH_MODE_ON ) == 0 )
-	{	 
-		MMIO_Camera_flash_control(3);
-		 LOGE("takePicture  +++++++++++SetPropFocus+++++++++++open++takepicture");
-	}
+    if (strcmp(mParameters.get(CameraParameters::KEY_FLASH_MODE),
+                  CameraParameters::FLASH_MODE_ON) == 0) {
+        MMIO_Camera_flash_control(3);
+        LOGE("takePicture  +++++++++++SetPropFocus+++++++++++open++takepicture");
+    }
 
-
-
-    if (createThread(beginPictureThread, this) == false)
+    if (createThread(beginPictureThread, this) == false) {
         return -1;
+    }
+
     DBGT_EPILOG("");
     return NO_ERROR;
 }

@@ -1,12 +1,13 @@
 /*
- * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
-*
-* Code adapted for usage of OMX components.
-*
- * This code is ST-Ericsson proprietary and confidential.
- * Any use of the code for whatever purpose is subject to
-* specific written permission of ST-Ericsson SA.
- */
+ * Copyright (C) ST-Ericsson SA 2010. All rights reserved.
+ *
+ * Code adapted for usage of OMX components. All functions
+ * using OMX functionality are under copyright of ST-Ericsson
+ *
+ * This code is ST-Ericsson proprietary and confidential.
+ * Any use of the code for whatever purpose is subject to
+ * specific written permission of ST-Ericsson SA.
+ */
 
 #define DBGT_CONFIG_DEBUG 1
 #define DBGT_CONFIG_AUTOVAR 1

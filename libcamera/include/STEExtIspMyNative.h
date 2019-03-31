@@ -13,7 +13,7 @@
 namespace android {
 
 #define YUV_CAMERA_PREVIEW_BUFFER_COUNT 2
-
+//#define YUV_CAMERA_PREVIEW_BUFFER_COUNT 3
 
 class NBuffer
 {
@@ -195,6 +195,9 @@ private:
                 break;
             case HAL_PIXEL_FORMAT_YCbCr_420_SP:
                 size = (mWindowWidth * mWindowHeight * 3) >> 1;
+                break;
+            case HAL_PIXEL_FORMAT_YCBCR42XMBN:
+                size = (mWindowWidth * mWindowHeight * 3) / 2;
                 break;
         }
         return size;

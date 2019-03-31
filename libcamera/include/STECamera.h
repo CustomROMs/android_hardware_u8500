@@ -715,7 +715,8 @@ private:
     void cancelAllNativeBuffers(void);
     void cancelCameraHalNativeBuffers(void);
     OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent,
-                                            int aportIndex);
+//                                            int aportIndex);
+                                            OMX_U32 aportIndex);
 
     /* Set Video Stab Config */
     OMX_ERRORTYPE setConfigVideoStab(OMX_BOOL aStabState = OMX_TRUE);

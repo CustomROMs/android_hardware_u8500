@@ -185,12 +185,14 @@ status_t MyNativeWindow::setupNBuffersForPreview_l()
         nativeBuffer->init();
 
         mNBuffers[i]->setMMNativeBuffer(nativeBuffer);
+//        if (mNBuffers[i] != NULL) {
         camera_memory_t* camMem = mRequestMemoryFunc(
                                           mNBuffers[i]->getMMNativeBuffer()->getHandle(),
                                           getPreviewFrameSize(),
                                           1,
                                           this);
         mNBuffers[i]->setClientMemory(camMem);
+//        }
     }
 
     //return all buffers to Native window
