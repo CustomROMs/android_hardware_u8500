@@ -4,28 +4,55 @@
 # Any use of the code for whatever purpose is subject to
 # specific written permission of ST-Ericsson SA.
 ##
+_MULTIMEDIA_PATH := hardware/u8500/multimedia
 
-LOCAL_PATH:= $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-#Detect platform
+LOCAL_CPPFLAGS += -DLINUX -D__ARM_LINUX -D__ARM_ANDROID -DANDROID
+LOCAL_CPPFLAGS += -DENS_DONT_CHECK_STRUCT_SIZE_AND_VERSION
+
+# LOCAL_CFLAGS += -Wno-unused-parameter
+
+# CAMERA_SET_PRIMARY_SENSOR := IMX072
+
+# Camera settings
+# Platform 
+MY_PLATFORM := u8500
+# Enable/Disable ST-Ericsson Camera
+USE_CAMERA_STUB := false
+# Camera product configuration
+STE_CAMERA_ENABLE_FEATURE_PLATFORM := u8500
+# Select Camera Sensor
+CAMERA_SET_PRIMARY_SENSOR ?= MT9P111
+CAMERA_SET_SECONDARY_SENSOR ?= MT9V113
+# CAMERA_SET_PRIMARY_SENSOR := MT9P111
+# CAMERA_SET_SECONDARY_SENSOR := MT9V113
+# Select Camera Sensor Type
+CAMERA_PRIMARY_TYPE = YUV
+CAMERA_SECONDARY_TYPE = YUV
+
+# Detect platform
 include $(LOCAL_PATH)/Android.det
 
-#Compile-time options
+# Compile-time options
 include $(LOCAL_PATH)/Android.opt
 
-#Debug options
+# Debug options
 include $(LOCAL_PATH)/Android.dbg
 
-#Work-arounds
+# Work-arounds
 include $(LOCAL_PATH)/Android.wa
 
-#Multimedia includes
-MY_MULTIMEDIA_PATH := $(MULTIMEDIA_PATH)
-LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/imaging/ifm/include
-LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/imaging/aiq_common/inc
-LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/ens/proxy/include
+# Multimedia includes
+MY_MULTIMEDIA_PATH := $(_MULTIMEDIA_PATH)
+
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/multimedia/imaging/ifm/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/multimedia/imaging/aiq_common/inc
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/multimedia/shared/ens/proxy/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/multimedia/shared/host_trace
+
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/ens_interface/include
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/mmhwbuffer_api/include
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/mmhwbuffer_osi/include
@@ -34,15 +61,17 @@ LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/omxilosalservices_api
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/ste_shai/include
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/linux/bellagio_omxcore/omxcore_interface
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/linux/b2r2lib/include
-LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/host_trace
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)/shared/utils/include
 LOCAL_C_INCLUDES += $(MY_MULTIMEDIA_PATH)
 
 #Android includes
-LOCAL_C_INCLUDES += external/jhead
+LOCAL_C_INCLUDES += hardware/u8500/libhead
 LOCAL_C_INCLUDES += external/neven/FaceRecEm/common/src/b_FDSDK
 LOCAL_C_INCLUDES += frameworks/native/include/media/hardware
 LOCAL_C_INCLUDES += system/media/camera/include
+
+#LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/
+#LOCAL_C_INCLUDES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
 
 #internal includes
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
@@ -97,18 +126,20 @@ LOCAL_SRC_FILES += STEExtIspInternal.cpp
 LOCAL_SRC_FILES += NevenFaceDetector.cpp
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-LOCAL_MODULE := camera.$(TARGET_BOARD_PLATFORM)
+# LOCAL_MODULE := camera.$(TARGET_BOARD_PLATFORM)
+LOCAL_MODULE := camera.montblanc
 LOCAL_MODULE_TAGS := optional
 LOCAL_PRELINK_MODULE := false
 
 LOCAL_SHARED_LIBRARIES := \
+                         liblog \
                          libdl \
                          libcamera_client \
                          libutils \
                          libcutils \
                          libbinder \
                          libblt_hw \
-                         libjhead \
+                         libhead \
                          libui \
                          libFFTEm \
                          libZXImg \

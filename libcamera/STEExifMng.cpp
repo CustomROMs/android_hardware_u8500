@@ -26,7 +26,7 @@
 #include "STECameraConfig.h"
 
 extern "C" {
-#include <jhead.h>
+#include <head.h>
 }
 
 #include <math.h>

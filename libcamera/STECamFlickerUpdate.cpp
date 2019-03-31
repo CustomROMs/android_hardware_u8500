@@ -248,7 +248,8 @@ OMX_SYMBIAN_FLICKERREMOVALTYPE cameraGetLocation()
     DynSetting::get(DynSetting::ECountryCode, operatorCode);
     DBGT_PTRACE("Operator code =%s",operatorCode);
 
-    if(NULL != operatorCode)
+//    if (NULL != operatorCode)
+    if ('\0' != operatorCode[0])
     {
         DBGT_PTRACE("gsm.operator.numeric is not set so setting the default value - %d", kDefaultFlickerType);
         DBGT_EPILOG("");

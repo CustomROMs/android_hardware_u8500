@@ -5,6 +5,8 @@
 #include "arm.h"
 #endif
 
+#include <utils/Log.h>
+
 #define	LOOKUP_TABLE_SIZE	16384
 #define GF_LUMDA_SCALE		4
 

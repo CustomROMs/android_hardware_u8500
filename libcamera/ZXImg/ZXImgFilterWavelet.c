@@ -2,6 +2,8 @@
 #include "ZXImgFilterWavelet.h"
 #include "ZXImgCommon.h"
 
+#include <utils/Log.h>
+
 #define __ENABLE_EDGE_AVOID__
 
 void do_synthesis(int8_t* p_src, int8_t* p_dst, int width, int height);

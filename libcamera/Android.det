@@ -8,8 +8,9 @@
 # Init as NULL
 MY_PLATORM :=
 
-#Default sensor is IMX072
+# Default sensor is IMX072
 MY_PRIMARY_SENSOR := MT9P111
+# MY_SECONDARY_SENSOR := MT9V113
 
 # temporary workaround to disable focus on 9540
 ifeq ($(MULTIMEDIA_SET_PLATFORM),u9540)
@@ -57,6 +58,7 @@ ifeq (MT9V113,$(filter  MT9V113%,$(CAMERA_SET_SECONDARY_SENSOR)))
 MY_SECONDARY_SENSOR := MT9V113
 LOCAL_CFLAGS += -DSTE_SENSOR_MT9V113=1
 endif #module configuration aptina sensor
+
 # check for Kanna Sensor
 ifeq (IMX072,$(filter  IMX072%,$(CAMERA_SET_SECONDARY_SENSOR)))
 MY_SECONDARY_SENSOR := IMX072

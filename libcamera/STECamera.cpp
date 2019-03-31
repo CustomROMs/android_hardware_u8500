@@ -60,6 +60,8 @@ extern "C" double ceil(double a);
 
 #define COORDINATES 5
 
+//#pragma GCC diagnostic ignored "-Wc++11-narrowing"
+
 namespace android
 {
 
@@ -1512,6 +1514,8 @@ OMX_ERRORTYPE STECamera::initPrimaryDefaultParameters()
 #else
     mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_SIZES,
                     "2592x1944,2560x1440,2592x1458,2048x1536,1920x1080,1632x1224,1280x720,1600x1200,1024x768,640x480,352x288,320x240,320x200,176x144");
+//    mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_SIZES,
+//                    "2560x1920,2560x1536,2048x1536,2048x1232,960x720,640x480,352x288,320x240,320x200,176x144");
 #endif
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_JPEG_THUMBNAIL_SIZES, "0x0,320x240,160x120");
@@ -2003,18 +2007,20 @@ OMX_ERRORTYPE STECamera::freeVFBuffers(bool aPreviewRunning /*false*/)
 
         /* Camera Buffer De-allocation */
         for (int i = 0; i < kTotalPreviewBuffCount; i++) {
-            int portIndex = CAM_VPB + 0;
+//            int portIndex = CAM_VPB + 0;
+            OMX_U32 portIndex = CAM_VPB + 0;
 
             if (mHiResVFEnabled) {
                 portIndex = CAM_VPB + 2;
             }
-            DBGT_PTRACE("portIndex: %d, pBuffer: %p",portIndex,pVFBuffer[i]);
+            DBGT_PTRACE("portIndex: %d, pBuffer: %p", portIndex, pVFBuffer[i]);
 
             /* do the freeing of the buffers only
                when we do have OMXBUffers with us
             */
             if (NULL != pVFBuffer[i]) {
                 err = OMX_FreeBuffer(mCam, (OMX_U32)portIndex, pVFBuffer[i]);
+//                err = OMX_FreeBuffer(mCam, portIndex, pVFBuffer[i]);
                 if (OMX_ErrorNone != err) {
                     DBGT_CRITICAL("OMX_FreeBuffer failed for Camera Preview buffer");
                     DBGT_EPILOG("");
@@ -2470,13 +2476,15 @@ OMX_ERRORTYPE STECamera::disablePreviewPort(bool aPreviewRunning /*false*/)
     OMX_ERRORTYPE err = OMX_ErrorNone;
 
     /* Disable the viewfinder ports of previous sets*/
-    int portIndex = CAM_VPB + 0;
+//    int portIndex = CAM_VPB + 0;
+    OMX_U32 portIndex = CAM_VPB + 0;
+
     if (mHiResVFEnabled)
         portIndex = CAM_VPB + 2;
 
     DBGT_PTRACE("OMX_CommandportDisable for VPB%d", portIndex);
 
-    err = OmxUtils::setPortState(mCam, OMX_CommandPortDisable,portIndex,NULL,NULL);
+    err = OmxUtils::setPortState(mCam, OMX_CommandPortDisable, portIndex, NULL, NULL);
     if ((err == OMX_ErrorNone) || (err == OMX_ErrorSameState)) {
         DBGT_PTRACE("OMX_CommandPortDisable for cam passed \n");
     } else {
@@ -2503,7 +2511,8 @@ OMX_ERRORTYPE STECamera::enablePreviewPort(bool aPreviewRunning /*false*/)
 
     OMX_ERRORTYPE err = OMX_ErrorNone;
 
-    int portIndex = CAM_VPB + 0;
+//    int portIndex = CAM_VPB + 0;
+    OMX_U32 portIndex = CAM_VPB + 0;
     if (mHiResVFEnabled)
         portIndex = CAM_VPB + 2;
 
@@ -2626,12 +2635,13 @@ void STECamera::configureVideoHeap()
         if (!mHiResVFEnabled) {
             OMX_ERRORTYPE err = OMX_ErrorNone;
             OMX_PARAM_PORTDEFINITIONTYPE dummyport;
-            int portIndex = CAM_VPB + 2;
+//            int portIndex = CAM_VPB + 2;
+            OMX_U32 portIndex = CAM_VPB + 2;
             float bpp = (float)3/2; /* for record bpp is 3/2=1.5 */
             int w, h;
             w = mRecordInfo.getOverScannedWidth();
             h = mRecordInfo.getOverScannedHeight();
-            PixelFormat recordPixFmt = HAL_PIXEL_FORMAT_RGB_565;
+            PixelFormat recordPixFmt = HAL_PIXEL_FORMAT_YCBCR42XMBN;
 
             if (mEnableB2R2DuringRecord) {
                 // For 2Mp Still During Record actual RecordFrameSize
@@ -2680,6 +2690,7 @@ void STECamera::configureVideoHeap()
 
                 DBGT_PTRACE("Extra height = %d", extraDataHeight);
 
+//                int stride;
                 uint32_t stride;
                 buffer_handle_t buf;
                 int ret = GrallocAlloc.alloc(
@@ -2699,6 +2710,7 @@ void STECamera::configureVideoHeap()
                             h,
                             recordPixFmt,
                             CAMHAL_GRALLOC_USAGE,
+//                            stride,
                             static_cast<int>(stride),
                             (native_handle_t*)buf,
                             false);
@@ -3879,7 +3891,8 @@ status_t STECamera::setPreviewWindow(struct preview_stream_ops *window)
 
 OMX_ERRORTYPE STECamera::enableNativeBuffOnOMXComp(
         OMX_HANDLETYPE aOmxComponent,
-        int aportIndex)
+//        int aportIndex)
+        OMX_U32 aportIndex)
 {
     DBGT_PROLOG("");
 
@@ -3926,7 +3939,8 @@ status_t STECamera::getNativeBuffFromNativeWindow(void)
     OMX_PARAM_PORTDEFINITIONTYPE dummyport;
     OmxUtils::StructWrapper<OMX_PARAM_PORTDEFINITIONTYPE>::init(dummyport);
 
-    int portIndex;
+//    int portIndex;
+    OMX_U32 portIndex;
     if (mHiResVFEnabled)
         portIndex = (CAM_VPB + 2);
     else
@@ -3936,7 +3950,7 @@ status_t STECamera::getNativeBuffFromNativeWindow(void)
 
     EnableAndroidNativeBuffersParams params = {
         sizeof(EnableAndroidNativeBuffersParams), dummyport.nVersion,
-        portIndex,(OMX_BOOL)0x1
+        portIndex, (OMX_BOOL)0x1
     };
 
     OMX_ERRORTYPE omxErr = OMX_SetConfig(mCam,
@@ -4061,7 +4075,8 @@ status_t STECamera::shareNativeBuffWithOMXPorts(bool aPreviewRunning /*false*/)
 {
     DBGT_PROLOG("aPreviewRunning %d", aPreviewRunning);
 
-    int portIndex;
+//    int portIndex;
+    OMX_U32 portIndex;
     if (mHiResVFEnabled)
         portIndex = (CAM_VPB + 2);
     else
@@ -4074,7 +4089,7 @@ status_t STECamera::shareNativeBuffWithOMXPorts(bool aPreviewRunning /*false*/)
 
     EnableAndroidNativeBuffersParams params = {
         sizeof(EnableAndroidNativeBuffersParams), dummyport.nVersion,
-        portIndex,(OMX_BOOL)0x1
+        portIndex, (OMX_BOOL)0x1
     };
 
     OMX_ERRORTYPE omxErr = OMX_SetConfig(mCam,
@@ -9422,6 +9437,7 @@ int STECamera::SetPropMeteringArea(const CameraParameters &params, OMX_HANDLETYP
                 DBGT_EPILOG("");
                 return UNKNOWN_ERROR;
             }
+//            const char *tempStr = strstr(str, ",(");
             char *tempStr = strstr(str, ",(");
             if (tempStr) {
                 str = tempStr+1;
@@ -9656,6 +9672,7 @@ int STECamera::SetPropFocusArea(const CameraParameters &params, OMX_HANDLETYPE m
                 DBGT_EPILOG("");
                 return (int)UNKNOWN_ERROR;
             }
+//            const char *tempStr = strstr(str, ",(");
             char *tempStr = strstr(str, ",(");
             if (tempStr) {
                 str = tempStr+1;
@@ -11416,14 +11433,15 @@ status_t STECamera::flushViewFinderBuffers(bool aFlushCamera /*= true */)
     DBGT_PROLOG("FlushCamera: %d", aFlushCamera);
 
     status_t err = NO_ERROR;
-    int portIndex = CAM_VPB;
+//    int portIndex = CAM_VPB;
+    OMX_U32 portIndex = CAM_VPB;
 
     if (mHiResVFEnabled) // If Hi Res VF is enabled flush buffers on port2
         portIndex = CAM_VPB + 2;
 
     if (aFlushCamera) {
         /* Flush all pending buffers*/
-        OMX_ERRORTYPE omxerr = OmxUtils::flushPort(mCam, portIndex,NULL,&stateCam_sem);
+        OMX_ERRORTYPE omxerr = OmxUtils::flushPort(mCam, portIndex, NULL, &stateCam_sem);
         if ((OMX_ErrorNone != omxerr) && (OMX_ErrorSameState != omxerr)) {
             DBGT_CRITICAL("Flush failed error - %d", (int)UNKNOWN_ERROR);
             DBGT_EPILOG("");

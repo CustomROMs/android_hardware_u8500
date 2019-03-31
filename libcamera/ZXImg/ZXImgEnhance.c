@@ -170,22 +170,22 @@ int32_t	ZXImgEnhanceProcess(int32_t Handle,uint8_t* pData,int32_t nImgW,int32_t 
 	int32_t ret;
 	uint8_t	*p_data;
 	//#0 check the data safty
-	if((nImgW&0xF)||(nImgH&7))
+	if ((nImgW&0xF) || (nImgH&7))
 		return ZXIMGCORE_PARA_ERR;
 	//#1 color convert
-	if(pFilter->format!=IMGEE_FORMAT_YUVNV21)
+	if (pFilter->format != IMGEE_FORMAT_YUVNV21)
 	{
-		if(pFilter->format==IMGEE_FORMAT_S1)
+		if (pFilter->format == IMGEE_FORMAT_S1)
 			ret = nImgW * nImgH * 3 / 2;
-		if(pFilter->size != ret)
+		if (pFilter->size != ret)
 		{
-			if(pFilter->p_src)
+			if (pFilter->p_src)
 			{
 				free_aligned(pFilter->p_src);
 				pFilter->p_src = NULL;
 			}
 			pFilter->p_src = (uint8_t*)malloc_aligned(ret,32);
-			if(!pFilter->p_src)
+			if (!pFilter->p_src)
 				goto _error;
 		}
 		s1format_2_yuvnv12(pData,pFilter->p_src,nImgW,nImgH);
@@ -195,21 +195,21 @@ int32_t	ZXImgEnhanceProcess(int32_t Handle,uint8_t* pData,int32_t nImgW,int32_t 
 		p_data = pData;
 
 	//#2 Filter
-	if(pFilter->pGFltHandle)
+	if (pFilter->pGFltHandle)
 	{
 		ret = sndaGuidedFilterProcess(pFilter->pGFltHandle,p_data,p_data,nImgW,nImgH);
 		if(ret != GUIDED_FILTER_OK)
 			return ZXIMGCORE_FAILED;
 	}
 	
-	if(pFilter->pCFltHandle)
+	if (pFilter->pCFltHandle)
 	{
 		ret = sndaClaheFilterProcess(pFilter->pCFltHandle,p_data,p_data,nImgW,nImgH);
-		if(ret != CLAHE_FILTER_OK)
+		if (ret != CLAHE_FILTER_OK)
 			return ZXIMGCORE_FAILED;
 	}
 	//#1 color convert
-	if(pFilter->format!=IMGEE_FORMAT_YUVNV21)
+	if (pFilter->format != IMGEE_FORMAT_YUVNV21)
 	{
 		yuvnv12_2_s1format(p_data,pData,nImgW,nImgH);
 	}

@@ -8,6 +8,8 @@
 #ifndef STECAMDYNSETTING_INL
 #define STECAMDYNSETTING_INL
 
+#include <string.h>
+
 /* static */ inline int DynSetting::get(Type type)
 {
     char value[PROPERTY_VALUE_MAX];

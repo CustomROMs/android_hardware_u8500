@@ -50,6 +50,8 @@
 
 #define MMIO_CAM_FLASH_ENABLE  0x111111
 
+//#pragma GCC diagnostic ignored "-Wc++11-narrowing"
+
 namespace android {
 
 // Define the number of consecutive start camera will be done after a  watchdog occurs.
@@ -104,7 +106,7 @@ OMX_ERRORTYPE omxExtIspCameraEventHandler(  OMX_HANDLETYPE hComponent,OMX_PTR pA
                 sem_post(&(pCamera->mSetPortCam_sem));
             } else if (OMX_CommandPortDisable == cmd) {
                 sem_post(&(pCamera->mSetPortCam_sem));
-            }  else if ((OMX_CommandFlush == cmd) && (CAM_VPB + 0 == nData2)) {
+            } else if ((OMX_CommandFlush == cmd) && (CAM_VPB + 0 == nData2)) {
                 sem_post(&(pCamera->mSetPortCam_sem));
             }
             break;
@@ -123,7 +125,7 @@ OMX_ERRORTYPE omxExtIspCameraEventHandler(  OMX_HANDLETYPE hComponent,OMX_PTR pA
 
                 pCamera->mTimeout = true;
                 pCamera->mNbConsecutiveTimeout++;
-                if ( pCamera->mNbConsecutiveTimeout <= NB_START_CAMERA_RETRY) {
+                if (pCamera->mNbConsecutiveTimeout <= NB_START_CAMERA_RETRY) {
                     DBGT_PTRACE("Camera does not respond. ESD start !%d " , pCamera->mNbConsecutiveTimeout);
                     pCamera->dispatchRequest(reqDispatchHdl::restartOnTimeout, NULL, false);
                 } else {
@@ -152,7 +154,7 @@ OMX_ERRORTYPE omxExtIspCameraEventHandler(  OMX_HANDLETYPE hComponent,OMX_PTR pA
             } else if (error == OMX_ErrorNone && nData2 == OMX_FocusStatusUnableToReach) {
                 DBGT_PTRACE("Camera OMX_FocusStatusRequest return: OMX_FocusStatusUnableToReach!");
                 pCamera->dispatchRequest(reqDispatchHdl::focusStatusUnableToReach, NULL, false);
-            }else {
+            } else {
                 DBGT_CRITICAL("CameraEventHandler err:%x",(int)nData1);
                 sem_post(&(pCamera->mSetPortCam_sem));
             }
@@ -176,10 +178,9 @@ OMX_ERRORTYPE omxExtIspCameraEventHandler(  OMX_HANDLETYPE hComponent,OMX_PTR pA
     return OMX_ErrorNone;
 }
 
-
 OMX_ERRORTYPE omxExtIspCameraFillBufferDone(OMX_IN OMX_HANDLETYPE hComponent,
                                             OMX_IN OMX_PTR pAppData,
-                                            OMX_IN OMX_BUFFERHEADERTYPE* pBuffer    )
+                                            OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
 {
     STEExtIspCamera* pCamera = (STEExtIspCamera*) pAppData;
 
@@ -192,14 +193,14 @@ OMX_ERRORTYPE omxExtIspCameraFillBufferDone(OMX_IN OMX_HANDLETYPE hComponent,
 
     if (pBuffer->nOutputPortIndex == CAM_VPB + 0 ) {
         DBGT_PDEBUG("omxExtIspCameraFillBufferDone state executing VPB0");
-        if (pCamera!=0) {
+        if (pCamera != 0) {
             if (!pCamera->mIsFirstViewFinderFrame) {
                 pCamera->mIsFirstViewFinderFrame = true;
                 pCamera->mPerfManager.logAndDump(PerfManager::EFirstFrame);
             }
 
             // check if a still capture is still running
-            if(pCamera->mIsStillInProgress == true){
+            if (pCamera->mIsStillInProgress == true) {
                 pCamera->mIsStillInProgress = false;
                 // memorize the last buffer address
                 pCamera->pLastRecordBuffer = pBuffer;
@@ -306,7 +307,7 @@ OMX_ERRORTYPE STEExtIspCamera::init()
     camCallback.FillBufferDone = omxExtIspCameraFillBufferDone;
     camCallback.EventHandler = omxExtIspCameraEventHandler;
 
-   if ( mCameraId == CAMERA_FACING_BACK ) {
+   if (mCameraId == CAMERA_FACING_BACK) {
         //initialize default params
         err = initPrimaryDefaultParameters();
         if (OMX_ErrorNone != err) {
@@ -315,7 +316,7 @@ OMX_ERRORTYPE STEExtIspCamera::init()
             return err;
         }
 
-        err=(mOmxUtils.interface()->GetpOMX_GetHandle())(&mCam, omxNamePrimary, this, &camCallback);
+        err = (mOmxUtils.interface()->GetpOMX_GetHandle())(&mCam, omxNamePrimary, this, &camCallback);
         if (OMX_ErrorNone != err) {
             DBGT_CRITICAL("Camera GetHandle failed err = %d", err);
             DBGT_EPILOG("");
@@ -330,7 +331,7 @@ OMX_ERRORTYPE STEExtIspCamera::init()
             return err;
         }
 
-        err=(mOmxUtils.interface()->GetpOMX_GetHandle())(&mCam, omxNameSecondary, this, &camCallback);
+        err = (mOmxUtils.interface()->GetpOMX_GetHandle())(&mCam, omxNameSecondary, this, &camCallback);
         if (OMX_ErrorNone != err) {
             DBGT_CRITICAL("Camera GetHandle failed err = %d", err);
             DBGT_EPILOG("");
@@ -361,11 +362,9 @@ OMX_ERRORTYPE STEExtIspCamera::init()
         return err;
     }
 
-#ifndef  STE_SENSOR_MT9P111 //fix no picture data bug after switch from picture preview mode to camera record preview mode
+#ifndef STE_SENSOR_MT9P111 //fix no picture data bug after switch from picture preview mode to camera record preview mode
     mParameters.getPreviewSize( &mOldPreviewWidth, &mOldPreviewHeight);
 #endif
-
-
 
     DBGT_EPILOG("");
     return err;
@@ -407,16 +406,16 @@ OMX_ERRORTYPE STEExtIspCamera::initPrimaryDefaultParameters()
 
     // all supported format for preview
     // String8 spf;
-    // spf.append(CameraParameters::PIXEL_FORMAT_RGB565); spf.append(CAM_PROP_DELIMIT);
+    // spf.append(CameraParameters::PIXEL_FORMAT_YUV420MB); spf.append(CAM_PROP_DELIMIT);
     // spf.append(CameraParameters::PIXEL_FORMAT_RGB565);
 
     // DBGT_PTRACE("SUPPORTED_PREVIEW_FORMATS %s",spf.string());
-    p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_RGB565);
-    p.setPreviewFormat(CameraParameters::PIXEL_FORMAT_RGB565);
+    p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_YUV420MB);
+    p.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV420MB);
 
     // set video format
     // char pixFmt[32]; getKeyStrFromOmxPixFmt( pixFmt, mOmxRecordPixFmt );
-    p.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_RGB565);
+    p.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV420MB);
 
 
     p.set(KEY_SUPPORTED_RECORD_SIZES,SUPPORTED_PRIMARY_RECORD_SIZES);
@@ -488,10 +487,9 @@ OMX_ERRORTYPE STEExtIspCamera::initPrimaryDefaultParameters()
     flash_mode.append(CameraParameters::FLASH_MODE_AUTO);
     p.set(CameraParameters::KEY_SUPPORTED_FLASH_MODES, flash_mode.string());
 #endif
-    
+
     p.set(CameraParameters::KEY_ANTIBANDING,DEFAULT_PRIMARY_ANTIBANDING);
     p.set(CameraParameters::KEY_SUPPORTED_ANTIBANDING,SUPPORTED_PRIMARY_ANTIBANDING);
-
 
     p.set(CameraParameters::KEY_SCENE_MODE,DEFAULT_PRIMARY_SCENE_MODE);
     p.set(CameraParameters::KEY_SUPPORTED_SCENE_MODES,SUPPORTED_PRIMARY_SCENE_MODES);
@@ -594,7 +592,7 @@ OMX_ERRORTYPE STEExtIspCamera::initSecondaryDefaultParameters()
     p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, SUPPORTED_SECONDARY_FPS_RANGES);
     p.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, SUPPORTED_SECONDARY_FPS_RANGE);
 
-    p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_RGB565);
+    p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_YUV420MB);
 
     // // all supported format for preview
     // String8 spf;
@@ -603,11 +601,11 @@ OMX_ERRORTYPE STEExtIspCamera::initSecondaryDefaultParameters()
     // spf.append(CameraParameters::PIXEL_FORMAT_YUV420P);
     // DBGT_PTRACE("SUPPORTED_PREVIEW_FORMATS %s",spf.string());
     // p.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, spf.string());
-    p.setPreviewFormat(CameraParameters::PIXEL_FORMAT_RGB565);
+    p.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV420MB);
 
     // set video format
     // char pixFmt[32];getKeyStrFromOmxPixFmt( pixFmt, mOmxRecordPixFmt );
-    p.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_RGB565);
+    p.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV420MB);
 
     // activate the feature snapshot during record
     p.set(CameraParameters::KEY_VIDEO_SNAPSHOT_SUPPORTED, "true");
@@ -729,7 +727,6 @@ OMX_ERRORTYPE STEExtIspCamera::initSecondaryDefaultParameters()
     return err;
 }
 
-
 // ---------------------------------------------------------------------------
 
 void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
@@ -778,7 +775,7 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
             }
 
             // check if record frame has to be replay
-            if ((mRecordReplay==true) && (mRecordFile!=0)) {
+            if ((mRecordReplay == true) && (mRecordFile != 0)) {
                 int size = 0;
                     size = fread((uint8_t *)mRecordBufferInfo[index].mChunkData.nBaseLogicalAddr,
                         (int)mRecordWidth*mRecordHeight*3/2, 1, mRecordFile);
@@ -797,8 +794,8 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
             mRecordLock.unlock();
 
             // Push the buffer back to the camera
-            err =OMX_FillThisBuffer(mCam,pBuffer);
-            if (err<0) {
+            err = OMX_FillThisBuffer(mCam,pBuffer);
+            if (err < 0) {
                 DBGT_CRITICAL("OMX_FillThisBuffer failed:%d",index);
             } else {
                 DBGT_PDEBUG("FillThisBuffer Ok");
@@ -824,12 +821,13 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
         } else {
             DBGT_CRITICAL("Missing preview blitter");
         }
+
 #ifdef ENABLE_FACE_DETECTION
         if (mMsgEnabled & CAMERA_MSG_PREVIEW_METADATA) {
             if (isFaceDetectionEnable()) {
-            if ( (NULL != buffer)&&
+            if ((NULL != buffer)&&
                  (buffer->getCameraMemory()->data)&&
-                 (buffer->getCameraMemory()->size) ) {
+                 (buffer->getCameraMemory()->size)) {
                 DBGT_PTRACE("face detection enable");
                 int status = mFaceDetector->postInputFrame(
                        (char*)(buffer->getCameraMemory()->data),
@@ -838,7 +836,7 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
                         mPreviewHeight);
                 if (status == 0) {
                     mFaceDetector->getFaces(&mfaceMetaData_yuv);
-                    mDataCb(CAMERA_MSG_PREVIEW_METADATA, buffer->getCameraMemory(), 0, &mfaceMetaData_yuv,mCallbackCookie);
+                    mDataCb(CAMERA_MSG_PREVIEW_METADATA, buffer->getCameraMemory(), 0, &mfaceMetaData_yuv, mCallbackCookie);
                 }
             }
             } else {
@@ -848,13 +846,14 @@ void STEExtIspCamera::CameraFillBufferDone(OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
 #endif
 
         // Notify the client of a new frame.
-        if ( mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) {
+        if (mMsgEnabled & CAMERA_MSG_PREVIEW_FRAME) {
             DBGT_PDEBUG("Preview push frame index:%d",index);
             if (NULL != mPreviewWindow) {
                 DBGT_CRITICAL("send Preview frame");
-                mDataCb(CAMERA_MSG_PREVIEW_FRAME, buffer->getCameraMemory(), 0, NULL,mCallbackCookie);
+                mDataCb(CAMERA_MSG_PREVIEW_FRAME, buffer->getCameraMemory(), 0, NULL, mCallbackCookie);
             }
         }
+
         if (NULL != buffer) {
             DBGT_PDEBUG("renderNativebuffer to preview window");
             status_t err = mPreviewWindow->renderNBuffer(*buffer);
@@ -935,7 +934,7 @@ void STEExtIspCamera::cameraConfigSet()
     mParamPortVPB0.nBufferCountActual = kRecordBufferCount;
 
     //Here, the min number of buffers to be used is retrieved
-    OMX_VIDEO_PORTDEFINITIONTYPE    *pt_video0 = &(mParamPortVPB0.format.video);
+    OMX_VIDEO_PORTDEFINITIONTYPE *pt_video0 = &(mParamPortVPB0.format.video);
 
     pt_video0->cMIMEType = (OMX_STRING)"";
     pt_video0->pNativeRender = (OMX_NATIVE_DEVICETYPE)NULL;
@@ -951,14 +950,14 @@ void STEExtIspCamera::cameraConfigSet()
     pt_video0->xFramerate= framerate;
     DBGT_PTRACE("Set xFramerate: %d ",(int)pt_video0->xFramerate);
 
-    err =OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB0);
+    err = OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB0);
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_SetParameter OMX_IndexParamPortDefinition port 0 passed ");
     } else {
         DBGT_CRITICAL("OMX_SetParameter OMX_IndexParamPortDefinition port 0 Failed");
     }
 
-    err =OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB0);
+    err = OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB0);
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_GetParameter OMX_IndexParamPortDefinition port 0 passed ");
     } else {
@@ -972,8 +971,8 @@ void STEExtIspCamera::cameraConfigSet()
     DBGT_PTRACE("Dumping params for Camera VPB0");
     OmxUtils::dump(mParamPortVPB0);
 
-     sensorModeVPB0.nPortIndex = CAM_VPB+0;
-    err =OMX_GetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB0 );
+    sensorModeVPB0.nPortIndex = CAM_VPB+0;
+    err = OMX_GetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB0 );
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_GetParameter OMX_IndexParamCommonSensorMode port 0 passed ");
     } else {
@@ -982,7 +981,7 @@ void STEExtIspCamera::cameraConfigSet()
 
     sensorModeVPB0.nFrameRate =  framerate;
     sensorModeVPB0.bOneShot = mbOneShot;
-    err =OMX_SetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB0 );
+    err = OMX_SetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB0 );
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_SetParameter OMX_IndexParamCommonSensorMode port 0 passed ");
     } else {
@@ -1004,7 +1003,7 @@ void STEExtIspCamera::cameraConfigSet()
     }
     if (mIsVPB1PortDisabled == false)
     {
-        err =OMX_SendCommand(mCam,OMX_CommandPortDisable,CAM_VPB+1, NULL);
+        err = OMX_SendCommand(mCam,OMX_CommandPortDisable,CAM_VPB+1, NULL);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_SendCommand OMX_CommandPortDisable Port 1 passed ");
             camera_sem_wait(&mSetPortCam_sem, SEM_WAIT_TIMEOUT);
@@ -1055,7 +1054,7 @@ void STEExtIspCamera::ConfigureStill()
     OmxUtils::StructWrapper<OMX_PARAM_SENSORMODETYPE>::init(sensorModeVPB1);
 
     int preview_width, preview_height;
-    int picture_width ,picture_height;
+    int picture_width, picture_height;
 
     mParameters.getPreviewSize(&preview_width, &preview_height);
     mParameters.getPictureSize(&picture_width, &picture_height);
@@ -1094,7 +1093,7 @@ void STEExtIspCamera::ConfigureStill()
     if (NULL != mParameters.get(CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH)) {
         thumbWidth = mParameters.getInt(CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH);
     }
-	
+
     // if( strcmp(mParameters.get(CameraParameters::KEY_FLASH_MODE),
     //                            CameraParameters::FLASH_MODE_ON ) == 0 )
     // {    
@@ -1122,7 +1121,7 @@ void STEExtIspCamera::ConfigureStill()
     if (!mCameraWithoutEncoder) {
         // camera contain a jpeg encdoder > initalize VPB1 with jpeg format
         OmxUtils::initialize(mParamPortVPB1, OMX_PortDomainImage, CAM_VPB+1);
-        err =OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_GetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
@@ -1134,7 +1133,7 @@ void STEExtIspCamera::ConfigureStill()
             SetPropZoom();
         }
         mParamPortVPB1.nBufferCountActual = 1;
-        OMX_IMAGE_PORTDEFINITIONTYPE    *pt_image1 = &(mParamPortVPB1.format.image);
+        OMX_IMAGE_PORTDEFINITIONTYPE *pt_image1 = &(mParamPortVPB1.format.image);
 
         pt_image1->cMIMEType = (OMX_STRING)"";
         pt_image1->pNativeRender = (OMX_NATIVE_DEVICETYPE)NULL;
@@ -1145,14 +1144,14 @@ void STEExtIspCamera::ConfigureStill()
         pt_image1->eColorFormat = (OMX_COLOR_FORMATTYPE)OMX_COLOR_FormatCbYCrY;
         pt_image1->pNativeWindow = (OMX_NATIVE_DEVICETYPE)NULL;
 
-        err =OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_SetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
             DBGT_CRITICAL("OMX_SetParameter OMX_IndexParamPortDefinition port 1 Failed");
         }
 
-        err =OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_GetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
@@ -1168,7 +1167,7 @@ void STEExtIspCamera::ConfigureStill()
     } else {
         // camera does not contain a jpeg encdoder > initalize VPB1 with YUV format
         OmxUtils::initialize(mParamPortVPB1, OMX_PortDomainImage, CAM_VPB+1);
-        err =OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_GetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
@@ -1188,14 +1187,14 @@ void STEExtIspCamera::ConfigureStill()
         pt_image1->eColorFormat = (OMX_COLOR_FORMATTYPE)OMX_SYMBIAN_COLOR_FormatYUV420MBPackedSemiPlanar;
         pt_image1->pNativeWindow = (OMX_NATIVE_DEVICETYPE)NULL;
 
-        err =OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_SetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_SetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
             DBGT_CRITICAL("OMX_SetParameter OMX_IndexParamPortDefinition port 1 Failed");
         }
 
-        err =OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
+        err = OMX_GetParameter(mCam, OMX_IndexParamPortDefinition, &mParamPortVPB1);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_GetParameter OMX_IndexParamPortDefinition port 1 passed ");
         } else {
@@ -1212,16 +1211,16 @@ void STEExtIspCamera::ConfigureStill()
 
     sensorModeVPB1.nPortIndex = CAM_VPB+1;
     sensorModeVPB1.bOneShot = OMX_TRUE;
-    err =OMX_GetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB1 );
+    err = OMX_GetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB1 );
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_GetParameter OMX_IndexParamCommonSensorMode port 1 passed ");
     } else {
         DBGT_CRITICAL("OMX_GetParameter OMX_IndexParamCommonSensorMode port 1 Failed");
     }
 
-    sensorModeVPB1.nFrameRate =  framerate;
+    sensorModeVPB1.nFrameRate = framerate;
     sensorModeVPB1.bOneShot = OMX_TRUE;
-    err =OMX_SetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB1 );
+    err = OMX_SetParameter( mCam, OMX_IndexParamCommonSensorMode,  &sensorModeVPB1 );
     if (err == OMX_ErrorNone) {
         DBGT_PTRACE("OMX_SetParameter OMX_IndexParamCommonSensorMode port 1 passed ");
     } else {
@@ -1381,15 +1380,17 @@ int STEExtIspCamera::previewThread()
 
 static status_t allocNativeBuffer(
     buffer_handle_t* handle,
-    int32_t* stride,
+    uint32_t* stride,
+//    int32_t* stride,
     uint32_t w,
     uint32_t h,
-    PixelFormat format = HAL_PIXEL_FORMAT_RGB_565,
+    PixelFormat format = HAL_PIXEL_FORMAT_YCBCR42XMBN,
     int usage = CAMHAL_GRALLOC_USAGE)
 {
 
     GraphicBufferAllocator &GrallocAlloc = GraphicBufferAllocator::get();
-    return GrallocAlloc.alloc(w, h, format, usage, handle, reinterpret_cast<uint32_t*>(stride));
+    return GrallocAlloc.alloc(w, h, format, usage, handle, stride);
+//    return GrallocAlloc.alloc(w, h, format, usage, handle, reinterpret_cast<uint32_t*>(stride));
 }
 
 static status_t freeNativeBuffer(
@@ -1403,7 +1404,7 @@ static sp<GraphicBuffer> allocGraphicBuffer(
     native_handle_t& inHandle,
     uint32_t w, uint32_t h,
     uint32_t inStride,
-    PixelFormat format = HAL_PIXEL_FORMAT_RGB_565,
+    PixelFormat format = HAL_PIXEL_FORMAT_YCBCR42XMBN,
     int usage = CAMHAL_GRALLOC_USAGE,
     bool keepOwnership = false)
 {
@@ -1417,7 +1418,8 @@ static sp<GraphicBuffer> allocGraphicBuffer(
     return graphicBuffer;
 }
 
-status_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex)
+//status_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex)
+status_t STEExtIspCamera::shareBufferWithCamera(buffer_info_t& aBuffer, OMX_U32 aPortIndex)
 {
     OMX_PARAM_PORTDEFINITIONTYPE dummyport;
     OmxUtils::StructWrapper<OMX_PARAM_PORTDEFINITIONTYPE>::init(dummyport);
@@ -1483,7 +1485,8 @@ status_t STEExtIspCamera::AllocateRecordHeapLocked()
         enableNativeBuffOnOMXComp(mCam, CAM_VPB+0);
         for (int i = 0; i< kRecordBufferCount; i++) {
             buffer_handle_t buf;
-            int32_t stride;
+//            int32_t stride;
+            uint32_t stride;
 
             int tempVPB0Width= mVPB0Width;
             int tempVPB0Height= mVPB0Height;
@@ -1523,7 +1526,8 @@ status_t STEExtIspCamera::AllocateRecordHeapLocked()
 #ifdef ENABLE_VIDEO_ROTATION
         DBGT_ASSERT(NULL == mTempBuffHandle, "Previous buffer not deallocated");
 
-        int stride;
+//        int stride;
+        uint32_t stride;
         ret = allocNativeBuffer(&mTempBuffHandle, &stride, mVPB0Width, mVPB0Height,
                                 HAL_PIXEL_FORMAT_RGB_888);
         if (OK != ret) {
@@ -1545,7 +1549,8 @@ status_t STEExtIspCamera::AllocateRecordHeapLocked()
 OMX_ERRORTYPE STEExtIspCamera::enableNativeBuffOnOMXComp
 (
     OMX_HANDLETYPE aOmxComponent,
-    int aPortIndex
+//    int aPortIndex
+    OMX_U32 aPortIndex
 )
 {
     DBGT_PROLOG("");
@@ -1577,8 +1582,6 @@ OMX_ERRORTYPE STEExtIspCamera::enableNativeBuffOnOMXComp
     DBGT_EPILOG("");
     return err;
 }
-
-
 
 status_t STEExtIspCamera::AllocateStillHeapLocked()
 {
@@ -1637,7 +1640,8 @@ status_t STEExtIspCamera::AllocateStillHeapLocked()
         enableNativeBuffOnOMXComp(mCam, CAM_VPB+1);
 
         buffer_handle_t buf;
-        int stride;
+//        int stride;
+        uint32_t stride;
         ret = allocNativeBuffer(&buf, &stride, picture_width, virtualHeight);
         if (OK != ret) {
             LOGE("Image Buffer Allocation Failed!!");
@@ -1709,8 +1713,8 @@ void STEExtIspCamera::FreeStillHeapLocked()
     DBGT_PROLOG("");
     OMX_ERRORTYPE err = OMX_ErrorNone;
 
-    if ( mIsStillHeapSet ) {
-        err =OMX_FreeBuffer(mCam, (OMX_U32)(CAM_VPB+1), mImageBufferInfo.mOmxBufferHdr);
+    if (mIsStillHeapSet) {
+        err = OMX_FreeBuffer(mCam, (OMX_U32)(CAM_VPB+1), mImageBufferInfo.mOmxBufferHdr);
         if (err == OMX_ErrorNone) {
             DBGT_PTRACE("OMX_FreeBuffer passed for Jpeg");
             mImageBufferInfo.mOmxBufferHdr = NULL;
@@ -1725,8 +1729,6 @@ void STEExtIspCamera::FreeStillHeapLocked()
 
     DBGT_EPILOG("");
 }
-
-
 
 int STEExtIspCamera::SetPropContrast()
 {
@@ -1988,13 +1990,12 @@ int STEExtIspCamera::SetPropFocus()
             DBGT_CRITICAL("Error %x in OMX_SetConfig EFocusRange ", err);
         }
 
-        if( strcmp(mParameters.get(CameraParameters::KEY_FLASH_MODE),
-                                                    CameraParameters::FLASH_MODE_ON ) == 0 )
+        if (strcmp(mParameters.get(CameraParameters::KEY_FLASH_MODE),
+                                                    CameraParameters::FLASH_MODE_ON) == 0)
         {    
              MMIO_Camera_flash_control(1);
              LOGE("checkIndexConfigFlashControl+++++++++++SetPropFocus+++++++++++open++torch");
         }
-
 
         err = OMX_SetConfig(mCam, (OMX_INDEXTYPE)(OMX_IndexConfigFocusControl), focusControl.ptr());
         if (err == OMX_ErrorNone) {
@@ -2060,7 +2061,7 @@ int STEExtIspCamera::SetPropSceneModes()
     };
 
     if (NULL != mParameters.get(CameraParameters::KEY_SCENE_MODE)) {
-        int id=0;
+        int id = 0;
         int max_id = sizeof(g_scenemodeprop) / sizeof(g_scenemodeprop[0]);
         const char *scenemode = mParameters.get(CameraParameters::KEY_SCENE_MODE);
 
@@ -2093,23 +2094,32 @@ int STEExtIspCamera::SetPropSceneModes()
 int STEExtIspCamera::SetPropFlash(const CameraParameters &params)
 {
     OMX_ERRORTYPE err = OMX_ErrorNone;
-    flashproperty g_flashprop[]={
-        {0,CameraParameters::FLASH_MODE_ON,OMX_IMAGE_FlashControlOn},
-        {0,CameraParameters::FLASH_MODE_RED_EYE,OMX_IMAGE_FlashControlRedEyeReduction},
-        {0,CameraParameters::FLASH_MODE_TORCH,OMX_IMAGE_FlashControlTorch},
-        {0,CameraParameters::FLASH_MODE_AUTO,OMX_IMAGE_FlashControlAuto},
-        {1,CameraParameters::FLASH_MODE_OFF,OMX_IMAGE_FlashControlOff}
+
+//    flashproperty g_flashprop[] = {
+//        {0, CameraParameters::FLASH_MODE_OFF, OMX_IMAGE_FlashControlOff},
+//        {0, CameraParameters::FLASH_MODE_ON, OMX_IMAGE_FlashControlOn},
+//        {0, CameraParameters::FLASH_MODE_RED_EYE, OMX_IMAGE_FlashControlRedEyeReduction},
+//        {0, CameraParameters::FLASH_MODE_TORCH, OMX_IMAGE_FlashControlTorch},
+//        {1, CameraParameters::FLASH_MODE_AUTO, OMX_IMAGE_FlashControlAuto},
+//    };
+//
+    flashproperty g_flashprop[] = {
+        {0, CameraParameters::FLASH_MODE_ON, OMX_IMAGE_FlashControlOn},
+        {0, CameraParameters::FLASH_MODE_RED_EYE, OMX_IMAGE_FlashControlRedEyeReduction},
+        {0, CameraParameters::FLASH_MODE_TORCH, OMX_IMAGE_FlashControlTorch},
+        {0, CameraParameters::FLASH_MODE_AUTO, OMX_IMAGE_FlashControlAuto},
+        {1, CameraParameters::FLASH_MODE_OFF, OMX_IMAGE_FlashControlOff},
     };
 
     if (NULL != params.get(CameraParameters::KEY_FLASH_MODE)) {
-        int id=0;
+        int id = 0;
         int max_id = sizeof(g_flashprop) / sizeof(g_flashprop[0]);
         const char *flash = params.get(CameraParameters::KEY_FLASH_MODE);
 
         int value;
-        while( ((value = strcmp(g_flashprop[id].flash, flash))!=0) &&
+        while(((value = strcmp(g_flashprop[id].flash, flash)) != 0) &&
                (g_flashprop[id].iMarkendofdata != 1) &&
-               (id<max_id) ) {
+               (id<max_id)) {
             id++;
         }
 
@@ -2126,30 +2136,21 @@ int STEExtIspCamera::SetPropFlash(const CameraParameters &params)
             DBGT_CRITICAL("Error %x in OMX_SetConfig FlashControl ",err);
         }
 
-		if(g_flashprop[id].eflashType==5)//torch
-		 {	  
-			 MMIO_Camera_flash_control(1);
-			 LOGE("checkIndexConfigFlashControl++++++++++++++++++++++open++torch");
-		 }	  
-		 else if(g_flashprop[id].eflashType==0)//on
-		 {	  
-			 if( mPreviewWidth ==1280)
-			 {	  
-				 LOGE("checkIndexConfigFlashControl+++++++++++++++++isvideomode++++++on+");
-				 MMIO_Camera_flash_control(1);
-			 }	  
-			 else 
-			 {	  
-				 LOGE("checkIndexConfigFlashControl+++++++++++++++++iscameramode++++++close+torch");
-				 MMIO_Camera_flash_control(0);
-			 }	  
-		 }	  
-		 else 
-		 {	  
-			 LOGE("checkIndexConfigFlashControl+++++++++++++++++++++++close+torch");
-			 MMIO_Camera_flash_control(0);
-		 }	  
-
+        if (g_flashprop[id].eflashType == 5) { //torch
+            MMIO_Camera_flash_control(1);
+            LOGE("checkIndexConfigFlashControl++++++++++++++++++++++open++torch");
+        } else if (g_flashprop[id].eflashType == 0) { //on
+            if (mPreviewWidth == 1280) {
+                 LOGE("checkIndexConfigFlashControl+++++++++++++++++isvideomode++++++on+");
+                 MMIO_Camera_flash_control(1);
+            } else {
+                 LOGE("checkIndexConfigFlashControl+++++++++++++++++iscameramode++++++close+torch");
+                 MMIO_Camera_flash_control(0);
+            }
+        } else {
+            LOGE("checkIndexConfigFlashControl+++++++++++++++++++++++close+torch");
+            MMIO_Camera_flash_control(0);
+        }
 
         flashConfig.ptr()->nPortIndex = OMX_ALL;  //only supported in video mode
         flashConfig.ptr()->eFlashControl = g_flashprop[id].eflashType;
@@ -2162,6 +2163,7 @@ int STEExtIspCamera::SetPropFlash(const CameraParameters &params)
     }
     return err;
 }
+
 int STEExtIspCamera::SetPropAELock()
 {
     OMX_ERRORTYPE err = OMX_ErrorNone;
@@ -2193,6 +2195,7 @@ int STEExtIspCamera::SetPropAELock()
     return err;
 
 }
+
 int STEExtIspCamera::SetPropAWBLock()
 {
     OMX_ERRORTYPE err = OMX_ErrorNone;
@@ -2401,90 +2404,90 @@ void STEExtIspCamera::setFirstFrameParameters( int mode  )
 
     switch (mode) {
         case PREVIEW_MODE :
-          if ( mCameraId == CAMERA_FACING_BACK ) {
-              if ( strcmp(mParameters.get(CameraParameters::KEY_SCENE_MODE),
-                          CameraParameters::SCENE_MODE_AUTO ) == 0 ) {
-                  if (NO_ERROR !=  SetPropSceneModes()) {
+          if (mCameraId == CAMERA_FACING_BACK) {
+              if (strcmp(mParameters.get(CameraParameters::KEY_SCENE_MODE),
+                          CameraParameters::SCENE_MODE_AUTO) == 0 ) {
+                  if (NO_ERROR != SetPropSceneModes()) {
                     DBGT_CRITICAL("SetPropSceneModes failed");
                   }
 
-                  if (NO_ERROR !=  SetPropEffect()) {
+                  if (NO_ERROR != SetPropEffect()) {
                       DBGT_CRITICAL("SetPropEffect failed");
                   }
 
-                  if (NO_ERROR !=  SetPropExposure()) {
+                  if (NO_ERROR != SetPropExposure()) {
                       DBGT_CRITICAL("SetPropExposure failed");
                   }
 
-                  if (NO_ERROR !=  SetPropContrast()) {
+                  if (NO_ERROR != SetPropContrast()) {
                       DBGT_CRITICAL("SetPropContrast failed");
                   }
 
-                  if (NO_ERROR !=  SetPropWhiteBalance() ) {
+                  if (NO_ERROR != SetPropWhiteBalance() ) {
                       DBGT_CRITICAL("SetPropWhiteBalance failed");
                   }
               } else {
-                  if (NO_ERROR !=  SetPropSceneModes()) {
+                  if (NO_ERROR != SetPropSceneModes()) {
                       DBGT_CRITICAL("SetPropSceneModes failed");
                   }
 
-                  if (NO_ERROR !=  SetPropExposure()) {
+                  if (NO_ERROR != SetPropExposure()) {
                       DBGT_CRITICAL("SetPropExposure failed");
                   }
 
-                  if (NO_ERROR !=  SetPropWhiteBalance()) {
+                  if (NO_ERROR != SetPropWhiteBalance()) {
                       DBGT_CRITICAL("SetPropWhiteBalance failed");
                   }
               }
 
-              if (NO_ERROR !=  SetPropJPEGQuality()) {
+              if (NO_ERROR != SetPropJPEGQuality()) {
                   DBGT_CRITICAL("SetPropJPEGQuality failed");
               }
 
-              if (NO_ERROR !=  SetPropFlash(mParameters)) {
+              if (NO_ERROR != SetPropFlash(mParameters)) {
                   DBGT_CRITICAL("SetPropFlash failed");
               }
           } else {
-              if (NO_ERROR !=  SetPropExposure()) {
+              if (NO_ERROR != SetPropExposure()) {
                   DBGT_CRITICAL("SetPropExposure failed");
               }
 
-              if (NO_ERROR !=  SetPropWhiteBalance()) {
+              if (NO_ERROR != SetPropWhiteBalance()) {
                   DBGT_CRITICAL("SetPropWhiteBalance failed");
               }
           }
         break;
         case CAMCORDER_MODE:
-          if (NO_ERROR !=  SetPropEffect()) {
+          if (NO_ERROR != SetPropEffect()) {
               DBGT_CRITICAL("SetPropEffect failed");
           }
 
-          if (NO_ERROR !=  SetPropExposure()) {
+          if (NO_ERROR != SetPropExposure()) {
               DBGT_CRITICAL("SetPropExposure failed");
           }
 
-          if (NO_ERROR !=  SetPropWhiteBalance()) {
+          if (NO_ERROR != SetPropWhiteBalance()) {
               DBGT_CRITICAL("SetPropWhiteBalance failed");
           }
 
-          if( mCameraId == CAMERA_FACING_BACK ) {
-              if (NO_ERROR !=  SetPropFocus()) {
+          if (mCameraId == CAMERA_FACING_BACK) {
+              if (NO_ERROR != SetPropFocus()) {
                   DBGT_CRITICAL("SetPropFocus failed");
               }
           }
         break;
         case COMMON_MODE:
-          if ( mCameraId == CAMERA_FACING_BACK ) {
-              if (NO_ERROR !=  SetPropFocusRange(mParameters)) {
+          if (mCameraId == CAMERA_FACING_BACK) {
+              if (NO_ERROR != SetPropFocusRange(mParameters)) {
                   DBGT_CRITICAL("SetPropFocusRange failed");
               }
           }
 
-          if (NO_ERROR !=  SetPropFlickerRemoval()) {
+          if (NO_ERROR != SetPropFlickerRemoval()) {
               DBGT_CRITICAL("SetPropFlickerRemoval failed");
           }
 
-          if (NO_ERROR !=  SetPropZoom()) {
+          if (NO_ERROR != SetPropZoom()) {
               DBGT_CRITICAL("SetPropZoom failed");
           }
 
@@ -2745,7 +2748,7 @@ void STEExtIspCamera::ReconfigurePreview()
     mParamPortVPB0.nBufferCountActual = kRecordBufferCount;
 
     //Here, the min number of buffers to be used is retrieved
-    OMX_VIDEO_PORTDEFINITIONTYPE    *pt_video0 = &(mParamPortVPB0.format.video);
+    OMX_VIDEO_PORTDEFINITIONTYPE *pt_video0 = &(mParamPortVPB0.format.video);
 
     pt_video0->cMIMEType = (OMX_STRING)"";
     pt_video0->pNativeRender = (OMX_NATIVE_DEVICETYPE)NULL;
@@ -2962,7 +2965,7 @@ void STEExtIspCamera::dispatchError(int32_t aInfo1, int32_t aInfo2 /*= 0*/)
 }
 
 int STEExtIspCamera::isFrameRateSupported(const char *fps_list __unused, int framerate)
- {
+{
     char fps[3];
     if (framerate == -1)
        framerate == 15;
@@ -2976,6 +2979,7 @@ int STEExtIspCamera::isFrameRateSupported(const char *fps_list __unused, int fra
 void  STEExtIspCamera::updateFrameRate(int &aFramerate, int &aMinFramerate, int &aMaxFramerate)
 {
     DBGT_PROLOG("Framerate: %d Min Framerate: %d MaxFramerate: %d ", aFramerate, aMinFramerate, aMaxFramerate);
+
     /*Static FrameRate for reference tag*/
     if (aFramerate == -1)
        aFramerate = 15;

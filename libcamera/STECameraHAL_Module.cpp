@@ -42,8 +42,7 @@ static int camera_module_get_number_of_cameras(void);
 static int camera_module_get_camera_info(int camera_id, struct camera_info *info);
 
 static struct hw_module_methods_t camera_module_methods = {
-open:
-    camera_device_open
+    open : camera_device_open
 };
 
 static camera_info sCameraInfo[] = {
@@ -64,20 +63,21 @@ static camera_info sCameraInfo[] = {
 camera_module_t HAL_MODULE_INFO_SYM = {
     common:
     {
-        tag: HARDWARE_MODULE_TAG,
-        version_major: 1,
-        version_minor: 0,
-        id: CAMERA_HARDWARE_MODULE_ID,
-        name: "STE CameraHal Module",
-        author: "STE",
-        methods: &camera_module_methods,
-        dso:NULL, /* remove compilation warnings */
-        reserved: {0}, /* remove compilation warnings */
+        tag                : HARDWARE_MODULE_TAG,
+//        version_major: 1,
+//        version_minor: 0,
+        module_api_version : CAMERA_MODULE_API_VERSION_1_0,
+        hal_api_version    : HARDWARE_HAL_API_VERSION,
+        id                 : CAMERA_HARDWARE_MODULE_ID,
+        name               : "STE CameraHal Module",
+        author             : "STE",
+        methods            : &camera_module_methods,
+        dso                : NULL, /* remove compilation warnings */
+        reserved           : {0}, /* remove compilation warnings */
     },
-    get_number_of_cameras: camera_module_get_number_of_cameras,
-    get_camera_info: camera_module_get_camera_info,
+    get_number_of_cameras  : camera_module_get_number_of_cameras,
+    get_camera_info        : camera_module_get_camera_info,
 };
-
 
 int camera_device_close(hw_device_t* aDevice) {
     DBGT_PROLOG("");
@@ -129,14 +129,14 @@ int camera_device_open(const hw_module_t* module, const char* name,
         cameraId = atoi(name);
         num_cameras = camera_module_get_number_of_cameras();
 
-        if(cameraId > num_cameras) {
+        if (cameraId > num_cameras) {
             DBGT_CRITICAL("camera service provided cameraId out of bounds, "
                  "cameraid = %d, num supported = %d",
                  cameraId, num_cameras);
             return -EINVAL;
         }
 
-        if(gCamerasOpen >= MAX_SIMUL_CAMERAS_SUPPORTED) {
+        if (gCamerasOpen >= MAX_SIMUL_CAMERAS_SUPPORTED) {
             DBGT_CRITICAL("maximum number of cameras already open");
             return -ENOMEM;
         }
@@ -150,7 +150,7 @@ int camera_device_open(const hw_module_t* module, const char* name,
             cameraDevice = new android::STEExtIspCamera(cameraId);
             DBGT_PINFO("PRIMARY_YUV");
 #endif
-            if(cameraDevice == NULL) {
+            if (cameraDevice == NULL) {
                 DBGT_CRITICAL("Primary camera could not be instatiated!!");
                 return -ENOMEM;
             }
@@ -163,11 +163,10 @@ int camera_device_open(const hw_module_t* module, const char* name,
             cameraDevice = new android::STEExtIspCamera(cameraId);
             DBGT_PINFO("SECONDARY_YUV");
 #endif
-            if(cameraDevice == NULL) {
+            if (cameraDevice == NULL) {
                 DBGT_CRITICAL("Secondary camera could not be instatiated!!");
                 return -ENOMEM;
             }
-
         } else {
             DBGT_CRITICAL("camera_device_open: unknown camera");
             return -EINVAL;
@@ -225,4 +224,3 @@ int camera_module_get_camera_info(int camera_id, struct camera_info *info) {
     DBGT_EPILOG("");
     return rv;
 }
-

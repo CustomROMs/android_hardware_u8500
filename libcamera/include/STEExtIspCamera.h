@@ -417,8 +417,10 @@ private:
     inline bool isFaceDetectionEnable(void);
 #endif
 
-    OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent,int aportIndex);
-    status_t shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex);
+    OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent, OMX_U32 aportIndex);
+    status_t shareBufferWithCamera(buffer_info_t& aBuffer, OMX_U32 aPortIndex);
+//    OMX_ERRORTYPE enableNativeBuffOnOMXComp(OMX_HANDLETYPE aOmxComponent,int aportIndex);
+//    status_t shareBufferWithCamera(buffer_info_t& aBuffer, int aPortIndex);
     status_t allocatePreviewHeap();
     status_t setupVideoMetadata(buffer_info_t& aBuffer);
     OMX_BOOL mbOneShot;
