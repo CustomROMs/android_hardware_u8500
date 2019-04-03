@@ -1,0 +1,3 @@
+[submodule "android-audio-wrapper"]
+	path = android-audio-wrapper
+	url = https://github.com/CustomRoms/android-audio-wrapper
