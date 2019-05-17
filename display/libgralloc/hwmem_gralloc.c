@@ -410,8 +410,6 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
     {
         case GRALLOC_MODULE_PERFORM_GET_BUF_ALLOCATOR_HANDLE:
         {
-            ALOGE("GRALLOC: %s(%p, %i, ...)", __func__, module, operation);;
-
             buffer_handle_t handle = va_arg(args, buffer_handle_t);
             va_end(args);
 
@@ -495,7 +493,6 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
         default:
             va_end(args);
 
-	    ALOGE("%s: Unknown operation, %i", __func__, operation);
             LOG_USER_ERROR("%s: Unknown operation, %i", __func__, operation);
             return -EINVAL;
     }
@@ -572,13 +569,11 @@ static int gralloc_get_buf_allocator_handle(struct gralloc_module_t const* modul
 
     int buf_hwmem_name;
 
-    ALOGE("%s(%p, %p)", __func__, module, (void *)handle);
+    LOG_API_CALL("%s(%p, %p)", __func__, module, (void *)handle);
 
     if (!module_2_hwmem_gralloc_module(module, &gralloc) ||
-        !handle_2_hwmem_gralloc_handle(handle, &buf)) {
-	ALOGE("%s: return %d", __func__, -errno);
+        !handle_2_hwmem_gralloc_handle(handle, &buf))
         return -errno;
-    }
 
     if ((buf->type == GRALLOC_BUF_TYPE_PMEM) || (buf->type == GRALLOC_BUF_TYPE_FB))
         return gralloc_get_buf_allocator_handle_pmem(module, buf);
@@ -586,7 +581,7 @@ static int gralloc_get_buf_allocator_handle(struct gralloc_module_t const* modul
     buf_hwmem_name = ioctl(buf->fd, HWMEM_EXPORT_IOC, 0);
     if (buf_hwmem_name < 0)
     {
-        ALOGE("%s: HWMEM_EXPORT_IOC failed, %s", __func__, strerror(errno));
+        LOG_ERROR("%s: HWMEM_EXPORT_IOC failed, %s", __func__, strerror(errno));
     }
 
     return buf_hwmem_name;
@@ -1153,13 +1148,15 @@ int module_2_hwmem_gralloc_module(struct gralloc_module_t const* module,
 {
     struct hwmem_gralloc_module_t* gralloc =
             (struct hwmem_gralloc_module_t *)module;
+
     if (NULL == gralloc || gralloc->base.common.tag != HARDWARE_MODULE_TAG ||
         gralloc->type_identifier != (int)HWMEM_GRALLOC_MODULE_TYPE_IDENTIFIER)
     {
-        ALOGE("%s, Invalid module", __func__);
+        LOG_USER_ERROR("%s, Invalid module", __func__);
         errno = EINVAL;
         return 0;
     }
+
     *gralloc_out = gralloc;
 
     return 1;
@@ -1171,26 +1168,17 @@ int handle_2_hwmem_gralloc_handle(buffer_handle_t handle,
 {
     struct hwmem_gralloc_buf_handle_t *buf =
             (struct hwmem_gralloc_buf_handle_t*)handle;
-    if (NULL == buf)
-	ALOGE("GRALLOC: %s: buf == NULL", __func__);
-    else if (buf->base.version != sizeof(native_handle_t))
-	ALOGE("GRALLOC: %s: buf->base.version != %d (== %d)", __func__, sizeof(native_handle_t), buf->base.version);
-    else if (buf->base.numFds != num_fds_in_hwmem_gralloc_buf_handle)
-	ALOGE("GRALLOC: %s: buf->base.numFds != %d", __func__, num_fds_in_hwmem_gralloc_buf_handle);
-    else if (buf->base.numInts != num_ints_in_hwmem_gralloc_buf_handle)
-	ALOGE("GRALLOC: %s: buf->base.numInts != %d", __func__, num_ints_in_hwmem_gralloc_buf_handle);
-    else if (buf->type_identifier != hwmem_gralloc_buf_handle_type_identifier)
-	ALOGE("GRALLOC: %s: buf->type_identifier != 0x%08x", __func__, hwmem_gralloc_buf_handle_type_identifier);
 
     if (NULL == buf || buf->base.version != sizeof(native_handle_t) ||
         buf->base.numFds != num_fds_in_hwmem_gralloc_buf_handle ||
         buf->base.numInts != num_ints_in_hwmem_gralloc_buf_handle ||
         buf->type_identifier != hwmem_gralloc_buf_handle_type_identifier)
     {
-        ALOGE("%s: Invalid handle", __func__);
+        LOG_USER_ERROR("%s: Invalid handle", __func__);
         errno = EINVAL;
         return 0;
     }
+
     *buf_out = buf;
 
     return 1;

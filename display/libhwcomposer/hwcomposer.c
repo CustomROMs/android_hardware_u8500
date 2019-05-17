@@ -1,17 +1,11 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <log/log.h>
+/*
+ * Copyright (C) ST-Ericsson SA 2011
+ * Author: Per-Daniel Olsson <per-daniel.olsson@stericsson.com> for ST-Ericsson.
+ */
+
+#define LOG_TAG "STE-HWComposer"
+
 #include <hardware/hardware.h>
-#include <hardware/hwcomposer.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
-
-
-
-#include <utils/String8.h>
-
 #include "hwcomposer.h"
 #include <cutils/log.h>
 #include <stdbool.h>
@@ -20,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <pthread.h>
 #include <EGL/egl.h>
 #include <GLES/gl.h>
@@ -34,17 +29,6 @@
 #include <pwd.h>
 #include <grp.h>
 #include "vsync_monitor.h"
-
-#ifdef LOG_TAG
-#undef LOG_TAG
-#endif
-#define LOG_TAG "STE-HWComposer"
-
-
-const size_t BURSTLEN_BYTES = 16 * 8;
-const size_t MAX_PIXELS = 12 * 1024 * 1000;
-
-
 
 /* Use the STE version if available, otherwise fall back to
  * the corresponding vanilla version.
@@ -87,6 +71,39 @@ typedef struct hwc_hdmi_setting {
 } hwc_hdmi_settings_t;
 #endif
 
+static int hwcomposer_device_open(const struct hw_module_t *module,
+        const char *name, struct hw_device_t **device);
+
+static int hwcomposer_setparameter(struct hwc_composer_device *dev,
+                int param, int value);
+
+static int hwcomposer_eventControl(struct hwc_composer_device* dev,
+                int event, int enabled);
+
+static struct hw_module_methods_t hwcomposer_module_methods = {
+    .open = hwcomposer_device_open,
+};
+
+static struct hwc_methods hwcomposer_methods = {
+    .eventControl = hwcomposer_eventControl,
+#ifdef HWC_DEVICE_API_VERSION_0_3_STE
+    .setParameter = hwcomposer_setparameter,
+#endif /* HWC_DEVICE_API_VERSION_0_3_STE */
+};
+
+struct hwc_module HAL_MODULE_INFO_SYM = {
+    .common = {
+        .tag = HARDWARE_MODULE_TAG,
+        .module_api_version = HWC_MODULE_API_VERSION_0_1,
+        .hal_api_version = HARDWARE_HAL_API_VERSION,
+        .id = HWC_HARDWARE_MODULE_ID,
+        .name = "ST-Ericsson HWComposer module",
+        .author = "ST-Ericsson SA",
+        .methods = &hwcomposer_module_methods,
+   },
+};
+
+
 struct worker_context {
     pthread_mutex_t mutex;
     pthread_t worker_thread;
@@ -98,7 +115,7 @@ struct worker_context {
     int hwmem;
     int compdev;
     const struct gralloc_module_t *gralloc;
-    hwc_display_contents_1_t* work_list;
+    hwc_layer_list_t* work_list;
     struct hwc_rect* frame_rect;
     uint32_t compdev_layer_count;
     uint32_t compdev_bypass_count;
@@ -109,7 +126,7 @@ struct worker_context {
 };
 
 struct hwcomposer_context {
-    struct hwc_composer_device_1 dev;
+    struct hwc_composer_device dev;
     pthread_mutex_t hwc_mutex;
     int hwmem;
     int compdev;
@@ -135,13 +152,7 @@ struct hwcomposer_context {
     bool grabbed_all_layers;
     int32_t *actual_composition_types;
     uint32_t actual_composition_types_size;
-    hwc_procs_t const *procs;
-    int fb;
-    int32_t vsync_period;
-    int32_t xres;
-    int32_t yres;
-    int32_t xdpi;
-    int32_t ydpi;
+    struct hwc_procs *procs;
 };
 
 static enum compdev_fmt to_compdev_format(int hal_format);
@@ -152,7 +163,7 @@ static int worker_init(struct hwcomposer_context *ctx,
                         const struct gralloc_module_t *gralloc);
 static int worker_destroy(struct hwcomposer_context *ctx);
 static int worker_signal_update(struct hwcomposer_context *ctx,
-                                hwc_display_contents_1_t* work_list,
+                                hwc_layer_list_t* work_list,
                                 uint32_t compdev_layer_count,
                                 uint32_t compdev_bypass_count,
                                 struct hwc_rect* frame_rect);
@@ -418,7 +429,7 @@ static void hwc_post_compdev_scene(int compdev,
     s_info.fb_transform = fb_transform;
     s_info.app_transform = app_transform;
     s_info.reuse_fb_img = reuse_fb;
-    s_info.hw_transform = (compdev_transform)hw_transform;
+    s_info.hw_transform = hw_transform;
 
     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s layercount is: %d, reuse_fb is: %d,"
             " hw_trans = 0x%02X, fb_trans = 0x%02X, app_trans = 0x%02X",
@@ -744,7 +755,7 @@ int init_layer_cache_locked(struct hwcomposer_context *ctx)
     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
 
     if (ctx->cached_layers == NULL) {
-        ctx->cached_layers = (buffer_handle_t*)malloc(CACHED_LAYERS_SIZE*sizeof(buffer_handle_t));
+        ctx->cached_layers = malloc(CACHED_LAYERS_SIZE*sizeof(buffer_handle_t));
         if (ctx->cached_layers == NULL) {
            ALOGE("Out of memory!\n");
            errno = -ENOMEM;
@@ -759,7 +770,7 @@ int init_layer_cache_locked(struct hwcomposer_context *ctx)
     return 0;
 }
 
-void populate_cached_layer_locked(struct hwcomposer_context *ctx, hwc_display_contents_1_t* list)
+void populate_cached_layer_locked(struct hwcomposer_context *ctx, hwc_layer_list_t* list)
 {
     size_t i;
     int32_t compositionType = HWC_FRAMEBUFFER;
@@ -771,12 +782,12 @@ void populate_cached_layer_locked(struct hwcomposer_context *ctx, hwc_display_co
 
     /* lets poplulate the list and and return false since we need a new reference composition done */
     for (i = 0; i < list->numHwLayers; i++) {
-        hwc_layer_1_t &layer = list->hwLayers[i];
+        struct hwc_layer* layer = &list->hwLayers[i];
 
-        if(layer.compositionType == HWC_OVERLAY)
+        if(layer->compositionType == HWC_OVERLAY)
             compositionType = HWC_OVERLAY;
 
-        ctx->cached_layers[i] = layer.handle;
+        ctx->cached_layers[i] = layer->handle;
         ctx->cached_layers_count++;;
     }
 
@@ -789,7 +800,7 @@ void populate_cached_layer_locked(struct hwcomposer_context *ctx, hwc_display_co
     }
 }
 
-bool check_cached_layers_locked(struct hwcomposer_context *ctx, hwc_display_contents_1_t* list)
+bool check_cached_layers_locked(struct hwcomposer_context *ctx, hwc_layer_list_t* list)
 {
     size_t i;
     int32_t compositionType = HWC_FRAMEBUFFER;
@@ -819,41 +830,41 @@ bool check_cached_layers_locked(struct hwcomposer_context *ctx, hwc_display_cont
          * change, but order must be preserved */
         bool is_ok = true;
         for (i = 0; i < list->numHwLayers; i++) {
-            hwc_layer_1_t &layer = list->hwLayers[i];
-            if (layer.handle != NULL && !(layer.flags & HWC_SKIP_LAYER)) {
+            struct hwc_layer* layer = &list->hwLayers[i];
+            if (layer->handle != NULL && !(layer->flags & HWC_SKIP_LAYER)) {
                 ALOGI_IF(DEBUG_STE_HWCOMPOSER, "iteration %d", i);
 
-                if(layer.compositionType == HWC_OVERLAY){
+                if(layer->compositionType == HWC_OVERLAY){
                     compositionType = HWC_OVERLAY;
                     /*Do not care about the handle, most likely it changes*/
-                    if (layer.handle == ctx->cached_layers[i]) {
+                    if (layer->handle == ctx->cached_layers[i]) {
                         ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s Cached handle same as previous frame, %d, "
                         "%d Media is sending same buffers", __func__,
-                        (int)layer.handle, (int)ctx->cached_layers[i]);
+                        (int)layer->handle, (int)ctx->cached_layers[i]);
                     }
                     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "layer %d == %d cached, HWC_OVERLAY ok to mismatch",
-                        (int)layer.handle, (int)ctx->cached_layers[i]);
+                        (int)layer->handle, (int)ctx->cached_layers[i]);
                     /* check next layer */
                     continue;
                 }
 
-                if (layer.handle == ctx->cached_layers[i]) {
+                if (layer->handle == ctx->cached_layers[i]) {
                     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "layer %d == %d cached",
-                            (int)layer.handle, (int)ctx->cached_layers[i]);
+                            (int)layer->handle, (int)ctx->cached_layers[i]);
                     /*great contuinue*/
                     continue;
                 } else {
                     is_ok = false;
                     /* List has changed. No caching this time, lets populate list */
                     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "mismatch in list, layer %d == %d cache, repopulate",
-                            (int)layer.handle, (int)ctx->cached_layers[i]);
+                            (int)layer->handle, (int)ctx->cached_layers[i]);
                     populate_cached_layer_locked(ctx, list);
                     break;
                 }
             }else {
                 is_ok = false;
                 ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Some Layer is Null, layer %d == %d cache, reset counter",
-                    (int)layer.handle, (int)ctx->cached_layers[i]);
+                    (int)layer->handle, (int)ctx->cached_layers[i]);
                 /* Do not populate since we do not want to store NULL in our cached_layers,
                  * repopulate next time */
                 ctx->cached_layers_count = 0;
@@ -868,7 +879,7 @@ bool check_cached_layers_locked(struct hwcomposer_context *ctx, hwc_display_cont
 }
 
 
-int grab_all_layers_locked(struct hwcomposer_context *ctx, hwc_display_contents_1_t* list)
+int grab_all_layers_locked(struct hwcomposer_context *ctx, hwc_layer_list_t* list)
 {
     size_t i;
 
@@ -882,7 +893,7 @@ int grab_all_layers_locked(struct hwcomposer_context *ctx, hwc_display_contents_
     }
 
     if (ctx->actual_composition_types == NULL) {
-        ctx->actual_composition_types = (int32_t*)malloc(list->numHwLayers*sizeof(int32_t));
+        ctx->actual_composition_types = malloc(list->numHwLayers*sizeof(int32_t));
         ctx->actual_composition_types_size = list->numHwLayers;
         if (ctx->actual_composition_types == NULL) {
             ALOGE("Out of memory!\n");
@@ -892,29 +903,530 @@ int grab_all_layers_locked(struct hwcomposer_context *ctx, hwc_display_contents_
     }
 
     for (i = 0; i < list->numHwLayers; i++) {
-        hwc_layer_1_t &layer = list->hwLayers[i];
+        struct hwc_layer* layer = &list->hwLayers[i];
 
-        ctx->actual_composition_types[i] = layer.compositionType;
-        layer.compositionType = HWC_OVERLAY;
+        ctx->actual_composition_types[i] = layer->compositionType;
+        layer->compositionType = HWC_OVERLAY;
     }
     /* info needed for making correct job in set()*/
     ctx->grabbed_all_layers = true;
     return 0;
 }
 
-void ungrab_fb_layers_locked(struct hwcomposer_context *ctx, hwc_display_contents_1_t* list)
+void ungrab_fb_layers_locked(struct hwcomposer_context *ctx, hwc_layer_list_t* list)
 {
     size_t i;
 
     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
 
     for (i = 0; i < list->numHwLayers; i++) {
-        hwc_layer_1_t &layer = list->hwLayers[i];
+        struct hwc_layer* layer = &list->hwLayers[i];
             ALOGI_IF(DEBUG_STE_HWCOMPOSER,
             "HWC composition layer restored to composition type %d for handle %d",
-            ctx->actual_composition_types[i], (int)layer.handle);
-        layer.compositionType = ctx->actual_composition_types[i];
+            ctx->actual_composition_types[i], (int)layer->handle);
+        layer->compositionType = ctx->actual_composition_types[i];
     }
+}
+
+static int hwcomposer_prepare(struct hwc_composer_device *dev, hwc_layer_list_t* list)
+{
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    size_t i;
+    int ret = 0;
+
+    pthread_mutex_lock(&ctx->hwc_mutex);
+    ctx->bypass_ovly = false;
+
+    if (NULL != list) {
+        bool skip_layer_scene = false;
+        /* Check for skip layer in the bottom layer */
+        for (i = 0; i < list->numHwLayers; i++) {
+            struct hwc_layer* layer = &list->hwLayers[i];
+            if (layer->flags & HWC_SKIP_LAYER) {
+                skip_layer_scene = true;
+                break;
+            }
+        }
+        if (skip_layer_scene || list->flags & HWC_GEOMETRY_CHANGED) {
+
+            /* Find out if there is a video layer */
+            ctx->videoplayback = false;
+            for (i = 0; i < list->numHwLayers; i++) {
+                struct hwc_layer* layer = &list->hwLayers[i];
+                if (layer->handle != NULL &&
+                        bufferIsHWMEM(ctx->gralloc, layer->handle) &&
+                        bufferIsYUV(ctx->gralloc, layer->handle)) {
+                    __u16 width;
+                    __u16 height;
+                    struct compdev_rect hdmi_res;
+
+#ifdef ENABLE_HDMI
+                    /* Video layer found */
+                    ctx->videoplayback = true;
+                    if (ctx->hdmi_settings.resolutionchanged ||
+                            !ctx->hdmi_settings.hdmi_plugged)
+                        break;
+#endif
+
+                    /* Convert to known resolution */
+                    width = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_WIDTH, layer->handle);
+                    height = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_HEIGHT, layer->handle);
+#ifdef ENABLE_HDMI
+                    get_hdmi_resolution(width, height, &hdmi_res);
+#endif
+
+#ifdef ENABLE_HDMI
+                    /* Update hdmid with information on preferred resolution */
+                    if (ctx->hdmi_settings.res.width != hdmi_res.width ||
+                            ctx->hdmi_settings.res.height != hdmi_res.height) {
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "New HDMI resolution detected: "
+                                "%d x %d", hdmi_res.width, hdmi_res.height);
+
+                        /* Send a request to HDMIDaemon to update the resolution */
+                        if (update_hdmi_prefered_resolution(ctx, &hdmi_res) < 0)
+                            ALOGE("Failed to update HDMI preferred resolution");
+
+                        ctx->hdmi_settings.res.width = hdmi_res.width;
+                        ctx->hdmi_settings.res.height = hdmi_res.height;
+                        ctx->hdmi_settings.resolutionchanged = true;
+                    }
+#endif
+                }
+            }
+
+            /*
+             * Strategy:
+             * 1. Try to find a bottom layer that is not marked as HWC_SKIP_LAYER.
+             *    Check rotation to eliminate B2R2 rotation, if it doesn't work,
+             *    send it to the framebuffer and GL.
+             *    Handle only YUV layers initially.
+             * 2. TODO: Handle two layers in Compdev.
+             *
+             * General: All B2R2 work will be done inside the kernel in compdev.
+             */
+            for (i = 0; i < list->numHwLayers; i++) {
+                struct hwc_layer* layer = &list->hwLayers[i];
+
+                /* The initial state should always be HWC_FRAMEBUFFER */
+                layer->compositionType = HWC_FRAMEBUFFER;
+
+                /*
+                 * We're currently only interested in handling the bottom layer.
+                 * TODO: Remove when we implement support for two HWC layers.
+                 */
+                if (i > 0)
+                    break;
+
+                /* This bug has been seen on HC, probably solved. */
+                if (layer->visibleRegionScreen.numRects <= 0) {
+                    ALOGE("%s: RegionScreen.numRects=%d", __func__,
+                            layer->visibleRegionScreen.numRects);
+                    break;
+                }
+
+                /*
+                 * After one skip layer has been found,
+                 * all following layers must be handled by GPU.
+                 * A layer with a NULL handle is equivalent with SKIP.
+                 */
+                if ((layer->flags & HWC_SKIP_LAYER) || layer->handle == NULL) {
+                    /* A skipped layer might be needed by listeners for compdev */
+                    if (layer->handle != NULL && bufferIsHWMEM(ctx->gralloc, layer->handle)) {
+                        if (bufferIsYUV(ctx->gralloc, layer->handle)) {
+                            ctx->bypass_ovly = true;
+                            ALOGI_IF(DEBUG_STE_HWCOMPOSER,
+                                    "Buffer for potential compdev "
+                                    "listener bypass found.");
+                        }
+                    }
+                    break;
+                }
+
+                if (bufferIsHWMEM(ctx->gralloc, layer->handle)) {
+                    if (bufferIsYUV(ctx->gralloc, layer->handle)) {
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER,
+                            "HWC composition layer detected, layer->transform = %d",
+                            layer->transform);
+
+                        layer->compositionType = HWC_OVERLAY;
+                        layer->hints = HWC_HINT_TRIPLE_BUFFER | HWC_HINT_CLEAR_FB;
+                    }
+                }
+            }
+        } else {
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "No changed geometry");
+        }
+
+        /*check if we can power optimize overlays*/
+        if (list->numHwLayers != 1 && !ctx->pending_rotation) {
+            if (check_cached_layers_locked(ctx, list))
+            {
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Full layer_cache hit, grab all layers, optimize");
+                ret = grab_all_layers_locked(ctx, list);
+                if(ret < 0) {
+                    ALOGE("%s: Failed to grab all layers, %s", __func__,
+                            strerror(errno));
+                    goto exit;
+                }
+            }
+        } else {
+            /* clear old cache info */
+            init_layer_cache_locked(ctx);
+        }
+        ctx->pending_rotation = false;
+    }
+    else {
+        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "list is NULL");
+    }
+
+#if DEBUG_STE_HWCOMPOSER_LAYER_DUMP
+    if (NULL != list) {
+        /*if (list->flags & HWC_GEOMETRY_CHANGED)*/ {
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "********************************************");
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP,  "Number of layers: %d\n", list->numHwLayers);
+            for (i = 0; i < list->numHwLayers; i++) {
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "---------------------------------------------\n");
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Transform: %d", list->hwLayers[i].transform);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Blending: %d", list->hwLayers[i].blending);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Flags: %d", list->hwLayers[i].flags);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "compositionType: %d", list->hwLayers[i].compositionType);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Handle: %x", list->hwLayers[i].handle);
+                if(ctx->cached_layers)
+                    ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "cached Handle: %x", ctx->cached_layers[i]);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "sourceCrop left %d, top %d, right %d, bottom %d",
+                    list->hwLayers[i].sourceCrop.left,
+                    list->hwLayers[i].sourceCrop.top,
+                    list->hwLayers[i].sourceCrop.right,
+                    list->hwLayers[i].sourceCrop.bottom);
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "displayFrame left %d, top %d, right %d, bottom %d",
+                    list->hwLayers[i].displayFrame.left,
+                    list->hwLayers[i].displayFrame.top,
+                    list->hwLayers[i].displayFrame.right,
+                    list->hwLayers[i].displayFrame.bottom);
+                uint j;
+                if (list->hwLayers[i].visibleRegionScreen.rects != NULL) {
+                    for (j = 0; j < list->hwLayers[i].visibleRegionScreen.numRects; j++) {
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "visibleRegionScreen%d left %d, top %d, right %d, bottom %d", j,
+                        list->hwLayers[i].visibleRegionScreen.rects[j].left,
+                        list->hwLayers[i].visibleRegionScreen.rects[j].top,
+                        list->hwLayers[i].visibleRegionScreen.rects[j].right,
+                        list->hwLayers[i].visibleRegionScreen.rects[j].bottom);
+                    }
+                }
+                if (list->hwLayers[i].handle != NULL) {
+                    int type;
+                    int width;
+                    int height;
+                    int format;
+                    int usage;
+
+                    type = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_TYPE, list->hwLayers[i].handle);
+
+                    width = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_WIDTH, list->hwLayers[i].handle);
+
+                    height = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_HEIGHT, list->hwLayers[i].handle);
+
+                    format = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_FORMAT, list->hwLayers[i].handle);
+
+                    usage = ctx->gralloc->perform(ctx->gralloc,
+                            GRALLOC_MODULE_PERFORM_GET_BUF_USAGE, list->hwLayers[i].handle);
+
+                    if (type == GRALLOC_BUF_TYPE_HWMEM)
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type GRALLOC_BUF_TYPE_HWMEM");
+                    else if (type == GRALLOC_BUF_TYPE_GPU)
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type GRALLOC_BUF_TYPE_GPU");
+                    else
+                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type UNKNOWN");
+
+                    ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer width %d, height %d, format 0x%X, usage 0x%X",
+                        width, height, format, usage);
+
+                }
+            }
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "***********************END************************\n");
+        }
+    }
+#endif
+
+#ifdef ENABLE_HDMI
+    if ((!ctx->videoplayback || !ctx->hdmi_settings.hdmi_plugged) &&
+            ctx->hdmi_settings.resolutionchanged) {
+        /* Send a request to HDMIDaemon to update the resolution */
+        if (ctx->hdmi_settings.hdmi_plugged) {
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Setting hdmi default resolution");
+            if (set_hdmi_default_resolution(ctx) < 0)
+                ALOGE("Failed to set hdmi default resolution");
+        }
+        ctx->hdmi_settings.resolutionchanged = false;
+        ctx->hdmi_settings.res.width = 0;
+        ctx->hdmi_settings.res.height = 0;
+    }
+#endif
+
+exit:
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+    return ret;
+}
+
+static int hwcomposer_set(struct hwc_composer_device *dev,
+                hwc_display_t dpy,
+                hwc_surface_t sur,
+                hwc_layer_list_t* list)
+{
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    int ret;
+    uint32_t i;
+    struct hwc_rect frame_rect;
+    int compdevLayerCount = 0;
+    int compdevBypassCount = 0;
+    int layerCount = 0;
+    enum compdev_transform app_transform = COMPDEV_TRANSFORM_ROT_0;
+    enum compdev_transform fb_transform;
+    enum compdev_transform hw_transform;
+
+    /* Clear framerect for calculating visible area */
+    memset(&frame_rect, 0, sizeof(frame_rect));
+    frame_rect.top = frame_rect.left = INT_MAX;
+
+    if (NULL != list) {
+        pthread_mutex_lock(&ctx->hwc_mutex);
+
+    /* Since prepare screwed up the compositiontype it is time for restoring it as well for
+     * the wellbeeing of the rest. TODO Fix a better solution */
+    if (ctx->grabbed_all_layers)
+        ungrab_fb_layers_locked(ctx, list);
+
+#if DEBUG_STE_HWCOMPOSER
+        ctx->frames++;
+        for (i = 0; i < list->numHwLayers; i++) {
+            if (list->hwLayers[i].compositionType == HWC_OVERLAY)
+                ctx->overlay_layers++;
+            else
+                ctx->framebuffer_layers++;
+        }
+        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Frame count=%d, HWC layers=%d, GL layers=%d, numHwLayers = %d",
+                ctx->frames, ctx->overlay_layers, ctx->framebuffer_layers, list->numHwLayers);
+#endif
+
+        fb_transform = to_compdev_rotation(ctx->ui_orientation);
+        hw_transform = to_compdev_rotation(ctx->hardware_rotation);
+
+        /* 1. Figure out how many layers to send to compdev and the combined size */
+        for (i = 0; i < list->numHwLayers; i++) {
+            struct hwc_layer* layer = &list->hwLayers[i];
+
+            if (layer->compositionType == HWC_FRAMEBUFFER) {
+                break;
+            }
+
+            if (layer->visibleRegionScreen.numRects > 0 &&
+                    layer->visibleRegionScreen.rects != NULL) {
+                uint32_t rect_index;
+                compdevLayerCount++;
+                for (rect_index = 0; rect_index<layer->visibleRegionScreen.numRects; rect_index++) {
+                    hwc_rect_t rectRot;
+                    hwc_rect_t* rect = (hwc_rect_t*)&layer->visibleRegionScreen.rects[rect_index];
+                    hwc_rotate(rect, layer->transform, to_degrees(fb_transform),
+                            to_degrees(hw_transform), ctx->disp_width, ctx->disp_height, &rectRot);
+                    frame_rect.top = min(rectRot.top, frame_rect.top);
+                    frame_rect.left = min(rectRot.left, frame_rect.left);
+                    frame_rect.right = max(rectRot.right, frame_rect.right);
+                    frame_rect.bottom = max(rectRot.bottom, frame_rect.bottom);
+                }
+            }
+        }
+        layerCount = list->numHwLayers;
+
+        /* 2. Post the scene to compdev */
+        if (compdevLayerCount > 0 && layerCount != compdevLayerCount) {
+            if (ctx->grabbed_all_layers) {
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Forced1layer: fb_transform: %d, app_transform: %d, hw_transform %d",
+                        fb_transform, app_transform, hw_transform);
+                hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 1, 1, hw_transform);
+            }
+            else {
+                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "2layer: fb_transform: %d, app_transform: %d, hw_transform %d",
+                        fb_transform, app_transform, hw_transform);
+                hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 2, 0, hw_transform);
+            }
+        } else {
+            /*
+             * For normal use cases, show portrait application
+             * standing up on the clone
+             */
+            if (((to_degrees(fb_transform) + to_degrees(hw_transform)) % 360) == 0)
+                app_transform = COMPDEV_TRANSFORM_ROT_90_CW;
+
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "1layer: fb_transform: %d, app_transform: %d, hw_transform %d",
+                    fb_transform, app_transform, hw_transform);
+            hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 1, 0, hw_transform);
+        }
+    }
+
+    /* Handle potential overlay bypass */
+    if (ctx->bypass_ovly) {
+        /* Check if compdev has any listeners. */
+        if (compdevHasListener(ctx->compdev))
+            compdevBypassCount++;
+
+    }
+
+    /* 3. Send layer/layers to compdev in a separate thread */
+    if (compdevLayerCount > 0 || compdevBypassCount > 0) {
+        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Frame.left=%d, Frame.top=%d, Frame.right=%d, "
+                "Frame.bottom=%d", __func__, frame_rect.left, frame_rect.top,
+                frame_rect.right, frame_rect.bottom);
+        if (worker_signal_update(ctx, list, compdevLayerCount,
+                compdevBypassCount, &frame_rect))
+            ALOGE("%s: Error signaling update to the worker", __func__);
+    }
+
+    /* If all layers are grabbed....do not call for a GPU job, buffer already composited */
+    if (!ctx->grabbed_all_layers) {
+        /* 4. Start the GPU */
+        if (layerCount != compdevLayerCount || NULL == list) {
+            /* Composition complete */
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Calling compositionComplete", __func__);
+            ctx->gralloc->perform(ctx->gralloc, GRALLOC_MODULE_PERFORM_COMPOSITION_COMPLETE, NULL);
+
+            /* Swap buffers */
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Calling eglSwapBuffers", __func__);
+            if (dpy && sur)
+                eglSwapBuffers(dpy, sur);
+        }
+    } else {
+        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: All layers are grabbed, skipping GPU job for optimal power performance", __func__);
+    }
+
+    /* 5. Wait for the the Blit jobs to finish */
+    worker_wait_for_done(ctx);
+
+    /* 6. This step is handled by libCompose */
+
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+    return 0;
+error:
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+    return ret;
+}
+
+void hwcomposer_dump(struct hwc_composer_device* dev, char *buff, int buff_len)
+{
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    pthread_mutex_lock(&ctx->hwc_mutex);
+    /* Nothing to do yet */
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+}
+
+static int hwcomposer_setparameter(struct hwc_composer_device *dev,
+                int param, int value)
+{
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    int ret = 0;
+
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Setting parameter %d to %d",
+            __func__, param, value);
+
+    pthread_mutex_lock(&ctx->hwc_mutex);
+    switch (param) {
+        case HWC_UI_ORIENTATION:
+            ctx->ui_orientation = value;
+            ctx->pending_rotation = true;
+            break;
+        case HWC_HARDWARE_ROTATION:
+            ctx->hardware_rotation = value;
+            ctx->pending_rotation = true;
+            break;
+#ifdef ENABLE_HDMI
+        case HWC_HDMI_PLUGGED:
+            ctx->hdmi_settings.hdmi_plugged = value > 0 ? true : false;
+            break;
+#endif
+        default:
+            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: No such parameter: %d",
+                    __func__, param);
+            ret = -1;
+            break;
+    }
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+
+    return ret;
+}
+
+static void hwcomposer_register_procs(struct hwc_composer_device* dev, hwc_procs_t const* procs)
+{
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+    ctx->procs = (struct hwc_procs *)procs;
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER && procs, "%s: New set of procs registered.", __func__);
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER && !procs, "%s: procs deregistered", __func__);
+}
+
+static int hwcomposer_query(struct hwc_composer_device* dev, int what, int* value)
+{
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: what=%d", __func__, what);
+    switch (what) {
+    case HWC_BACKGROUND_LAYER_SUPPORTED:
+    {
+        /* we don't support the background layer yet since this is
+         * currently not used in JB.
+         */
+        value[0] = 0;
+    }
+    break;
+    case HWC_VSYNC_PERIOD:
+    {
+        /* FIXME: implement. Does not seem to be used in JB though. */
+        ALOGW("query for VSYNC period called but not implemented!");
+        value[0] = 0;
+    }
+    break;
+    default:
+        // unsupported query
+        return -EINVAL;
+    }
+    return 0;
+}
+
+static int hwcomposer_eventControl(struct hwc_composer_device* dev, int event, int enabled)
+{
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
+
+    switch (event) {
+        case HWC_EVENT_VSYNC:
+        {
+            //int val = !!enabled;
+            int err;
+
+            //if (hwc_dev->use_sw_vsync) {
+            if (1) {
+                if (enabled)
+                    vsync_monitor_enable();
+                    //start_sw_vsync(hwc_dev);
+                else
+                    vsync_monitor_disable();
+                    //stop_sw_vsync();
+                return 0;
+             }
+
+             /* we never reach here */
+             return 0;
+         }
+
+        default:
+            return -EINVAL;
+     }
+
 }
 
 static enum compdev_transform get_dst_transform(uint32_t hw_rot, enum compdev_transform img_transform)
@@ -922,7 +1434,7 @@ static enum compdev_transform get_dst_transform(uint32_t hw_rot, enum compdev_tr
     uint32_t img_rot = to_degrees(img_transform);
     enum compdev_transform transform = remove_rot(img_transform);
 
-    return (compdev_transform)((uint32_t)to_compdev_rotation((360 + img_rot - hw_rot) % 360) | (uint32_t)transform);
+    return to_compdev_rotation((360 + img_rot - hw_rot) % 360) | transform;
 }
 
 static void worker_send_compdev_layer(struct worker_context* wctx)
@@ -946,7 +1458,7 @@ static void worker_send_compdev_layer(struct worker_context* wctx)
     /* Direct composition */
     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Direct composition", __func__);
 
-    struct hwc_layer_1* layer = &wctx->work_list->hwLayers[0];
+    struct hwc_layer* layer = &wctx->work_list->hwLayers[0];
 
     if (convert_image(wctx->gralloc, layer->handle, &img))
         ALOGE("%s: Convert image failed", __func__);
@@ -1095,7 +1607,7 @@ static int worker_destroy(struct hwcomposer_context *ctx)
 }
 
 static int worker_signal_update(struct hwcomposer_context *ctx,
-                                hwc_display_contents_1_t* work_list,
+                                hwc_layer_list_t* work_list,
                                 uint32_t compdev_layer_count,
                                 uint32_t compdev_bypass_count,
                                 struct hwc_rect* frame_rect)
@@ -1125,451 +1637,10 @@ static int worker_wait_for_done(struct hwcomposer_context *ctx)
     return 0;
 }
 
-static int prepare_hwmem(struct hwcomposer_context* ctx, hwc_display_contents_1_t* contents)
-{
-    /*ctx->force_fb = ctx->force_gpu;
-
-    if (ctx->bypass_count > 0) {
-        ctx->force_fb = true;
-    }*/
-
-    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
-    //struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
-    size_t i;
-    int ret = 0;
-
-    pthread_mutex_lock(&ctx->hwc_mutex);
-    ctx->bypass_ovly = false;
-	
-/*	hwc_layer_list_t* list
-	for (size_t i = 0; i < contents->numHwLayers; i++) {
-            hwc_layer_1_t &layer = contents->hwLayers[i];
-*/
-    if (NULL != contents) {
-        bool skip_layer_scene = false;
-        /* Check for skip layer in the bottom layer */
-        for (i = 0; i < contents->numHwLayers; i++) {
-            hwc_layer_1_t &layer = contents->hwLayers[i];
-            if (layer.flags & HWC_SKIP_LAYER) {
-                skip_layer_scene = true;
-                break;
-            }
-        }
-        if (skip_layer_scene || contents->flags & HWC_GEOMETRY_CHANGED) {
-
-            /* Find out if there is a video layer */
-            ctx->videoplayback = false;
-            for (i = 0; i < contents->numHwLayers; i++) {
-                hwc_layer_1_t &layer = contents->hwLayers[i];
-                if (layer.handle != NULL &&
-                        bufferIsHWMEM(ctx->gralloc, layer.handle) &&
-                        bufferIsYUV(ctx->gralloc, layer.handle)) {
-                    __u16 width;
-                    __u16 height;
-                    struct compdev_rect hdmi_res;
-
-#ifdef ENABLE_HDMI
-                    /* Video layer found */
-                    ctx->videoplayback = true;
-                    if (ctx->hdmi_settings.resolutionchanged ||
-                            !ctx->hdmi_settings.hdmi_plugged)
-                        break;
-#endif
-
-                    /* Convert to known resolution */
-                    width = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_WIDTH, layer.handle);
-                    height = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_HEIGHT, layer.handle);
-#ifdef ENABLE_HDMI
-                    get_hdmi_resolution(width, height, &hdmi_res);
-#endif
-
-#ifdef ENABLE_HDMI
-                    /* Update hdmid with information on preferred resolution */
-                    if (ctx->hdmi_settings.res.width != hdmi_res.width ||
-                            ctx->hdmi_settings.res.height != hdmi_res.height) {
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "New HDMI resolution detected: "
-                                "%d x %d", hdmi_res.width, hdmi_res.height);
-
-                        /* Send a request to HDMIDaemon to update the resolution */
-                        if (update_hdmi_prefered_resolution(ctx, &hdmi_res) < 0)
-                            ALOGE("Failed to update HDMI preferred resolution");
-
-                        ctx->hdmi_settings.res.width = hdmi_res.width;
-                        ctx->hdmi_settings.res.height = hdmi_res.height;
-                        ctx->hdmi_settings.resolutionchanged = true;
-                    }
-#endif
-                }
-            }
-
-            /*
-             * Strategy:
-             * 1. Try to find a bottom layer that is not marked as HWC_SKIP_LAYER.
-             *    Check rotation to eliminate B2R2 rotation, if it doesn't work,
-             *    send it to the framebuffer and GL.
-             *    Handle only YUV layers initially.
-             * 2. TODO: Handle two layers in Compdev.
-             *
-             * General: All B2R2 work will be done inside the kernel in compdev.
-             */
-            for (i = 0; i < contents->numHwLayers; i++) {
-                hwc_layer_1_t &layer = contents->hwLayers[i];
-
-                /* The initial state should always be HWC_FRAMEBUFFER */
-                layer.compositionType = HWC_FRAMEBUFFER;
-
-                /*
-                 * We're currently only interested in handling the bottom layer.
-                 * TODO: Remove when we implement support for two HWC layers.
-                 */
-                if (i > 0)
-                    break;
-
-                /* This bug has been seen on HC, probably solved. */
-                if (layer.visibleRegionScreen.numRects <= 0) {
-                    ALOGE("%s: RegionScreen.numRects=%d", __func__,
-                            layer.visibleRegionScreen.numRects);
-                    break;
-                }
-
-                /*
-                 * After one skip layer has been found,
-                 * all following layers must be handled by GPU.
-                 * A layer with a NULL handle is equivalent with SKIP.
-                 */
-                if ((layer.flags & HWC_SKIP_LAYER) || layer.handle == NULL) {
-                    /* A skipped layer might be needed by listeners for compdev */
-                    if (layer.handle != NULL && bufferIsHWMEM(ctx->gralloc, layer.handle)) {
-                        if (bufferIsYUV(ctx->gralloc, layer.handle)) {
-                            ctx->bypass_ovly = true;
-                            ALOGI_IF(DEBUG_STE_HWCOMPOSER,
-                                    "Buffer for potential compdev "
-                                    "listener bypass found.");
-                        }
-                    }
-                    break;
-                }
-
-                if (bufferIsHWMEM(ctx->gralloc, layer.handle)) {
-                    if (bufferIsYUV(ctx->gralloc, layer.handle)) {
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER,
-                            "HWC composition layer detected, layer.transform = %d",
-                            layer.transform);
-
-                        layer.compositionType = HWC_OVERLAY;
-                        layer.hints = HWC_HINT_TRIPLE_BUFFER | HWC_HINT_CLEAR_FB;
-                    }
-                }
-            }
-        } else {
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "No changed geometry");
-        }
-
-        /*check if we can power optimize overlays*/
-        if (contents->numHwLayers != 1 && !ctx->pending_rotation) {
-            if (check_cached_layers_locked(ctx, contents))
-            {
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Full layer_cache hit, grab all layers, optimize");
-                ret = grab_all_layers_locked(ctx, contents);
-                if(ret < 0) {
-                    ALOGE("%s: Failed to grab all layers, %s", __func__,
-                            strerror(errno));
-                    goto exit;
-                }
-            }
-        } else {
-            /* clear old cache info */
-            init_layer_cache_locked(ctx);
-        }
-        ctx->pending_rotation = false;
-    }
-    else {
-        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "contents is NULL");
-    }
-
-#if DEBUG_STE_HWCOMPOSER_LAYER_DUMP
-    if (NULL != contents) {
-        /*if (contents->flags & HWC_GEOMETRY_CHANGED)*/ {
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "********************************************");
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP,  "Number of layers: %d\n", contents->numHwLayers);
-            for (i = 0; i < contents->numHwLayers; i++) {
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "---------------------------------------------\n");
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Transform: %d", contents->hwLayers[i].transform);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Blending: %d", contents->hwLayers[i].blending);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Flags: %d", contents->hwLayers[i].flags);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "compositionType: %d", contents->hwLayers[i].compositionType);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Handle: %x", contents->hwLayers[i].handle);
-                if(ctx->cached_layers)
-                    ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "cached Handle: %x", ctx->cached_layers[i]);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "sourceCrop left %d, top %d, right %d, bottom %d",
-                    contents->hwLayers[i].sourceCrop.left,
-                    contents->hwLayers[i].sourceCrop.top,
-                    contents->hwLayers[i].sourceCrop.right,
-                    contents->hwLayers[i].sourceCrop.bottom);
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "displayFrame left %d, top %d, right %d, bottom %d",
-                    contents->hwLayers[i].displayFrame.left,
-                    contents->hwLayers[i].displayFrame.top,
-                    contents->hwLayers[i].displayFrame.right,
-                    contents->hwLayers[i].displayFrame.bottom);
-                uint j;
-                if (contents->hwLayers[i].visibleRegionScreen.rects != NULL) {
-                    for (j = 0; j < contents->hwLayers[i].visibleRegionScreen.numRects; j++) {
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "visibleRegionScreen%d left %d, top %d, right %d, bottom %d", j,
-                        contents->hwLayers[i].visibleRegionScreen.rects[j].left,
-                        contents->hwLayers[i].visibleRegionScreen.rects[j].top,
-                        contents->hwLayers[i].visibleRegionScreen.rects[j].right,
-                        contents->hwLayers[i].visibleRegionScreen.rects[j].bottom);
-                    }
-                }
-                if (contents->hwLayers[i].handle != NULL) {
-                    int type;
-                    int width;
-                    int height;
-                    int format;
-                    int usage;
-
-                    type = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_TYPE, contents->hwLayers[i].handle);
-
-                    width = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_WIDTH, contents->hwLayers[i].handle);
-
-                    height = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_HEIGHT, contents->hwLayers[i].handle);
-
-                    format = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_FORMAT, contents->hwLayers[i].handle);
-
-                    usage = ctx->gralloc->perform(ctx->gralloc,
-                            GRALLOC_MODULE_PERFORM_GET_BUF_USAGE, contents->hwLayers[i].handle);
-
-                    if (type == GRALLOC_BUF_TYPE_HWMEM)
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type GRALLOC_BUF_TYPE_HWMEM");
-                    else if (type == GRALLOC_BUF_TYPE_GPU)
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type GRALLOC_BUF_TYPE_GPU");
-                    else
-                        ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer type UNKNOWN");
-
-                    ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "Buffer width %d, height %d, format 0x%X, usage 0x%X",
-                        width, height, format, usage);
-
-                }
-            }
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER_LAYER_DUMP, "***********************END************************\n");
-        }
-    }
-#endif
-
-#ifdef ENABLE_HDMI
-    if ((!ctx->videoplayback || !ctx->hdmi_settings.hdmi_plugged) &&
-            ctx->hdmi_settings.resolutionchanged) {
-        /* Send a request to HDMIDaemon to update the resolution */
-        if (ctx->hdmi_settings.hdmi_plugged) {
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Setting hdmi default resolution");
-            if (set_hdmi_default_resolution(ctx) < 0)
-                ALOGE("Failed to set hdmi default resolution");
-        }
-        ctx->hdmi_settings.resolutionchanged = false;
-        ctx->hdmi_settings.res.width = 0;
-        ctx->hdmi_settings.res.height = 0;
-    }
-#endif
-
-exit:
-    pthread_mutex_unlock(&ctx->hwc_mutex);
-    return ret;
-
-/*    if (ctx->fb_needed)
-        ctx->fb_window = ctx->first_fb;
-    else
-        ctx->fb_window = NO_FB_NEEDED;
-
-    return 0;*/
-}
-
-static int hwc_prepare(hwc_composer_device_1_t *dev, size_t numDisplays, hwc_display_contents_1_t** displays)
-{
-    if (!numDisplays || !displays)
-        return 0;
-
-    struct hwcomposer_context* ctx = (struct hwcomposer_context*)dev;
-    hwc_display_contents_1_t *hwmem_contents = displays[HWC_DISPLAY_PRIMARY];
-
-    if (hwmem_contents) {
-        int err = prepare_hwmem(ctx, hwmem_contents);
-        if (err)
-            return err;
-    }
-
-    return 0;
-}
-
-static int set_hwmem(struct hwcomposer_context* ctx, hwc_display_contents_1_t *contents)
+static int hwcomposer_close(struct hw_device_t *dev)
 {
     ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
-    //struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
-    int ret;
-    uint32_t i;
-    struct hwc_rect frame_rect;
-    int compdevLayerCount = 0;
-    int compdevBypassCount = 0;
-    int layerCount = 0;
-    enum compdev_transform app_transform = COMPDEV_TRANSFORM_ROT_0;
-    enum compdev_transform fb_transform;
-    enum compdev_transform hw_transform;
-
-    /* Clear framerect for calculating visible area */
-    memset(&frame_rect, 0, sizeof(frame_rect));
-    frame_rect.top = frame_rect.left = INT_MAX;
-
-    if (NULL != contents) {
-        pthread_mutex_lock(&ctx->hwc_mutex);
-
-    /* Since prepare screwed up the compositiontype it is time for restoring it as well for
-     * the wellbeeing of the rest. TODO Fix a better solution */
-    if (ctx->grabbed_all_layers)
-        ungrab_fb_layers_locked(ctx, contents);
-
-#if DEBUG_STE_HWCOMPOSER
-        ctx->frames++;
-        for (i = 0; i < contents->numHwLayers; i++) {
-            if (contents->hwLayers[i].compositionType == HWC_OVERLAY)
-                ctx->overlay_layers++;
-            else
-                ctx->framebuffer_layers++;
-        }
-        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Frame count=%d, HWC layers=%d, GL layers=%d, numHwLayers = %d",
-                ctx->frames, ctx->overlay_layers, ctx->framebuffer_layers, contents->numHwLayers);
-#endif
-
-        fb_transform = (compdev_transform)to_compdev_rotation(ctx->ui_orientation);
-        hw_transform = (compdev_transform)to_compdev_rotation(ctx->hardware_rotation);
-
-        /* 1. Figure out how many layers to send to compdev and the combined size */
-        for (i = 0; i < contents->numHwLayers; i++) {
-            hwc_layer_1_t &layer = contents->hwLayers[i];
-
-            if (layer.compositionType == HWC_FRAMEBUFFER) {
-                break;
-            }
-
-            if (layer.visibleRegionScreen.numRects > 0 &&
-                    layer.visibleRegionScreen.rects != NULL) {
-                uint32_t rect_index;
-                compdevLayerCount++;
-                for (rect_index = 0; rect_index<layer.visibleRegionScreen.numRects; rect_index++) {
-                    hwc_rect_t rectRot;
-                    hwc_rect_t* rect = (hwc_rect_t*)&layer.visibleRegionScreen.rects[rect_index];
-                    hwc_rotate(rect, layer.transform, to_degrees(fb_transform),
-                            to_degrees(hw_transform), ctx->disp_width, ctx->disp_height, &rectRot);
-                    frame_rect.top = min(rectRot.top, frame_rect.top);
-                    frame_rect.left = min(rectRot.left, frame_rect.left);
-                    frame_rect.right = max(rectRot.right, frame_rect.right);
-                    frame_rect.bottom = max(rectRot.bottom, frame_rect.bottom);
-                }
-            }
-        }
-        layerCount = contents->numHwLayers;
-
-        /* 2. Post the scene to compdev */
-        if (compdevLayerCount > 0 && layerCount != compdevLayerCount) {
-            if (ctx->grabbed_all_layers) {
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "Forced1layer: fb_transform: %d, app_transform: %d, hw_transform %d",
-                        fb_transform, app_transform, hw_transform);
-                hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 1, 1, hw_transform);
-            }
-            else {
-                ALOGI_IF(DEBUG_STE_HWCOMPOSER, "2layer: fb_transform: %d, app_transform: %d, hw_transform %d",
-                        fb_transform, app_transform, hw_transform);
-                hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 2, 0, hw_transform);
-            }
-        } else {
-            /*
-             * For normal use cases, show portrait application
-             * standing up on the clone
-             */
-            if (((to_degrees(fb_transform) + to_degrees(hw_transform)) % 360) == 0)
-                app_transform = COMPDEV_TRANSFORM_ROT_90_CW;
-
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "1layer: fb_transform: %d, app_transform: %d, hw_transform %d",
-                    fb_transform, app_transform, hw_transform);
-            hwc_post_compdev_scene(ctx->compdev, fb_transform, app_transform, 1, 0, hw_transform);
-        }
-    }
-
-    /* Handle potential overlay bypass */
-    if (ctx->bypass_ovly) {
-        /* Check if compdev has any listeners. */
-        if (compdevHasListener(ctx->compdev))
-            compdevBypassCount++;
-
-    }
-
-    /* 3. Send layer/layers to compdev in a separate thread */
-    if (compdevLayerCount > 0 || compdevBypassCount > 0) {
-        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Frame.left=%d, Frame.top=%d, Frame.right=%d, "
-                "Frame.bottom=%d", __func__, frame_rect.left, frame_rect.top,
-                frame_rect.right, frame_rect.bottom);
-        if (worker_signal_update(ctx, contents, compdevLayerCount,
-                compdevBypassCount, &frame_rect))
-            ALOGE("%s: Error signaling update to the worker", __func__);
-    }
-
-    /* If all layers are grabbed....do not call for a GPU job, buffer already composited */
-    if (!ctx->grabbed_all_layers) {
-        /* 4. Start the GPU */
-        if (layerCount != compdevLayerCount || NULL == contents) {
-            /* Composition complete */
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Calling compositionComplete", __func__);
-            ctx->gralloc->perform(ctx->gralloc, GRALLOC_MODULE_PERFORM_COMPOSITION_COMPLETE, NULL);
-
-            /* Swap buffers */
-            ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: Calling eglSwapBuffers", __func__);
-            //if (dpy && sur)
-            //    eglSwapBuffers(dpy, sur);
-        }
-    } else {
-        ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: All layers are grabbed, skipping GPU job for optimal power performance", __func__);
-    }
-
-    /* 5. Wait for the the Blit jobs to finish */
-    worker_wait_for_done(ctx);
-
-    /* 6. This step is handled by libCompose */
-
-    pthread_mutex_unlock(&ctx->hwc_mutex);
-    return 0;
-error:
-    pthread_mutex_unlock(&ctx->hwc_mutex);
-    return ret;
-}
-
-static int hwc_set(hwc_composer_device_1_t *dev,
-        size_t numDisplays, hwc_display_contents_1_t** displays)
-{
-    if (!numDisplays || !displays)
-        return 0;
-
-    struct hwcomposer_context* ctx = (struct hwcomposer_context*)dev;
-    hwc_display_contents_1_t *hwmem_contents = displays[HWC_DISPLAY_PRIMARY];
-    int hwmem_err = 0;
-
-    if (hwmem_contents)
-        hwmem_err = set_hwmem(ctx, hwmem_contents);
-
-    if (hwmem_err)
-        return hwmem_err;
-
-    return 0;
-}
-
-static int hwc_device_close(struct hw_device_t *dev)
-{
-     struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
-
-    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
+    struct hwcomposer_context *ctx = (struct hwcomposer_context *)dev;
 
     if (ctx) {
         pthread_mutex_lock(&ctx->hwc_mutex);
@@ -1596,315 +1667,95 @@ static int hwc_device_close(struct hw_device_t *dev)
         pthread_mutex_destroy(&ctx->hwc_mutex);
         free(ctx);
     }
+
     return 0;
 }
 
-static int hwc_eventControl(struct hwc_composer_device_1* dev, __unused int dpy,
-        int event, int enabled)
+static int hwcomposer_device_open(const struct hw_module_t *module,
+        const char *name, struct hw_device_t **device)
 {
-/*    int val = 0, rc = 0;
-     struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
+    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "HWComposer device opened by pid=%d", getpid());
+    struct hwcomposer_context *ctx;
+    if (!strcmp(name, HWC_HARDWARE_COMPOSER)) {
+        ctx = malloc(sizeof(*ctx));
+        if (!ctx)
+            return -ENOMEM;
 
-    switch (event) {
-    case HWC_EVENT_VSYNC:
-        val = enabled;
-        ALOGV("%s: HWC_EVENT_VSYNC, enabled=%d", __FUNCTION__, val);
+        memset(ctx, 0, sizeof(*ctx));
 
-        rc = ioctl(ctx->fb0_fd, S3CFB_SET_VSYNC_INT, &val);
-        if (rc < 0) {
-            ALOGE("%s: could not set vsync using ioctl: %s", __FUNCTION__,
-                strerror(errno));
-            return -errno;
-        }
-        return rc;
-    }*/
-	ALOGE("hwc_eventControl: not implemented!");
-    return 0;
-}
+        pthread_mutex_init(&ctx->hwc_mutex, NULL);
+        pthread_mutex_lock(&ctx->hwc_mutex);
 
-static int hwc_setPowerMode(struct hwc_composer_device_1 *dev, int dpy, int mode)
-{
- /*    struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
-    int fence = 0;
-    int blank;
+        ctx->dev.common.tag = HARDWARE_DEVICE_TAG;
+        ctx->dev.common.version = STE_HWC_DEVICE_API_CURRENT;
+        ctx->dev.common.module = (struct hw_module_t *)module;
+        ctx->dev.common.close = hwcomposer_close;
 
-    ALOGV("%s mode=%d", __FUNCTION__, mode);
+        ctx->dev.prepare       = hwcomposer_prepare;
+        ctx->dev.set           = hwcomposer_set;
+        ctx->dev.dump          = hwcomposer_dump;
+        ctx->dev.registerProcs = hwcomposer_register_procs;
+        ctx->dev.query         = hwcomposer_query;
+        ctx->dev.methods       = &hwcomposer_methods;
 
-    fence = window_clear(ctx);
-    if (fence != -1)
-        close(fence);
-
-
-    switch (mode) {
-        case HWC_POWER_MODE_OFF:
-            blank = FB_BLANK_POWERDOWN;
-            break;
-        case HWC_POWER_MODE_NORMAL:
-            blank = FB_BLANK_UNBLANK;
-            break;
-        default:
-            // FIXME DOZE and DOZE_SUSPEND are unsupported by the fb driver
-            return -EINVAL;
-    }
-
-    if (ioctl(ctx->fb0_fd, FBIOBLANK, blank) < 0) {
-        ALOGE("%s Error %s in FBIOBLANK blank=%d", __FUNCTION__, strerror(errno), blank);
-    }
-*/
-	ALOGE("hwc_setPowerMode: not implemented!");
-    return 0;
-}
-
-static int hwc_getActiveConfig(struct hwc_composer_device_1 *dev, int disp)
-{
-    // we only support the primary display
-    return 0;
-}
-
-static int hwc_setActiveConfig(struct hwc_composer_device_1 *dev, int dpy, int idx)
-{
-    // Only 1 config supported for the primary display
-    return (idx == 0) ? idx : -EINVAL;
-}
-
-static int hwc_query(struct hwc_composer_device_1* dev,
-        int what, int* value)
-{
-     struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
-
-    ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s: what=%d", __func__, what);
-    switch (what) {
-    case HWC_BACKGROUND_LAYER_SUPPORTED:
-    {
-        /* we don't support the background layer yet since this is
-         * currently not used in JB.
-         */
-        value[0] = 0;
-    }
-    break;
-    case HWC_VSYNC_PERIOD:
-    {
-        /* FIXME: implement. Does not seem to be used in JB though. */
-        ALOGW("query for VSYNC period called but not implemented!");
-        value[0] = 0;
-    }
-    break;
-    default:
-        // unsupported query
-        return -EINVAL;
-    }
-    return 0;
-}
-
-static void hwc_registerProcs(struct hwc_composer_device_1* dev,
-        hwc_procs_t const* procs)
-{
-     struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
-    ctx->procs = const_cast<hwc_procs_t *>(procs);
-	ALOGI_IF(DEBUG_STE_HWCOMPOSER && procs, "%s: New set of procs registered.", __func__);
-    ALOGI_IF(DEBUG_STE_HWCOMPOSER && !procs, "%s: procs deregistered", __func__);
-}
-
-static int hwc_getDisplayConfigs(struct hwc_composer_device_1* dev, int disp,
-    uint32_t* configs, size_t* numConfigs)
-{
-    ALOGV("%s", __FUNCTION__);
-
-    if (*numConfigs == 0)
-        return 0;
-
-    if (disp == HWC_DISPLAY_PRIMARY) {
-        configs[0] = 0;
-        *numConfigs = 1;
-        return 0;
-    }
-
-    return -EINVAL;
-}
-
-static int hwc_getDisplayAttributes(struct hwc_composer_device_1* dev, int disp,
-    __unused uint32_t config, const uint32_t* attributes, int32_t* values)
-{
-     struct hwcomposer_context* ctx = ( struct hwcomposer_context*)dev;
-    int i = 0;
-
-    ALOGV("%s", __FUNCTION__);
-
-    while(attributes[i] != HWC_DISPLAY_NO_ATTRIBUTE) {
-        switch(disp) {
-        case 0:
-
-            switch(attributes[i]) {
-            case HWC_DISPLAY_VSYNC_PERIOD: /* The vsync period in nanoseconds */
-                values[i] = ctx->vsync_period;
-                break;
-
-            case HWC_DISPLAY_WIDTH: /* The number of pixels in the horizontal and vertical directions. */
-                values[i] = ctx->xres;
-                break;
-
-            case HWC_DISPLAY_HEIGHT:
-                values[i] = ctx->yres;
-                break;
-
-            case HWC_DISPLAY_DPI_X:
-                values[i] = ctx->xdpi;
-                break;
-
-            case HWC_DISPLAY_DPI_Y:
-                values[i] = ctx->ydpi;
-                break;
-
-            default:
-                ALOGE("%s:unknown display attribute %d", __FUNCTION__, attributes[i]);
-                return -EINVAL;
-            }
-            break;
-
-        case 1:
-            // TODO: no hdmi at the moment
-            break;
-
-        default:
-            ALOGE("%s:unknown display %d", __FUNCTION__, disp);
-            return -EINVAL;
-        }
-
-        i++;
-    }
-    return 0;
-}
-
-static void hwc_dump(struct hwc_composer_device_1* dev, char *buff, int buff_len)
-{
-	ALOGI_IF(DEBUG_STE_HWCOMPOSER, "%s", __func__);
-    struct hwcomposer_context* ctx = (struct hwcomposer_context*)dev;
-    pthread_mutex_lock(&ctx->hwc_mutex);
-    /* Nothing to do yet */
-    pthread_mutex_unlock(&ctx->hwc_mutex); 
-}
-
-
-static int hwc_open(const struct hw_module_t *module, const char *name,
-		struct hw_device_t **device)
-{
-	struct hwcomposer_context *dev;
-	struct fb_var_screeninfo lcdinfo;
-        struct compdev_size display_size;
-
-	int refreshRate;
-
-	dev = (struct hwcomposer_context *)malloc(sizeof(*dev));
-	if (!dev)
-		return -ENOMEM;
-
-	memset(dev, 0, sizeof(*dev));
-
-        pthread_mutex_init(&dev->hwc_mutex, NULL);
-        pthread_mutex_lock(&dev->hwc_mutex);
-
-	dev->dev.common.tag = HARDWARE_DEVICE_TAG;
-	dev->dev.common.version = HWC_DEVICE_API_VERSION_1_4;
-	dev->dev.common.module = const_cast<hw_module_t*>(module);
-	dev->dev.common.close = hwc_device_close;
-
-	dev->dev.prepare = hwc_prepare;
-	dev->dev.set = hwc_set;
-	dev->dev.eventControl = hwc_eventControl;
-	dev->dev.setPowerMode = hwc_setPowerMode;
-	dev->dev.query = hwc_query;
-	dev->dev.registerProcs = hwc_registerProcs;
-	dev->dev.getDisplayConfigs = hwc_getDisplayConfigs;
-	dev->dev.getDisplayAttributes = hwc_getDisplayAttributes;
-
-	*device = &dev->dev.common;
-
-	dev->hwmem = open(HWMEM_PATH, O_RDWR);
-        if (dev->hwmem < 0) {
+        ctx->hwmem = open(HWMEM_PATH, O_RDWR);
+        if (ctx->hwmem < 0) {
             ALOGE("%s: could not open %s (%s)", __func__, HWMEM_PATH, strerror(errno));
             goto error;
         }
 
-        dev->compdev = open(COMPDEV_PATH, O_RDWR, 0);
-        if (dev->compdev < 0) {
-            ALOGE("%s: Error Opening " COMPDEV_PATH ": %s\n", __func__,
+        ctx->compdev = open(COMPDEV_PATH, O_RDWR, 0);
+        if (ctx->compdev < 0) {
+            ALOGE("%s: Error Opening "COMPDEV_PATH": %s\n",__func__,
                     strerror(errno));
             goto compdev_error;
 
         }
 
-        if (ioctl(dev->compdev, COMPDEV_GET_SIZE_IOC, (struct compdev_size*)&display_size)) {
+        struct compdev_size display_size;
+        if (ioctl(ctx->compdev, COMPDEV_GET_SIZE_IOC, (struct compdev_size*)&display_size)) {
             ALOGE("%s: Failed to get size from compdev, %s", __func__, strerror(errno));
             goto error;
         }
 
-        dev->disp_width = display_size.width;
-        dev->disp_height = display_size.height;
+        ctx->disp_width = display_size.width;
+        ctx->disp_height = display_size.height;
 
         if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID,
-            (const struct hw_module_t **)&dev->gralloc)) {
+            (const struct hw_module_t **)&ctx->gralloc)) {
             ALOGE("Error opening gralloc module");
             goto gralloc_error;
         }
 
+        if (worker_init(ctx, ctx->hwmem, ctx->compdev, ctx->gralloc)) {
+            ALOGE("Error initializing egl worker");
+            goto worker_error;
+        }
 
-	dev->fb = open("/dev/graphics/fb0", O_RDWR);
-	if (dev->fb < 0) {
-		ALOGE("%s: failed to open FB", __func__);
-		return -EINVAL;
-	}
+        vsync_monitor_init(ctx);
 
-	if (ioctl(dev->fb, FBIOGET_VSCREENINFO, &lcdinfo) < 0) {
-		ALOGE("%s: failed to get vscreeninfo", __func__);
-		return -EINVAL;
-	}
+#ifdef ENABLE_HDMI
+        ctx->hdmi_settings.hdmid_sockfd = open_hdmid_socket();
+        if (ctx->hdmi_settings.hdmid_sockfd < 0)
+            ALOGE("Failed to open communication channel to hdmid");
+#endif
 
+        *device = &ctx->dev.common;
+        pthread_mutex_unlock(&ctx->hwc_mutex);
+    } else
+        return -EINVAL;
 
-	ALOGI("%s: %d %d %d %d %d %d %d", __func__,lcdinfo.width, lcdinfo.height, lcdinfo.yres,
-			lcdinfo.left_margin ,lcdinfo.right_margin, lcdinfo.xres, lcdinfo.pixclock);
-/*	int refreshRate = 1000000000000LLU /
-		(
-		 uint64_t( lcdinfo.upper_margin + lcdinfo.lower_margin + lcdinfo.yres)
-		 * ( lcdinfo.left_margin  + lcdinfo.right_margin + lcdinfo.xres)
-		 * lcdinfo.pixclock
-		);
-*/
-	refreshRate = 60;
-
-	dev->vsync_period = 1000000000UL / refreshRate;
-	dev->xres = lcdinfo.xres;
-	dev->yres = lcdinfo.yres;
-	dev->xdpi = (lcdinfo.xres * 25.4f * 1000.0f) / lcdinfo.width;
-	dev->ydpi = (lcdinfo.yres * 25.4f * 1000.0f) / lcdinfo.height;
-
-	pthread_mutex_unlock(&dev->hwc_mutex);
-
-	return 0;
+    return 0;
 worker_error:
 gralloc_error:
-	close(dev->compdev);
+    close(ctx->compdev);
 compdev_error:
-	close(dev->hwmem);
+    close(ctx->hwmem);
 error:
-	if (dev)
-		free(dev);
-	pthread_mutex_unlock(&dev->hwc_mutex);
-
-	return -EINVAL;
+    if (ctx)
+        free(ctx);
+    pthread_mutex_unlock(&ctx->hwc_mutex);
+    return -1;
 }
 
-static struct hw_module_methods_t hwc_module_methods = {
-	.open = hwc_open,
-};
-
-hwc_module_t HAL_MODULE_INFO_SYM = {
-	.common = {
-		.tag = HARDWARE_MODULE_TAG,
-		.version_major = 1,
-		.version_minor = 0,
-		.id = HWC_HARDWARE_MODULE_ID,
-		.name = "Dummy hwcomposer",
-		.author = "Simon Shields <simon@lineageos.org>",
-		.methods = &hwc_module_methods,
-	},
-};

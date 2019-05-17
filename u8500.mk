@@ -3,11 +3,7 @@ PRODUCT_PACKAGES += \
    libasound
 $(call inherit-product, hardware/u8500/audio/libasound/alsa-lib-products.mk)
 
-# STE Sensors
-PRODUCT_PACKAGES += \
-   sensors.montblanc
-
-# STE Display
+# STE Display 
 PRODUCT_PACKAGES += \
    lights.montblanc \
    gralloc.montblanc \
@@ -33,8 +29,12 @@ PRODUCT_PACKAGES += \
     libsecril-client
 
 # Legacy RIL
-#PRODUCT_PACKAGES += \
-#    libsecril-shim
+PRODUCT_PACKAGES += \
+    libsecril-shim
+
+# libmmprobe
+PRODUCT_PACKAGES += \
+    libmmprobe
 
 # power
 #PRODUCT_PACKAGES += \

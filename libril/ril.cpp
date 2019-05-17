@@ -867,9 +867,11 @@ void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
     int rwlockRet = pthread_rwlock_rdlock(radioServiceRwlockPtr);
     assert(rwlockRet == 0);
 
-    ret = pRI->responseFunction(
-            (int) soc_id, responseType, 0, RIL_E_SUCCESS, const_cast<void*>(data),
-            datalen);
+    if (pRI->responseFunction) {
+        ret = pRI->responseFunction(
+                (int) soc_id, responseType, 0, RIL_E_SUCCESS, const_cast<void*>(data),
+                datalen);
+    }
 
     rwlockRet = pthread_rwlock_unlock(radioServiceRwlockPtr);
     assert(rwlockRet == 0);
@@ -1020,7 +1022,7 @@ failCauseToString(RIL_Errno e) {
         case RIL_E_SIM_FULL: return "E_SIM_FULL";
         case RIL_E_NETWORK_REJECT: return "E_NETWORK_REJECT";
         case RIL_E_OPERATION_NOT_ALLOWED: return "E_OPERATION_NOT_ALLOWED";
-        case RIL_E_EMPTY_RECORD: "E_EMPTY_RECORD";
+        case RIL_E_EMPTY_RECORD: return "E_EMPTY_RECORD";
         case RIL_E_INVALID_SMS_FORMAT: return "E_INVALID_SMS_FORMAT";
         case RIL_E_ENCODING_ERR: return "E_ENCODING_ERR";
         case RIL_E_INVALID_SMSC_ADDRESS: return "E_INVALID_SMSC_ADDRESS";
