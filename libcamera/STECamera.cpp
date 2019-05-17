@@ -2612,6 +2612,14 @@ OMX_ERRORTYPE STECamera::initPreviewHeap(bool aPreviewRunning /*false*/)
     return err;
 }
 
+#include <cutils/atomic.h>
+static uint64_t getUniqueId() {
+    static volatile int32_t nextId = 0;
+    uint64_t id = static_cast<uint64_t>(getpid()) << 32;
+    id |= static_cast<uint32_t>(android_atomic_inc(&nextId));
+    return id;
+}
+
 void STECamera::configureVideoHeap()
 {
     DBGT_PROLOG("");
@@ -2693,27 +2701,48 @@ void STECamera::configureVideoHeap()
 //                int stride;
                 uint32_t stride;
                 buffer_handle_t buf;
-                int ret = GrallocAlloc.alloc(
+/*
+    status_t allocate(uint32_t w, uint32_t h, PixelFormat format,
+            uint32_t layerCount, uint64_t usage,
+            buffer_handle_t* handle, uint32_t* stride, uint64_t graphicBufferId,
+            std::string requestorName);
+*/
+		std::string requestorName("camera");
+                int ret = GrallocAlloc.allocate(
                         w,
                         h+extraDataHeight,
                         recordPixFmt,
-                        CAMHAL_GRALLOC_USAGE,
+			1, // layerCount
+                        static_cast<uint64_t>(CAMHAL_GRALLOC_USAGE),
                         &buf,
-                        &stride);
+                        &stride,
+			getUniqueId(),
+			requestorName);
 
                 DBGT_PTRACE("buf = %p", buf);
 
                 mRecordGraphicBuffer[i].clear();
+/*
+GraphicBuffer::GraphicBuffer(uint32_t inWidth, uint32_t inHeight,
+        PixelFormat inFormat, uint32_t inLayerCount, uint64_t usage, std::string requestorName)
+sp<GraphicBuffer> graphicBuffer = new GraphicBuffer(w, h,
+                                                        format,
+                                                        1,
+                                                        usage,
+                                                        inStride,
+                                                        &inHandle,
+                                                        keepOwnership)
+
+*/
                 mRecordGraphicBuffer[i]
-                    = new GraphicBuffer(
-                            w,
-                            h,
-                            recordPixFmt,
-                            CAMHAL_GRALLOC_USAGE,
-//                            stride,
-                            static_cast<int>(stride),
-                            (native_handle_t*)buf,
-                            false);
+                    = new GraphicBuffer(w,
+                                        h,
+                                        recordPixFmt,
+                                        1, /* inLayerCount */
+                                        static_cast<uint64_t>(CAMHAL_GRALLOC_USAGE),
+					stride,
+                                        (native_handle_t *)buf,
+                                        false);
 
                 pRecBuffer[i] = NULL;
                 pJPEGinBuffer[i] = NULL;
@@ -4038,7 +4067,7 @@ status_t STECamera::getNativeBuffFromNativeWindow(void)
 
         DBGT_PTRACE("nativeWin =%p", nativeWin);
         mGraphicBuffer[i].clear();
-        mGraphicBuffer[i] = new GraphicBuffer(nativeWin, false);
+        mGraphicBuffer[i] = GraphicBuffer::from(nativeWin);
         if (NULL == mGraphicBuffer[i].get()) {
             DBGT_CRITICAL("Not enough memory to create graphic buffer at Index %d", i);
             goto CANCEL_BUFFERS;
@@ -9437,8 +9466,8 @@ int STECamera::SetPropMeteringArea(const CameraParameters &params, OMX_HANDLETYP
                 DBGT_EPILOG("");
                 return UNKNOWN_ERROR;
             }
-//            const char *tempStr = strstr(str, ",(");
-            char *tempStr = strstr(str, ",(");
+            const char *tempStr = strstr(str, ",(");
+            //char *tempStr = strstr(str, ",(");
             if (tempStr) {
                 str = tempStr+1;
                 maxAreasLessOne ++;
@@ -9672,8 +9701,8 @@ int STECamera::SetPropFocusArea(const CameraParameters &params, OMX_HANDLETYPE m
                 DBGT_EPILOG("");
                 return (int)UNKNOWN_ERROR;
             }
-//            const char *tempStr = strstr(str, ",(");
-            char *tempStr = strstr(str, ",(");
+            const char *tempStr = strstr(str, ",(");
+            //char *tempStr = strstr(str, ",(");
             if (tempStr) {
                 str = tempStr+1;
                 maxAreasLessOne ++;

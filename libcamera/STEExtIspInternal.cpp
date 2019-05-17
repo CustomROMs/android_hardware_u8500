@@ -1378,6 +1378,14 @@ int STEExtIspCamera::previewThread()
     return NO_ERROR;
 }
 
+#include <cutils/atomic.h>
+static uint64_t getUniqueId() {
+    static volatile int32_t nextId = 0;
+    uint64_t id = static_cast<uint64_t>(getpid()) << 32;
+    id |= static_cast<uint32_t>(android_atomic_inc(&nextId));
+    return id;
+}
+
 static status_t allocNativeBuffer(
     buffer_handle_t* handle,
     uint32_t* stride,
@@ -1389,8 +1397,14 @@ static status_t allocNativeBuffer(
 {
 
     GraphicBufferAllocator &GrallocAlloc = GraphicBufferAllocator::get();
-    return GrallocAlloc.alloc(w, h, format, usage, handle, stride);
-//    return GrallocAlloc.alloc(w, h, format, usage, handle, reinterpret_cast<uint32_t*>(stride));
+    std::string requestorName("camera");
+/*
+status_t GraphicBufferAllocator::allocate(uint32_t width, uint32_t height,
+        PixelFormat format, uint32_t layerCount, uint64_t usage,
+        buffer_handle_t* handle, uint32_t* stride,
+        uint64_t graphicBufferId, std::string requestorName
+*/
+    return GrallocAlloc.allocate(w, h, format, 1, usage, handle, stride, getUniqueId(), requestorName);
 }
 
 static status_t freeNativeBuffer(
@@ -1409,8 +1423,14 @@ static sp<GraphicBuffer> allocGraphicBuffer(
     bool keepOwnership = false)
 {
 
+/*
+    GraphicBuffer(uint32_t inWidth, uint32_t inHeight, PixelFormat inFormat,
+            uint32_t inLayerCount, uint32_t inUsage, uint32_t inStride,
+            native_handle_t* inHandle, bool keepOwnership)*/
+
     sp<GraphicBuffer> graphicBuffer = new GraphicBuffer(w, h,
                                                         format,
+                                                        1, /* inLayerCount */
                                                         usage,
                                                         inStride,
                                                         &inHandle,

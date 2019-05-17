@@ -14,7 +14,7 @@
 #include "STECameraMsg.h"
 
 //System Include
-#include <camera/Camera.h>
+//#include <camera/Camera.h>
 #include <system/camera.h>
 
 /* Compile time assert fail */
