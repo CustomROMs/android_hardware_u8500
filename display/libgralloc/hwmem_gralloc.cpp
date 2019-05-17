@@ -36,6 +36,9 @@
 #include <hardware/gralloc.h>
 #include <system/graphics.h>
 #include <system/graphics-base.h>
+
+#include <gralloc1-adapter.h>
+
 #include "gralloc_stericsson_ext.h"
 
 #include "hwmem_gralloc.h"
@@ -155,7 +158,12 @@ struct hwmem_gralloc_module_t HAL_MODULE_INFO_SYM = {
     .base = {
         .common = {
             .tag = HARDWARE_MODULE_TAG,
+#ifdef ADVERTISE_GRALLOC1
+            .version_major = GRALLOC1_ADAPTER_MODULE_API_VERSION_1_0,
+#else
             .version_major = 1,
+#endif
+
             .version_minor = 0,
             .id = GRALLOC_HARDWARE_MODULE_ID,
             .name = "Graphics Memory Allocator Module",
@@ -262,6 +270,13 @@ static int gralloc_open_device(const struct hw_module_t* module, const char* nam
         LOG_USER_ERROR("%s: NULL == name || NULL == device", __func__);
         return -EINVAL;
     }
+
+#ifdef ADVERTISE_GRALLOC1
+    if (!strcmp(name, GRALLOC_HARDWARE_MODULE_ID)) {
+        return gralloc1_adapter_device_open(module, name, device);
+    }
+#endif
+
 
     /* module_2_hwmem_gralloc_module does not write to module so the const to non
     const cast is ok */
@@ -401,8 +416,13 @@ static int gralloc_unlock(gralloc_module_t const* module, buffer_handle_t handle
 
 static int gralloc_perform(struct gralloc_module_t const* module, int operation, ...)
 {
+    int res = -EINVAL;
+    if(!module)
+        return res;
+
     va_list args;
     va_start(args, operation);
+
 
     LOG_API_CALL("%s(%p, %i, ...)", __func__, module, operation);
 
@@ -486,16 +506,98 @@ static int gralloc_perform(struct gralloc_module_t const* module, int operation,
         }
         case GRALLOC_MODULE_PERFORM_COMPOSITION_COMPLETE:
         {
-            return fb_compositionComplete();
+            return fb_compositionComplete(NULL);
         }
 
+        case GRALLOC1_ADAPTER_PERFORM_GET_REAL_MODULE_API_VERSION_MINOR:
+            {
+                auto outMinorVersion = va_arg(args, int*);
+                *outMinorVersion = 0;
+                ALOGV("%s: GRALLOC1_ADAPTER_PERFORM_GET_REAL_MODULE_API_VERSION_MINOR %d",
+                    __func__, *outMinorVersion);
+            } break;
+        case GRALLOC1_ADAPTER_PERFORM_SET_USAGES:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto producerUsage = va_arg(args, uint64_t);
+                auto consumerUsage = va_arg(args, uint64_t);
+                hnd->producer_usage = producerUsage;
+                hnd->consumer_usage = consumerUsage;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_SET_USAGES p:0x%08x c:0x%08x", __func__,
+                    hnd, producerUsage, consumerUsage);
+            } break;
 
+        case GRALLOC1_ADAPTER_PERFORM_GET_DIMENSIONS:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outWidth = va_arg(args, int*);
+                auto outHeight = va_arg(args, int*);
+                *outWidth = hnd->width;
+                *outHeight = hnd->height;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_DIMENSIONS %d x %d", __func__,
+                    hnd, *outWidth, *outHeight);
+            } break;
+
+        case GRALLOC1_ADAPTER_PERFORM_GET_FORMAT:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outFormat = va_arg(args, int*);
+                *outFormat = hnd->format;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_FORMAT %d", __func__,
+                    hnd, *outFormat);
+            } break;
+
+        case GRALLOC1_ADAPTER_PERFORM_GET_PRODUCER_USAGE:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outUsage = va_arg(args, uint64_t*);
+                *outUsage = hnd->producer_usage;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_PRODUCER_USAGE 0x%08x", __func__,
+                    hnd, hnd->producer_usage);
+            } break;
+        case GRALLOC1_ADAPTER_PERFORM_GET_CONSUMER_USAGE:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outUsage = va_arg(args, uint64_t*);
+                *outUsage = hnd->consumer_usage;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_CONSUMER_USAGE 0x%08x", __func__,
+                    hnd, hnd->consumer_usage);
+            } break;
+
+/*        case GRALLOC1_ADAPTER_PERFORM_GET_BACKING_STORE:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outBackingStore = va_arg(args, uint64_t*);
+                *outBackingStore = hnd->backing_store;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_BACKING_STORE %llu", __func__,
+                    hnd, *outBackingStore);
+            } break;*/
+
+        case GRALLOC1_ADAPTER_PERFORM_GET_NUM_FLEX_PLANES:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outNumFlexPlanes = va_arg(args, int*);
+
+                (void) hnd;
+                // for simpilicity
+                *outNumFlexPlanes = 4;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_NUM_FLEX_PLANES %d", __func__,
+                    hnd, *outNumFlexPlanes);
+            } break;
+
+        case GRALLOC1_ADAPTER_PERFORM_GET_STRIDE:
+            {
+                auto hnd =  va_arg(args, hwmem_gralloc_buf_handle_t*);
+                auto outStride = va_arg(args, int*);
+                *outStride = hnd->width;
+                ALOGV("%s: (%p) GRALLOC1_ADAPTER_PERFORM_GET_STRIDE %d", __func__,
+                    hnd, *outStride);
+            } break;
         default:
-            va_end(args);
-
-            LOG_USER_ERROR("%s: Unknown operation, %i", __func__, operation);
-            return -EINVAL;
+            ALOGE("%s: Unknown operation, %i", __func__, operation);
     }
+    va_end(args);
+    return res;
 }
 
 static int gralloc_create_handle_from_buffer(int fd, size_t size, size_t offset, void* base,
@@ -1078,7 +1180,7 @@ static int mmap_buf_if_necessary(struct hwmem_gralloc_buf_handle_t *buf, void **
         goto hwmem_get_info_failed;
     }
 
-    buf_tg_info->mmap_prot = hwmem_access_2_mmap_prot(buf_info.access);
+    buf_tg_info->mmap_prot = hwmem_access_2_mmap_prot(static_cast<enum hwmem_access>(buf_info.access));
     /* TODO: Uncomment when applications learns to allocate buffers with correct usage */
     /*buf_tg_info->mmap_prot = limit_mmap_prot_to_usage(buf_tg_info->mmap_prot,
         buf->usage);*/
@@ -1189,11 +1291,11 @@ static enum hwmem_access usage_2_hwmem_access(int usage)
     enum hwmem_access hwmem_access = (enum hwmem_access)0;
 
     if (usage & GRALLOC_USAGE_SW_READ_MASK)
-        hwmem_access |= HWMEM_ACCESS_READ;
+        hwmem_access = (enum hwmem_access)(hwmem_access | HWMEM_ACCESS_READ);
     if (usage & GRALLOC_USAGE_SW_WRITE_MASK || usage & GRALLOC_USAGE_HW_RENDER)
-        hwmem_access |= HWMEM_ACCESS_WRITE;
+        hwmem_access = (enum hwmem_access)(hwmem_access |HWMEM_ACCESS_WRITE);
     if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_FB))
-        hwmem_access |= HWMEM_ACCESS_READ | HWMEM_ACCESS_WRITE;
+        hwmem_access = (enum hwmem_access)(hwmem_access |HWMEM_ACCESS_READ | HWMEM_ACCESS_WRITE);
 
     return hwmem_access;
 }
@@ -1598,7 +1700,7 @@ static enum hwmem_alloc_flags usage_2_hwmem_alloc_flags(int usage)
     int hw_usage = usage & GRALLOC_USAGE_HW_MASK;
 
     if (sw_usage == 0)
-        return HWMEM_ALLOC_HINT_UNCACHED;
+        return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_UNCACHED);
     else if (sw_usage & GRALLOC_USAGE_SW_READ_OFTEN ||
         (sw_usage & GRALLOC_USAGE_SW_READ_RARELY && !(hw_usage &
         (GRALLOC_USAGE_HW_RENDER | GRALLOC_USAGE_HW_2D))))
@@ -1606,16 +1708,16 @@ static enum hwmem_alloc_flags usage_2_hwmem_alloc_flags(int usage)
         /* Read often, or rarely with no chance of HW write -> SW read (invalidate
         needed) */
         if (sw_usage & GRALLOC_USAGE_SW_WRITE_OFTEN)
-            return HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
-                HWMEM_ALLOC_HINT_CACHE_WB;
+            return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
+                HWMEM_ALLOC_HINT_CACHE_WB);
         else
-            return HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
-                HWMEM_ALLOC_HINT_CACHE_WT;
+            return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_WRITE_COMBINE | HWMEM_ALLOC_HINT_CACHED |
+                HWMEM_ALLOC_HINT_CACHE_WT);
     }
     else
         /* Write often/rarely, read rarely with risk of HW write -> SW read or a
         combination of the two */
-        return HWMEM_ALLOC_HINT_UNCACHED | HWMEM_ALLOC_HINT_WRITE_COMBINE;
+        return static_cast<hwmem_alloc_flags>(HWMEM_ALLOC_HINT_UNCACHED | HWMEM_ALLOC_HINT_WRITE_COMBINE);
 }
 
 static enum hwmem_mem_type usage_2_hwmem_mem_type(int usage)

@@ -56,6 +56,10 @@ struct hwmem_gralloc_buf_handle_t
     int     lockState;
     int     writeOwner;
     int     pid;
+
+    uint64_t backing_store;
+    uint64_t producer_usage;
+    uint64_t consumer_usage;
 };
 
 extern const int num_fds_in_hwmem_gralloc_buf_handle;

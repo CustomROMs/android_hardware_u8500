@@ -24,12 +24,21 @@ LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM libnativewindow
 
-LOCAL_SRC_FILES := hwmem_gralloc.c hwmem_gralloc_pmem.c hwmem_gralloc_framebuffer.c
+LOCAL_SRC_FILES := hwmem_gralloc.cpp hwmem_gralloc_pmem.cpp hwmem_gralloc_framebuffer.cpp
 
 # LOCAL_HEADER_LIBRARIES := libhardware_headers
 
 LOCAL_C_INCLUDES += $(MULTIMEDIA_PATH)/linux/b2r2lib/include $(MULTIMEDIA_PATH)
+
+LOCAL_STATIC_LIBRARIES        := libgralloc1-adapter
+LOCAL_SHARED_LIBRARIES        += libsync
+
 LOCAL_MODULE := gralloc.$(TARGET_BOARD_PLATFORM)
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS := -DLOG_TAG=\"gralloc\"
+
+ifeq ($(TARGET_USES_GRALLOC1), true)
+LOCAL_CFLAGS += -DADVERTISE_GRALLOC1
+endif
+
 include $(BUILD_SHARED_LIBRARY)
