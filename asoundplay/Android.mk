@@ -22,8 +22,25 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := sound_playback.c
 
 LOCAL_C_INCLUDES += hardware/u8500/audio/libasound/include
+LOCAL_C_INCLUDES += hardware/u8500/audio/libasound/src
 LOCAL_CFLAGS := -D_POSIX_SOURCE
 
 LOCAL_SHARED_LIBRARIES := libasound
 
 include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libtinyasound
+LOCAL_MODULE_TAGS := optional
+
+LOCAL_SRC_FILES := tinyasound.c
+
+LOCAL_C_INCLUDES += hardware/u8500/audio/libasound/include
+LOCAL_CFLAGS := -D_POSIX_SOURCE
+
+LOCAL_SHARED_LIBRARIES := libasound
+
+include $(BUILD_SHARED_LIBRARY)
+
+#int setup_params(void)

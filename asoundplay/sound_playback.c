@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 	int rate, channels, seconds;
 	snd_pcm_t *pcm_handle;
 	snd_pcm_hw_params_t *params;
-	snd_pcm_uframes_t frames;
+	snd_pcm_uframes_t frames = 8;
 	char *buff;
 	int buff_size, loops;
 
@@ -65,11 +65,27 @@ int main(int argc, char **argv) {
 						SND_PCM_FORMAT_S16_LE) < 0) 
 		printf("ERROR: Can't set format. %s\n", snd_strerror(pcm));
 
-	if (pcm = snd_pcm_hw_params_set_channels(pcm_handle, params, channels) < 0) 
+	if (pcm = snd_pcm_hw_params_set_channels(pcm_handle, params, 8) < 0) 
 		printf("ERROR: Can't set channels number. %s\n", snd_strerror(pcm));
 
 	if (pcm = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0) < 0) 
 		printf("ERROR: Can't set rate. %s\n", snd_strerror(pcm));
+
+	//if (pcm = snd_pcm_hw_params_set_period_size_near(pcm_handle, params, &frames, 0) < 0) 
+	//	printf("ERROR: Can't set period size. %s\n", snd_strerror(pcm));
+
+	if (pcm = snd_pcm_hw_params_set_period_size(pcm_handle, params, frames, 0) < 0)
+		printf("ERROR: Can't set period size. %s\n", snd_strerror(pcm));
+
+	unsigned int periods = 2;
+	//int snd_pcm_hw_params_set_periods(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val, int dir);
+	if (pcm = snd_pcm_hw_params_set_periods(pcm_handle, params, periods, 0) < 0)
+		printf("ERROR: Can't set periods. %s\n", snd_strerror(pcm));
+
+	//int snd_pcm_hw_params_set_buffer_size(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t val);
+	snd_pcm_uframes_t buffer_size = 16;
+	if (pcm = snd_pcm_hw_params_set_buffer_size(pcm_handle, params, buffer_size) < 0)
+		printf("ERROR: Can't set buffer size. %s\n", snd_strerror(pcm));
 
 	/* Write parameters */
 	if (pcm = snd_pcm_hw_params(pcm_handle, params) < 0)
@@ -91,7 +107,7 @@ int main(int argc, char **argv) {
 	snd_pcm_hw_params_get_rate(params, &tmp, 0);
 	printf("rate: %d bps\n", tmp);
 
-	printf("seconds: %d\n", seconds);	
+	printf("seconds: %d\n", seconds);
 
 	/* Allocate buffer to hold single period */
 	snd_pcm_hw_params_get_period_size(params, &frames, 0);
