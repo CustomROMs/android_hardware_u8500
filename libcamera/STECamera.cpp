@@ -1463,12 +1463,14 @@ OMX_ERRORTYPE STECamera::initPrimaryDefaultParameters()
     //setPreviewFrameRate to the default framerate in case client does not set any framerate
     mParameters.setPreviewFrameRate(mConfigFrameRate);
 
-    mParameters.setVideoSize(DEFAULT_VIDEO_RECORD_WIDTH,DEFAULT_VIDEO_RECORD_HEIGHT);
+    //mParameters.setVideoSize(DEFAULT_VIDEO_RECORD_WIDTH,DEFAULT_VIDEO_RECORD_HEIGHT);
+    //DBGT_PTRACE("Default video record Witdh: %d Height: %d", DEFAULT_VIDEO_RECORD_WIDTH, DEFAULT_VIDEO_RECORD_HEIGHT);
+    mParameters.setVideoSize(1280, 720);
     DBGT_PTRACE("Default video record Witdh: %d Height: %d", DEFAULT_VIDEO_RECORD_WIDTH, DEFAULT_VIDEO_RECORD_HEIGHT);
 
     /* This is SAS list.Customer specific list need to be added  */
-    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, "1920x1080,1280x720,720x480,640x480,352x288,320x240,176x144,128x96");
-    mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "1024x768");
+    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, "1280x720,960x720,800x480,720x480,640x480,352x288,320x240,176x144");
+    mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "1280x720");
 
     DBGT_PTRACE("Default picture Width: %d Height: %d Quality %d ", DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT, DEFAULT_PICTURE_QUALITY);
     mParameters.setPictureSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);
@@ -1672,10 +1674,10 @@ OMX_ERRORTYPE STECamera::initSecondaryDefaultParameters()
     DBGT_PTRACE("Default video record Witdh: %d Height: %d", DEFAULT_SECONDARY_VIDEO_RECORD_WIDTH,DEFAULT_SECONDARY_VIDEO_RECORD_HEIGHT);
 
     /* This is SAS list.Customer specific list need to be added  */
-    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, "720x480,640x480,352x288,320x240,176x144,128x96");
+    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES, "1280x720,960x720,800x480,720x480,640x480,352x288,320x240,176x144");
 
 
-    mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
+    mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "1280x720");
 
     DBGT_PTRACE("Default picture Width: %d Height: %d Quality %d ", DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT, DEFAULT_PICTURE_QUALITY);
     mParameters.setPictureSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);

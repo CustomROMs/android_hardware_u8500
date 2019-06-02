@@ -28,7 +28,7 @@
 #include <IFM_Index.h>
 #include <OMX_Symbian_ComponentExt_Ste.h>
 
-#define SEM_WAIT_TIMEOUT 2000000 //us
+#define SEM_WAIT_TIMEOUT 20000000 //us
 
 #endif //CAM_PRINT_API_PARAM
 
