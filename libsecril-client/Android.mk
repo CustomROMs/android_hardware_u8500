@@ -1,4 +1,5 @@
 # Copyright 2006 The Android Open Source Project
+ifeq ($(BOARD_NAME),u8500)
 
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
@@ -26,3 +27,4 @@ LOCAL_MODULE:= libsecril-client
 LOCAL_PRELINK_MODULE := false
 
 include $(BUILD_SHARED_LIBRARY)
+endif
