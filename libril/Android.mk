@@ -1,6 +1,6 @@
 # Copyright 2006 The Android Open Source Project
 
-ifeq ($(BOARD_NAME),u8500)
+#ifeq ($(BOARD_NAME),u8500)
 ifeq ($(BOARD_PROVIDES_LIBRIL),true)
 
 LOCAL_PATH:= $(call my-dir)
@@ -60,4 +60,4 @@ LOCAL_MODULE:= libril_static
 include $(BUILD_STATIC_LIBRARY)
 endif # ANDROID_BIONIC_TRANSITION
 endif # BOARD_PROVIDES_LIBRIL
-endif
+#endif
