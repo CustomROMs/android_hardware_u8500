@@ -35,7 +35,115 @@
 void *ump_uk_ctx = NULL;
 
 /** Lock for critical section in open/close */
-_ump_osu_lock_t * ump_lock_arch = NULL;
+_ump_osu_lock_t *hwmem_ump_lock = NULL;
+
+static volatile int ump_ref_count = 0;
+
+ump_result ump_arch_open(void)
+{
+  signed int result;
+  signed int result_1;
+
+  _ump_osu_lock_auto_init(&hwmem_ump_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+  if ( hwmem_ump_lock )
+  {
+    if ( _ump_osu_lock_wait(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW) )
+    {
+      puts("UMP: ump_arch_open() failed to aquire lock");
+      result = 1;
+    }
+    else
+    {
+      if ( ump_ref_count < 0 )
+      {
+        puts("*********************************************************************");
+        printf("ASSERT EXIT: ");
+        printf(
+          "In file: vendor/st-ericsson/variant/multimedia/linux/mali400/driver/./src/ump/arch_hwmem/ump_arch_hwmem.c  fun"
+          "ction: %s()   line:%4d\n",
+          "ump_arch_open",
+          53);
+        printf("UMP: Reference count invalid at _mali_base_arch_open()");
+        putchar(10);
+        abort();
+      }
+      if ( ++ump_ref_count == 1 )
+      {
+        result_1 = hwmem_uku_open(&ump_uk_ctx);
+        if ( result_1 )
+        {
+          result_1 = 1;
+          puts("UMP: ump_arch_open() failed to open UMP device driver");
+        }
+      }
+      _ump_osu_lock_signal(hwmem_ump_lock, 0);
+      result = result_1;
+    }
+  }
+  else
+  {
+    puts("UMP: ump_arch_open() failed to init lock");
+    result = 1;
+  }
+  return result;
+}
+
+
+void ump_arch_close()
+{
+  _ump_osu_lock_auto_init(&hwmem_ump_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+  if ( hwmem_ump_lock )
+  {
+    if ( _ump_osu_lock_wait(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW) )
+    {
+      puts("UMP: ump_arch_close() failed to aquire lock");
+    }
+    else
+    {
+      if ( ump_ref_count <= 0 )
+      {
+        puts("*********************************************************************");
+        printf("ASSERT EXIT: ");
+        printf(
+          "In file: vendor/st-ericsson/variant/multimedia/linux/mali400/driver/./src/ump/arch_hwmem/ump_arch_hwmem.c  fun"
+          "ction: %s()   line:%4d\n",
+          "ump_arch_close",
+          93);
+        printf("UMP: ump_arch_close() called while no references exist");
+        putchar(10);
+        abort();
+      }
+      if ( ump_ref_count <= 0 || (--ump_ref_count, ump_ref_count) )
+      {
+        _ump_osu_lock_signal(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW);
+      }
+      else
+      {
+        if ( hwmem_uku_close(&ump_uk_ctx) )
+        {
+          puts("*********************************************************************");
+          printf("ASSERT EXIT: ");
+          printf(
+            "In file: vendor/st-ericsson/variant/multimedia/linux/mali400/driver/./src/ump/arch_hwmem/ump_arch_hwmem.c  f"
+            "unction: %s()   line:%4d\n",
+            "ump_arch_close",
+            100);
+          printf("UMP: Failed to close UMP interface");
+          putchar(10);
+          abort();
+        }
+        ump_uk_ctx = NULL;
+        _ump_osu_lock_signal(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW);
+        _ump_osu_lock_term(hwmem_ump_lock);
+        hwmem_ump_lock = NULL;
+      }
+    }
+  }
+  else
+  {
+    puts("UMP: ump_arch_close() failed to init lock");
+  }
+}
 
 ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints constraints)
 {
