@@ -27,6 +27,8 @@
 #include <ump/ump_uk_types.h>
 #include "../os/ump_uku.h"
 
+#include <linux/hwmem.h>
+
 #include <cutils/log.h>
 
 /** Pointer to an OS-Specific context that we should pass in _uku_ calls */
@@ -233,6 +235,25 @@ void ump_arch_release(ump_secure_id secure_id)
 	UMP_IGNORE(retval);
 }
 #endif
+
+int ump_arch_import(ump_secure_id secure_id, unsigned long *size)
+{
+  unsigned long cookie; // r0@1
+  struct hwmem_get_info_request req; // [sp+0h] [bp-20h]@1
+
+  cookie = hwmem_uku_import((int)*ump_uk_ctx_ptr, secure_id);
+  req.size = 0;
+  req.id = cookie;
+  hwmem_uku_get_info((int)*ump_uk_ctx_ptr, &req);
+
+  *size = req.size;
+  return cookie;
+}
+
+int ump_arch_export(int a1)
+{
+  return hwmem_uku_export((int)*ump_uk_ctx_ptr, a1);
+}
 
 int ump_arch_lock(unsigned long offset, size_t size)
 {

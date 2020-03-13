@@ -67,11 +67,11 @@ int hwmem_uku_release(int result, int a2)
 }
 
 //----- (00001DB8) --------------------------------------------------------
-int hwmem_uku_import(int cookie, int a2)
+int hwmem_uku_import(int fd, int a2)
 {
-  if ( cookie != -1 )
-    cookie = ioctl(cookie, 0x570Bu, a2);
-  return cookie;
+  if ( fd != -1 )
+    fd = ioctl(fd, 0x570Bu, a2);
+  return fd;
 }
 
 //----- (00001DCC) --------------------------------------------------------
@@ -132,9 +132,9 @@ int hwmem_uku_set_access(int fd, int a2)
 }
 
 //----- (00001E98) --------------------------------------------------------
-int hwmem_uku_get_info(int fd, int a2)
+int hwmem_uku_get_info(int fd, struct hwmem_get_info_request *req)
 {
   if ( fd != -1 )
-    fd = ioctl(fd, 0xC0105709, a2);
+    fd = ioctl(fd, 0xC0105709, req);
   return fd;
 }

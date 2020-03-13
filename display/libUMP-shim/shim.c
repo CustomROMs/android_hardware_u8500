@@ -59,8 +59,8 @@ int *hwmem_ump_lock_ptr = NULL;
 
 //void (*fReal_ump_arch_release)(ump_secure_id secure_id);
 
-ump_secure_id (*fReal_ump_arch_import)(ump_secure_id secure_id, unsigned long *size);
-ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
+//ump_secure_id (*fReal_ump_arch_import)(ump_secure_id secure_id, unsigned long *size);
+//ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 
 
 /* frontend */
@@ -96,8 +96,8 @@ void libEvtLoading(void)
 	//LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
 	//LOAD_SYMBOL(fReal_ump_arch_msync, "ump_arch_msync");
 	//LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
-	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
-	LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
+	//LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
+	//LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
 	//LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
         //LOAD_SYMBOL(fReal_ump_open, "ump_open");
         //LOAD_SYMBOL(fReal_ump_close, "ump_close");
@@ -157,8 +157,8 @@ WRAP_FUNCTION(int, ump_arch_unlock, (unsigned long offset, void *mapped_mem, siz
 
 //WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
 
-WRAP_FUNCTION(ump_secure_id, ump_arch_import, (ump_secure_id secure_id, unsigned long *size), (secure_id, size), fReal_ump_arch_import)
-WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
+//WRAP_FUNCTION(ump_secure_id, ump_arch_import, (ump_secure_id secure_id, unsigned long *size), (secure_id, size), fReal_ump_arch_import)
+//WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
 
 /* frontend */
 
