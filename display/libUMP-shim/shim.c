@@ -42,6 +42,7 @@ void libEvtUnloading(void) __attribute__((destructor));
 
 static void *realLibHandle;
 
+int *ump_uk_ctx_ptr = NULL;
 /* wrapped callbacks */
 
 /* arch */
@@ -108,6 +109,8 @@ void libEvtLoading(void)
 	//LOAD_SYMBOL(fReal_ump_reference_add, "ump_reference_add");
 	//LOAD_SYMBOL(fReal_ump_reference_release, "ump_reference_release");
 
+	LOAD_SYMBOL(ump_uk_ctx_ptr, "ump_uk_ctx");
+
 	return;
 
 out_fail:
@@ -122,7 +125,20 @@ void libEvtUnloading(void)
 
 /* arch */
 
-WRAP_FUNCTION(ump_result, ump_arch_open, (void), (), fReal_ump_arch_open)
+//WRAP_FUNCTION(ump_result, ump_arch_open, (void), (), fReal_ump_arch_open)
+
+ump_result ump_arch_open(void) {
+	int res = fReal_ump_arch_open();
+
+	if (ump_uk_ctx_ptr != NULL) {
+		ALOGE("UMP: ump_uk_ctx_ptr = %p", ump_uk_ctx_ptr);
+		int uk_ctx = *ump_uk_ctx_ptr;
+		ALOGE("UMP: ump_uk_ctx = %d", uk_ctx);
+	}
+
+	return res;
+}
+
 WRAP_VOID_FUNCTION(ump_arch_close, (void), (), fReal_ump_arch_close)
 //WRAP_FUNCTION(ump_secure_id, ump_arch_allocate, (unsigned long * size, ump_alloc_constraints constraints),
 //		(size, constraints), fReal_ump_arch_allocate)
