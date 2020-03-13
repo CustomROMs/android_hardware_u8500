@@ -57,7 +57,7 @@ void *ump_mapped_pointer_get(ump_handle memh1)
 
   if ( memh )
   {
-    if ( memh->secure_id == -1 )
+    if ( memh->secure_id == UMP_INVALID_SECURE_ID )
     {
       memh = 0;
     }
@@ -66,7 +66,7 @@ void *ump_mapped_pointer_get(ump_handle memh1)
       memh = (ump_mem *)memh->mapped_mem;
       if ( !memh )
       {
-        memh = ump_arch_lock(mem->cookie, mem->size);
+        memh = (ump_mem *)ump_arch_lock(mem->cookie, mem->size);
         mem->mapped_mem = memh;
         if ( !memh )
         {
