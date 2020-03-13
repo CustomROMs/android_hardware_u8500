@@ -59,7 +59,7 @@ int (*fReal_ump_arch_unlock)(unsigned long offset, void *mapped_mem, size_t size
 
 //void (*fReal_ump_arch_release)(ump_secure_id secure_id);
 
-ump_secure_id (*fReal_ump_arch_import)(void);
+ump_secure_id (*fReal_ump_arch_import)(ump_secure_id secure_id, unsigned long *size);
 ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 
 
@@ -69,7 +69,7 @@ ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
 //UMP_API_EXPORT ump_result  (*fReal_ump_open)(void);
 //UMP_API_EXPORT void (*fReal_ump_close)(void);
 //UMP_API_EXPORT ump_secure_id (*fReal_ump_secure_id_get)(ump_handle memh);
-UMP_API_EXPORT ump_handle (*fReal_ump_handle_create_from_secure_id)(ump_secure_id secure_id);
+//UMP_API_EXPORT ump_handle (*fReal_ump_handle_create_from_secure_id)(ump_secure_id secure_id);
 //UMP_API_EXPORT void (*fReal_ump_read)(void *dst, ump_handle srch, unsigned long offset, unsigned long length);
 //UMP_API_EXPORT void (*fReal_ump_write)(ump_handle dsth, unsigned long offset, const void *src, unsigned long length);
 //UMP_API_EXPORT void* (*fReal_ump_mapped_pointer_get)(ump_handle memh);
@@ -102,7 +102,7 @@ void libEvtLoading(void)
         //LOAD_SYMBOL(fReal_ump_open, "ump_open");
         //LOAD_SYMBOL(fReal_ump_close, "ump_close");
         //LOAD_SYMBOL(fReal_ump_secure_id_get, "ump_secure_id_get");
-        LOAD_SYMBOL(fReal_ump_handle_create_from_secure_id, "ump_handle_create_from_secure_id");
+        //LOAD_SYMBOL(fReal_ump_handle_create_from_secure_id, "ump_handle_create_from_secure_id");
         //LOAD_SYMBOL(fReal_ump_read, "ump_read");
         //LOAD_SYMBOL(fReal_ump_write, "ump_write");
         //LOAD_SYMBOL(fReal_ump_mapped_pointer_get, "ump_mapped_pointer_get");
@@ -157,7 +157,7 @@ WRAP_FUNCTION(int, ump_arch_unlock, (unsigned long offset, void *mapped_mem, siz
 
 //WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
 
-WRAP_FUNCTION(ump_secure_id, ump_arch_import, (void), (), fReal_ump_arch_import)
+WRAP_FUNCTION(ump_secure_id, ump_arch_import, (ump_secure_id secure_id, unsigned long *size), (secure_id, size), fReal_ump_arch_import)
 WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
 
 /* frontend */
@@ -168,7 +168,28 @@ WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure
 //WRAP_VOID_FUNCTION(ump_close, (void), (), fReal_ump_close)
 
 //WRAP_FUNCTION(ump_secure_id, ump_secure_id_get, (ump_handle memh), (memh), fReal_ump_secure_id_get)
-WRAP_FUNCTION(ump_handle, ump_handle_create_from_secure_id, (ump_secure_id secure_id), (secure_id), fReal_ump_handle_create_from_secure_id)
+//WRAP_FUNCTION(ump_handle, ump_handle_create_from_secure_id, (ump_secure_id secure_id), (secure_id), fReal_ump_handle_create_from_secure_id)
+
+ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_id) {
+	unsigned long cookie, size;
+	void *mapping;
+
+	ump_mem *mem = _ump_osu_calloc(1u, 0x1Cu);
+
+	cookie = ump_arch_import(secure_id, &size);
+	mapping = ump_arch_lock(cookie, size);
+
+          mem->secure_id = secure_id;
+          mem->mapped_mem = mapping;
+          mem->size = size;
+          mem->cookie = cookie;
+          _ump_osu_lock_auto_init(&mem->ref_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+          if (mem->ref_lock)
+            mem->ref_count = 1;
+
+	ALOGE("%s: UMP: UMP handle created for ID %u of size %lu, mapped into address 0x%08lx, ref_lock=0x%08lx, cookie=%ld, cached=%d", __func__, mem->secure_id, mem->size, (unsigned long)mem->mapped_mem, (unsigned long)mem->ref_lock, mem->cookie, mem->is_cached);
+	return (ump_handle)mem;
+}
 
 //WRAP_VOID_FUNCTION(ump_read, (void *dst, ump_handle srch, unsigned long offset, unsigned long length),
 //		(dst, srch, offset, length), fReal_ump_read)
