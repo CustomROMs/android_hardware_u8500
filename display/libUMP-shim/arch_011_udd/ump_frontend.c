@@ -50,6 +50,43 @@ UMP_API_EXPORT ump_secure_id ump_secure_id_get(ump_handle memh)
 	return mem->secure_id;
 }
 
+void *ump_mapped_pointer_get(ump_handle memh1)
+{
+  ump_mem *memh = (ump_mem *)memh1;
+  ump_mem *mem = (ump_mem *)memh1;
+
+  if ( memh )
+  {
+    if ( memh->secure_id == -1 )
+    {
+      memh = 0;
+    }
+    else
+    {
+      memh = (ump_mem *)memh->mapped_mem;
+      if ( !memh )
+      {
+        memh = ump_arch_lock(mem->cookie, mem->size);
+        mem->mapped_mem = memh;
+        if ( !memh )
+        {
+          puts("*********************************************************************");
+          printf("ASSERT EXIT: ");
+          printf(
+            "In file: vendor/st-ericsson/variant/multimedia/linux/mali400/driver/./src/ump/arch_hwmem/ump_frontend_hwmem."
+            "c  function: %s()   line:%4d\n",
+            "ump_mapped_pointer_get",
+            146);
+          printf("Error in mapping pointer (not mapped)");
+          putchar(10);
+          abort();
+        }
+      }
+    }
+  }
+  return memh;
+}
+
 #if 0
 
 UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_id)
