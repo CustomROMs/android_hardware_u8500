@@ -234,6 +234,23 @@ void ump_arch_release(ump_secure_id secure_id)
 }
 #endif
 
+int ump_arch_lock(unsigned long offset, size_t size)
+{
+  int result; // r0@1
+
+  result = hwmem_uku_map((int)*ump_uk_ctx_ptr, offset, size);
+  if ( result == -1 )
+    result = 0;
+  return result;
+}
+// 5054: using guessed type int ump_uk_ctx;
+
+//----- (00001C80) --------------------------------------------------------
+int ump_arch_unlock(unsigned long offset, void *mapped_mem, size_t size)
+{
+  return munmap(mapped_mem, size);
+}
+
 void* ump_arch_map(ump_secure_id secure_id, unsigned long size, ump_cache_enabled cache, unsigned long *cookie_out)
 {
 	_ump_uk_map_mem_s dd_map_call_arg;

@@ -83,11 +83,11 @@ int hwmem_uku_export(int result, int a2)
 }
 
 //----- (00001DE0) --------------------------------------------------------
-void *hwmem_uku_map(void **context, unsigned long offset, size_t len)
+void *hwmem_uku_map(int fd, unsigned long offset, size_t len)
 {
   void *mapped_mem;
-  if ((int)*context != -1)
-    mapped_mem = mmap(0, len, 3, 1, (int)*context, offset);
+  if (fd != -1)
+    mapped_mem = mmap(0, len, 3, 1, fd, offset);
   return mapped_mem;
 }
 

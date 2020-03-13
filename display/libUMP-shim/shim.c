@@ -51,8 +51,8 @@ int *hwmem_ump_lock_ptr = NULL;
 //ump_result (*fReal_ump_arch_open)(void);
 //void (*fReal_ump_arch_close)(void);
 //ump_secure_id (*fReal_ump_arch_allocate)(unsigned long * size, ump_alloc_constraints constraints);
-int (*fReal_ump_arch_lock)(unsigned long offset, size_t size);
-int (*fReal_ump_arch_unlock)(unsigned long offset, void *mapped_mem, size_t size);
+//int (*fReal_ump_arch_lock)(unsigned long offset, size_t size);
+//int (*fReal_ump_arch_unlock)(unsigned long offset, void *mapped_mem, size_t size);
 
 //ump_cache_enabled (*fReal_ump_arch_msync)(ump_secure_id secure_id, void* mapping, unsigned long cookie,
 //	 void * address, unsigned long size,  ump_cpu_msync_op op);
@@ -92,8 +92,8 @@ void libEvtLoading(void)
 	//LOAD_SYMBOL(fReal_ump_arch_open, "ump_arch_open");
 	//LOAD_SYMBOL(fReal_ump_arch_close, "ump_arch_close");
 	//LOAD_SYMBOL(fReal_ump_arch_allocate, "ump_arch_allocate");
-	LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
-	LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
+	//LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
+	//LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
 	//LOAD_SYMBOL(fReal_ump_arch_msync, "ump_arch_msync");
 	//LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
 	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
@@ -145,11 +145,11 @@ void libEvtUnloading(void)
 //WRAP_FUNCTION(ump_secure_id, ump_arch_allocate, (unsigned long * size, ump_alloc_constraints constraints),
 //		(size, constraints), fReal_ump_arch_allocate)
 
-WRAP_FUNCTION(int, ump_arch_lock, (unsigned long offset, size_t size),
+/*WRAP_FUNCTION(int, ump_arch_lock, (unsigned long offset, size_t size),
 		(offset, size), fReal_ump_arch_lock)
 
 WRAP_FUNCTION(int, ump_arch_unlock, (unsigned long offset, void *mapped_mem, size_t size),
-		(offset, mapped_mem, size), fReal_ump_arch_unlock)
+		(offset, mapped_mem, size), fReal_ump_arch_unlock)*/
 
 //WRAP_FUNCTION(ump_cache_enabled, ump_arch_msync, (ump_secure_id secure_id, void* mapping, unsigned long cookie,
 //		void * address, unsigned long size,  ump_cpu_msync_op op),
