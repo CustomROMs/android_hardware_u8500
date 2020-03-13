@@ -238,3 +238,26 @@ UMP_API_EXPORT void ump_reference_release(ump_handle memh)
 	}
 }
 #endif
+
+void ump_reference_release(ump_handle memh)
+{
+  ump_mem *mem = (ump_mem*)memh;
+
+  if ( mem && mem->secure_id != UMP_INVALID_SECURE_ID)
+  {
+    _ump_osu_lock_wait(mem->ref_lock, 0);
+    mem->ref_count -=1 ;
+
+    if (0 == mem->ref_count)
+    {
+      ump_arch_release(mem->cookie);
+      _ump_osu_lock_signal(mem->ref_lock, 0);
+      _ump_osu_lock_term(mem->ref_lock);
+      _ump_osu_free(mem);
+    }
+    else
+    {
+      _ump_osu_lock_signal(mem->ref_lock, 0);
+    }
+  }
+}
