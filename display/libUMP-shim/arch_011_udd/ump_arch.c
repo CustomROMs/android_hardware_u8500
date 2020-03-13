@@ -154,7 +154,7 @@ ump_secure_id ump_arch_allocate(unsigned long * size, ump_alloc_constraints cons
 		return UMP_INVALID_SECURE_ID;
 	}
 
-	call_arg.ctx = ump_uk_ctx;
+	call_arg.ctx = NULL;
 	call_arg.secure_id = UMP_INVALID_SECURE_ID;
 	call_arg.size = *size;
 #ifdef UMP_DEBUG_SKIP_CODE
@@ -191,7 +191,7 @@ unsigned long ump_arch_size_get(ump_secure_id secure_id)
 {
 	_ump_uk_size_get_s dd_size_call_arg;
 
-	dd_size_call_arg.ctx = ump_uk_ctx;
+	dd_size_call_arg.ctx = NULL;
 	dd_size_call_arg.secure_id = secure_id;
 	dd_size_call_arg.size = 0;
 
@@ -251,7 +251,7 @@ void* ump_arch_map(ump_secure_id secure_id, unsigned long size, ump_cache_enable
 
 	UMP_DEBUG_ASSERT_POINTER( cookie_out );
 
-	dd_map_call_arg.ctx = ump_uk_ctx;
+	dd_map_call_arg.ctx = NULL;
 	dd_map_call_arg.secure_id = secure_id;
 	dd_map_call_arg.size = size;
 	dd_map_call_arg.is_cached = (u32) (UMP_CACHE_ENABLE==cache);
@@ -274,7 +274,7 @@ void ump_arch_unmap(void* mapping, unsigned long size, unsigned long cookie)
 {
 	_ump_uk_unmap_mem_s dd_unmap_call_arg;
 
-	dd_unmap_call_arg.ctx = ump_uk_ctx;
+	dd_unmap_call_arg.ctx = NULL;
 	dd_unmap_call_arg.mapping = mapping;
 	dd_unmap_call_arg.size = size;
 	dd_unmap_call_arg.cookie = cookie;
@@ -288,7 +288,7 @@ ump_cache_enabled ump_arch_msync(ump_secure_id secure_id, void* mapping, unsigne
 {
 	_ump_uk_msync_s dd_msync_call_arg;
 
-	dd_msync_call_arg.ctx = ump_uk_ctx;
+	dd_msync_call_arg.ctx = NULL;
 	dd_msync_call_arg.mapping = mapping;
 	dd_msync_call_arg.address = address;
 	dd_msync_call_arg.size = size;
@@ -313,7 +313,7 @@ int ump_arch_cache_operations_control(ump_cache_op_control op)
 	_ump_uk_cache_operations_control_s dd_cache_control_arg;
 
 	dd_cache_control_arg.op = (ump_uk_cache_op_control)op;
-	dd_cache_control_arg.ctx = ump_uk_ctx;
+	dd_cache_control_arg.ctx = NULL;
 
 	UMP_DEBUG_PRINT(4, ("Cache control op:%d",(u32)op ));
 	_ump_uku_cache_operations_control( &dd_cache_control_arg );
@@ -326,7 +326,7 @@ int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user )
 
 	dd_sitch_user_arg.secure_id = secure_id;
 	dd_sitch_user_arg.new_user = (ump_uk_user)new_user;
-	dd_sitch_user_arg.ctx = ump_uk_ctx;
+	dd_sitch_user_arg.ctx = NULL;
 
 	UMP_DEBUG_PRINT(4, ("Switch user UMP:%d User:%d",secure_id, (u32)new_user ));
 	_ump_uku_switch_hw_usage( &dd_sitch_user_arg );

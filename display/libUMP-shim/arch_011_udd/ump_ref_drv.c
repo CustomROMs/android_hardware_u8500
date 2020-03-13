@@ -128,12 +128,6 @@ UMP_API_EXPORT int ump_lock_secure_id( ump_secure_id ump_id, ump_lock_usage lock
 	return ump_arch_lock(ump_id, lock_usage);
 }
 
-/** Unlocking buffer. Let other users lock the buffer for their usage */
-UMP_API_EXPORT int ump_unlock_secure_id( ump_secure_id ump_id )
-{
-	return ump_arch_unlock(ump_id);
-}
-
 /* Allocate a buffer which can be used directly by hardware, 4kb aligned */
 static ump_handle ump_ref_drv_allocate_internal(unsigned long size, ump_alloc_constraints constraints, ump_cache_enabled cache)
 {
