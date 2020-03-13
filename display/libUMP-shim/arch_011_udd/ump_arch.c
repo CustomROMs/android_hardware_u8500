@@ -207,6 +207,19 @@ unsigned long ump_arch_size_get(ump_secure_id secure_id)
 	return 0;
 }
 
+extern int *ump_uk_ctx_ptr;
+
+int ump_arch_release(ump_secure_id secure_id)
+{
+	if (ump_uk_ctx_ptr == NULL) {
+                ALOGE("UMP: ump_uk_ctx_ptr = NULL!");
+		return -1;
+	}
+
+        int uk_ctx = *ump_uk_ctx_ptr;
+        return hwmem_uku_release(uk_ctx, secure_id);
+}
+
 #if 0
 void ump_arch_release(ump_secure_id secure_id)
 {

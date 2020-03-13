@@ -56,7 +56,7 @@ int (*fReal_ump_arch_unlock)(unsigned long offset, void *mapped_mem, size_t size
 //ump_cache_enabled (*fReal_ump_arch_msync)(ump_secure_id secure_id, void* mapping, unsigned long cookie,
 //	 void * address, unsigned long size,  ump_cpu_msync_op op);
 
-void (*fReal_ump_arch_release)(ump_secure_id secure_id);
+//void (*fReal_ump_arch_release)(ump_secure_id secure_id);
 
 ump_secure_id (*fReal_ump_arch_import)(void);
 ump_secure_id (*fReal_ump_arch_export)(ump_secure_id secure_id);
@@ -94,7 +94,7 @@ void libEvtLoading(void)
 	LOAD_SYMBOL(fReal_ump_arch_lock, "ump_arch_lock");
 	LOAD_SYMBOL(fReal_ump_arch_unlock, "ump_arch_unlock");
 	//LOAD_SYMBOL(fReal_ump_arch_msync, "ump_arch_msync");
-	LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
+	//LOAD_SYMBOL(fReal_ump_arch_release, "ump_arch_release");
 	LOAD_SYMBOL(fReal_ump_arch_import, "ump_arch_import");
 	LOAD_SYMBOL(fReal_ump_arch_export, "ump_arch_export");
 	//LOAD_SYMBOL(fReal_ump_size_get, "ump_size_get");
@@ -153,7 +153,7 @@ WRAP_FUNCTION(int, ump_arch_unlock, (unsigned long offset, void *mapped_mem, siz
 //		void * address, unsigned long size,  ump_cpu_msync_op op),
 //		(secure_id, mapping, cookie, address, size, op), fReal_ump_arch_msync)
 
-WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
+//WRAP_VOID_FUNCTION(ump_arch_release, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_release)
 
 WRAP_FUNCTION(ump_secure_id, ump_arch_import, (void), (), fReal_ump_arch_import)
 WRAP_FUNCTION(ump_secure_id, ump_arch_export, (ump_secure_id secure_id), (secure_id), fReal_ump_arch_export)
