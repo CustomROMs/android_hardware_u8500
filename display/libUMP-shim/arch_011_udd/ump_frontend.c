@@ -31,8 +31,8 @@
 
 //#include <linux/hwmem.h>
 
-extern int *ump_uk_ctx_ptr;
-extern int *hwmem_ump_lock_ptr;
+extern void *ump_uk_ctx;
+_ump_osu_lock_t *hwmem_ump_lock = NULL;
 
 static volatile int ump_ref_count = 0;
 
@@ -41,10 +41,10 @@ ump_result ump_arch_open(void)
   signed int result;
   signed int result_1;
 
-  _ump_osu_lock_auto_init(hwmem_ump_lock_ptr, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
-  if ( *hwmem_ump_lock_ptr )
+  _ump_osu_lock_auto_init(&hwmem_ump_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+  if ( hwmem_ump_lock )
   {
-    if ( _ump_osu_lock_wait(*hwmem_ump_lock_ptr, _UMP_OSU_LOCKMODE_RW) )
+    if ( _ump_osu_lock_wait(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW) )
     {
       puts("UMP: ump_arch_open() failed to aquire lock");
       result = 1;
@@ -66,14 +66,14 @@ ump_result ump_arch_open(void)
       }
       if ( ++ump_ref_count == 1 )
       {
-        result_1 = hwmem_uku_open(ump_uk_ctx_ptr);
+        result_1 = hwmem_uku_open(&ump_uk_ctx);
         if ( result_1 )
         {
           result_1 = 1;
           puts("UMP: ump_arch_open() failed to open UMP device driver");
         }
       }
-      _ump_osu_lock_signal(*hwmem_ump_lock_ptr, 0);
+      _ump_osu_lock_signal(hwmem_ump_lock, 0);
       result = result_1;
     }
   }
@@ -88,10 +88,10 @@ ump_result ump_arch_open(void)
 
 void ump_arch_close()
 {
-  _ump_osu_lock_auto_init(hwmem_ump_lock_ptr, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
-  if ( *hwmem_ump_lock_ptr )
+  _ump_osu_lock_auto_init(&hwmem_ump_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+  if ( hwmem_ump_lock )
   {
-    if ( _ump_osu_lock_wait(*hwmem_ump_lock_ptr, _UMP_OSU_LOCKMODE_RW) )
+    if ( _ump_osu_lock_wait(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW) )
     {
       puts("UMP: ump_arch_close() failed to aquire lock");
     }
@@ -112,11 +112,11 @@ void ump_arch_close()
       }
       if ( ump_ref_count <= 0 || (--ump_ref_count, ump_ref_count) )
       {
-        _ump_osu_lock_signal(*hwmem_ump_lock_ptr, _UMP_OSU_LOCKMODE_RW);
+        _ump_osu_lock_signal(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW);
       }
       else
       {
-        if ( hwmem_uku_close(ump_uk_ctx_ptr) )
+        if ( hwmem_uku_close(&ump_uk_ctx) )
         {
           puts("*********************************************************************");
           printf("ASSERT EXIT: ");
@@ -129,10 +129,10 @@ void ump_arch_close()
           putchar(10);
           abort();
         }
-        *ump_uk_ctx_ptr = 0;
-        _ump_osu_lock_signal(*hwmem_ump_lock_ptr, _UMP_OSU_LOCKMODE_RW);
-        _ump_osu_lock_term(*hwmem_ump_lock_ptr);
-        *hwmem_ump_lock_ptr = 0;
+        ump_uk_ctx = NULL;
+        _ump_osu_lock_signal(hwmem_ump_lock, _UMP_OSU_LOCKMODE_RW);
+        _ump_osu_lock_term(hwmem_ump_lock);
+        hwmem_ump_lock = NULL;
       }
     }
   }
@@ -200,57 +200,26 @@ void *ump_mapped_pointer_get(ump_handle memh1)
   return memh;
 }
 
-#if 0
+ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_id) {
+	unsigned long cookie, size;
+	void *mapping;
 
-UMP_API_EXPORT ump_handle ump_handle_create_from_secure_id(ump_secure_id secure_id)
-{
-	unsigned long size;
+	ump_mem *mem = _ump_osu_calloc(1u, 0x1Cu);
 
-	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != secure_id, ("Secure ID is invalid"));
+	cookie = ump_arch_import(secure_id, &size);
+	mapping = ump_arch_lock(cookie, size);
 
-	size = ump_arch_size_get(secure_id);
-	if (0 != size)
-	{
-		unsigned long cookie;
-		/*
-		 * The UMP memory which the secure_id referes to could now be deleted and re-created
-		 * since we don't have any references to it yet. The mapping below will however fail if
-		 * we have supplied incorrect size, so we are safe.
-		 */
-		void * mapping = ump_arch_map(secure_id, size, UMP_CACHE_DISABLE, &cookie);
-		if (NULL != mapping)
-		{
-			ump_mem * mem = _ump_osu_calloc(1, sizeof(*mem));
-			if (NULL != mem)
-			{
-				mem->secure_id = secure_id;
-				mem->mapped_mem = mapping;
-				mem->size = size;
-				mem->cookie = cookie;
-				mem->is_cached = UMP_CACHE_ENABLE; /* Is set to actually check in the ump_cpu_msync_now() function */
+          mem->secure_id = secure_id;
+          mem->mapped_mem = mapping;
+          mem->size = size;
+          mem->cookie = cookie;
+          _ump_osu_lock_auto_init(&mem->ref_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
+          if (mem->ref_lock)
+            mem->ref_count = 1;
 
-				_ump_osu_lock_auto_init(&mem->ref_lock, _UMP_OSU_LOCKFLAG_DEFAULT, 0, 0);
-				UMP_DEBUG_ASSERT(NULL != mem->ref_lock, ("Failed to initialize lock\n"));
-				mem->ref_count = 1;
-
-				/* This is called only to set the cache settings in this handle */
-				ump_cpu_msync_now((ump_handle)mem, UMP_MSYNC_READOUT_CACHE_ENABLED, NULL, 0);
-
-				UMP_DEBUG_PRINT(4, ("UMP handle created for ID %u of size %lu, mapped into address 0x%08lx", mem->secure_id, mem->size, (unsigned long)mem->mapped_mem));
-
-				return (ump_handle)mem;
-			}
-
-			ump_arch_unmap(mapping, size, cookie);
-		}
-	}
-
-	UMP_DEBUG_PRINT(2, ("UMP handle creation failed for ID %u", secure_id));
-
-	return UMP_INVALID_MEMORY_HANDLE;
+	ALOGE("%s: UMP: UMP handle created for ID %u of size %lu, mapped into address 0x%08lx, ref_lock=0x%08lx, cookie=%ld, cached=%d", __func__, mem->secure_id, mem->size, (unsigned long)mem->mapped_mem, (unsigned long)mem->ref_lock, mem->cookie, mem->is_cached);
+	return (ump_handle)mem;
 }
-#endif /* 0 */
-
 
 UMP_API_EXPORT void ump_size_get(ump_handle memh)
 {
@@ -319,38 +288,6 @@ void ump_mapped_pointer_release(ump_handle memh)
     ump_arch_unlock(mem->cookie, mem1, mem->size);
   mem->mapped_mem = 0;
 }
-
-#if 0
-
-UMP_API_EXPORT void ump_reference_release(ump_handle memh)
-{
-	ump_mem * mem = (ump_mem*)memh;
-
-	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
-	UMP_DEBUG_ASSERT(UMP_INVALID_SECURE_ID != ((ump_mem*)mem)->secure_id, ("Secure ID is inavlid"));
-	UMP_DEBUG_ASSERT(0 < (((ump_mem*)mem)->ref_count), ("Reference count too low"));
-	UMP_DEBUG_ASSERT(0 < ((ump_mem*)mem)->size, ("Memory size of passed handle too low"));
-	UMP_DEBUG_ASSERT(NULL != ((ump_mem*)mem)->mapped_mem, ("Error in mapping pointer (not mapped)"));
-
-	_ump_osu_lock_wait(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
-	mem->ref_count -= 1;
-	if (0 == mem->ref_count)
-	{
-		/* Remove memory mapping, which holds our only reference towards the UMP kernel space driver */
-		ump_arch_unmap(mem->mapped_mem, mem->size, mem->cookie);
-
-		_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
-
-		/* Free the lock protecting the reference count */
-		_ump_osu_lock_term(mem->ref_lock);
-
-		/* Free the memory for this handle */
-		_ump_osu_free(mem);
-	} else {
-		_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
-	}
-}
-#endif
 
 void ump_reference_release(ump_handle memh)
 {
