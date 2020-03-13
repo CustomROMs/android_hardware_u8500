@@ -101,6 +101,7 @@ UMP_API_EXPORT int ump_switch_hw_usage( ump_handle memh, ump_hw_usage new_user )
 	return ump_arch_switch_hw_usage(mem->secure_id, new_user);
 }
 
+#if 0
 UMP_API_EXPORT int ump_lock( ump_handle memh, ump_lock_usage lock_usage)
 {
 	ump_mem * mem = (ump_mem*)memh;
@@ -114,6 +115,7 @@ UMP_API_EXPORT int ump_unlock( ump_handle memh )
 	UMP_DEBUG_ASSERT(UMP_INVALID_MEMORY_HANDLE != memh, ("Handle is invalid"));
 	return ump_arch_unlock(mem->secure_id);
 }
+#endif
 
 UMP_API_EXPORT int ump_switch_hw_usage_secure_id( ump_secure_id ump_id, ump_hw_usage new_user )
 {

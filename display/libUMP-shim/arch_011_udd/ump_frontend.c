@@ -194,6 +194,19 @@ UMP_API_EXPORT void ump_reference_add(ump_handle memh)
 	_ump_osu_lock_signal(mem->ref_lock, _UMP_OSU_LOCKMODE_RW);
 }
 
+void ump_mapped_pointer_release(ump_handle memh)
+{
+  ump_mem *mem, *mem1;
+
+  mem = (ump_mem*)memh;
+
+  mem1 = (ump_mem*)mem->mapped_mem;
+
+  if (mem1)
+    ump_arch_unlock(mem->cookie, mem1, mem->size);
+  mem->mapped_mem = 0;
+}
+
 #if 0
 
 UMP_API_EXPORT void ump_reference_release(ump_handle memh)

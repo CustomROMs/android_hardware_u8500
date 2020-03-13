@@ -312,6 +312,7 @@ int ump_arch_switch_hw_usage( ump_secure_id secure_id, ump_hw_usage new_user )
 	return 1; /* Always success */
 }
 
+#if 0
 int ump_arch_lock( ump_secure_id secure_id, ump_lock_usage lock_usage )
 {
 	_ump_uk_lock_s dd_lock_arg;
@@ -336,3 +337,4 @@ int ump_arch_unlock( ump_secure_id secure_id )
 	_ump_uku_unlock( &dd_unlock_arg );
 	return 1; /* Always success */
 }
+#endif
