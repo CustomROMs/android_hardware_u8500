@@ -11,8 +11,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-_ump_osu_lock_t *hwmem_ump_lock; // weak
-
 //----- (00001D20) --------------------------------------------------------
 int hwmem_uku_open(void **uk_ctx)
 {

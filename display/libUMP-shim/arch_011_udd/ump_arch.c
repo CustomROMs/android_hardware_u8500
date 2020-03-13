@@ -32,9 +32,6 @@
 /** Pointer to an OS-Specific context that we should pass in _uku_ calls */
 void *ump_uk_ctx = NULL;
 
-/** Reference counting of ump_arch_open() and ump_arch_close(). */
-static volatile int ump_ref_count = 0;
-
 /** Lock for critical section in open/close */
 _ump_osu_lock_t * ump_lock_arch = NULL;
 
