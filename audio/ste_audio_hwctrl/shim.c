@@ -39,8 +39,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "shim.h"
-
 #include "alsactrl_tinyalsa_extn.h"
 #include <tinyalsa/asoundlib.h>
 #include <sound/asound.h>
@@ -250,127 +248,9 @@ alsactrl_dev_info_t* Alsactrl_Hwh_GetDevInfo_Peer(alsactrl_dev_info_t* dev);
 alsactrl_dev_info_t* Alsactrl_Hwh_GetDevInfo(enum alsactrl_alsa_device alsa_dev, unsigned int stream_dir);
 int Alsactrl_Hwh_OpenAlsaDev(alsactrl_dev_info_t* dev_info_p);
 void Alsactrl_Hwh_CloseAlsaDev(alsactrl_dev_info_t* dev_info_p);
-/* wrapped library handle */
-
-static void *realLibHandle;
-
 bool audio_hal_alsa_get_ignore_defaults();
 
-
-
-int (*fReal_audio_hwctrl_alsa_set_control)(snd_ctl_t *ctl, unsigned int numid, unsigned int idx, long value);
-
-int (*fReal_change_active_count)(audio_hwctrl_dev_info_t* dev_info_p, enum alsactrl_channel_state channel_state);
-
-
-
-int (*fReal_audio_hal_alsa_get_card_and_device_idx)(const char* name, unsigned int stream_dir, int* idx_card_p, int* idx_dev_p);
-void (*fReal_audio_hal_alsa_close_controls)(void);
-int (*fReal_audio_hal_alsa_open_controls_cardno)(int cardno_open);
-int (*fReal_audio_hal_alsa_open_controls)(const char* card_name);
-int (*fReal_audio_hal_alsa_get_control_values)(const char* control_name, long** values);
-enum audio_hal_chip_id_t (*fReal_audio_hal_alsa_get_chip_id)(void);
-int (*fReal_audio_hal_alsa_set_control_values)(const char* name, long* values);
-int (*fReal_audio_hal_alsa_set_control)(const char* name, unsigned int idx, long value);
-int (*fReal_audio_hal_alsa_set_control_cfg)(struct control_config_t *control_p);
-void (*fReal_audio_hal_alsa_set_ignore_defaults)(bool ignore);
-bool (*fReal_audio_hal_alsa_get_ignore_defaults)(void);
-
-int (*fReal_audio_hal_set_volume)();
-int (*fReal_audio_hal_get_volume)();
-int (*fReal_audio_hal_set_mute)();
-signed int (*fReal_audio_hal_get_mute)();
-AUDIO_HAL_STATUS (*fReal_audio_hal_set_power)(unsigned int channel_index, AUDIO_HAL_STATE power_control, audio_hal_channel channel);
-AUDIO_HAL_STATE (*fReal_audio_hal_get_power)(unsigned int channel_index, audio_hal_channel channel);
-int (*fReal_audio_hal_digital_mute)(bool mute);
-AUDIO_HAL_STATUS (*fReal_audio_hal_configure_channel)(audio_hal_channel channel, void* param);
-int (*fReal_audio_hal_start_fsbitclk)(int value);
-int (*fReal_audio_hal_stop_fsbitclk)(int value);
-AUDIO_HAL_STATUS (*fReal_audio_hal_close_channel)(audio_hal_channel channel);
-AUDIO_HAL_STATUS (*fReal_audio_hal_open_channel)(audio_hal_channel a1);
-int (*fReal_audio_hal_switch_to_burst)(unsigned int framecount);
-int (*fReal_audio_hal_switch_to_normal)();
-int (*fReal_audio_hal_set_burst_device)(audio_hal_channel channel);
-
-
-int (*fReal_audio_hal_alsa_set_controls_cfg)(const char* name);
-
 /******************************************************************************************************************************/
-
-
-void libEvtLoading(void)
-{
-
-        realLibHandle = dlopen(REAL_LIB_NAME, RTLD_LOCAL);
-        if (!realLibHandle) {
-                RLOGE("Failed to load the real LIB '" REAL_LIB_NAME  "': %s\n", dlerror());
-                return;
-        }
-        // load the real lib
-
-LOAD_SYMBOL(fReal_audio_hwctrl_alsa_set_control, "_Z29audio_hwctrl_alsa_set_controlP8_snd_ctljjl");
-//LOAD_SYMBOL(fReal_audio_hwctrl_alsa_get_card_idx, "audio_hwctrl_alsa_get_card_idx");
-//LOAD_SYMBOL(fReal_audio_hwctrl_alsa_open_card, "audio_hwctrl_alsa_open_card");
-LOAD_SYMBOL(fReal_audio_hal_alsa_get_card_and_device_idx, "audio_hal_alsa_get_card_and_device_idx");
-LOAD_SYMBOL(fReal_audio_hal_alsa_close_controls, "audio_hal_alsa_close_controls");
-LOAD_SYMBOL(fReal_audio_hal_alsa_open_controls_cardno, "audio_hal_alsa_open_controls_cardno");
-LOAD_SYMBOL(fReal_audio_hal_alsa_open_controls, "audio_hal_alsa_open_controls");
-LOAD_SYMBOL(fReal_audio_hal_alsa_get_control_values, "audio_hal_alsa_get_control_values");
-LOAD_SYMBOL(fReal_audio_hal_alsa_get_chip_id, "audio_hal_alsa_get_chip_id");
-LOAD_SYMBOL(fReal_audio_hal_alsa_set_control_values, "audio_hal_alsa_set_control_values");
-LOAD_SYMBOL(fReal_audio_hal_alsa_set_control, "audio_hal_alsa_set_control");
-LOAD_SYMBOL(fReal_audio_hal_alsa_set_control_cfg, "audio_hal_alsa_set_control_cfg");
-LOAD_SYMBOL(fReal_audio_hal_alsa_set_controls_cfg, "audio_hal_alsa_set_controls_cfg");
-
-LOAD_SYMBOL(fReal_audio_hal_alsa_set_ignore_defaults, "audio_hal_alsa_set_ignore_defaults");
-LOAD_SYMBOL(fReal_audio_hal_alsa_get_ignore_defaults, "audio_hal_alsa_get_ignore_defaults");
-/*LOAD_SYMBOL(fReal_alsactrl_channel_state_earpiece, "alsactrl_channel_state_earpiece");
-LOAD_SYMBOL(fReal_alsactrl_channel_state_hsetout, "alsactrl_channel_state_hsetout");
-LOAD_SYMBOL(fReal_alsactrl_channel_state_speaker, "alsactrl_channel_state_speaker");
-LOAD_SYMBOL(fReal_audio_hal_channel_vibral, "audio_hal_channel_vibral");
-LOAD_SYMBOL(fReal_alsactrl_channel_state_vibrar, "alsactrl_channel_state_vibrar");
-LOAD_SYMBOL(fReal_alsactrl_channel_state_hsetin, "alsactrl_channel_state_hsetin");
-LOAD_SYMBOL(fReal_alsactrl_channel_state_mic, "alsactrl_channel_state_mic");*/
-//LOAD_SYMBOL(fReal_audio_hwctrl_get_dev_info, "audio_hwctrl_get_dev_info");
-//LOAD_SYMBOL(fReal_audio_hwctrl_channel_state, "audio_hwctrl_channel_state");
-//LOAD_SYMBOL(fReal_sub_46F4, "sub_46F4");
-//LOAD_SYMBOL(fReal_audio_hwctrl_close_alsa_device, "audio_hwctrl_close_alsa_device");
-//LOAD_SYMBOL(fReal_audio_hwctrl_open_alsa_device, "audio_hwctrl_open_alsa_device");
-//LOAD_SYMBOL(fReal_audio_hwctrl_open_alsa_device, "audio_hwctrl_open_alsa_device");
-//LOAD_SYMBOL(fReal_alsactrl_set_channel_state, "alsactrl_set_channel_state");
-//LOAD_SYMBOL(fReal_check_alsa_card_number, "check_alsa_card_number");
-LOAD_SYMBOL(fReal_audio_hal_set_volume, "audio_hal_set_volume");
-LOAD_SYMBOL(fReal_audio_hal_get_volume, "audio_hal_get_volume");
-LOAD_SYMBOL(fReal_audio_hal_set_mute, "audio_hal_set_mute");
-LOAD_SYMBOL(fReal_audio_hal_get_mute, "audio_hal_get_mute");
-LOAD_SYMBOL(fReal_audio_hal_set_power, "audio_hal_set_power");
-LOAD_SYMBOL(fReal_audio_hal_get_power, "audio_hal_get_power");
-LOAD_SYMBOL(fReal_audio_hal_digital_mute, "audio_hal_digital_mute");
-LOAD_SYMBOL(fReal_audio_hal_configure_channel, "audio_hal_configure_channel");
-LOAD_SYMBOL(fReal_audio_hal_start_fsbitclk, "audio_hal_start_fsbitclk");
-LOAD_SYMBOL(fReal_audio_hal_stop_fsbitclk, "audio_hal_stop_fsbitclk");
-LOAD_SYMBOL(fReal_change_active_count, "_Z19change_active_countP23audio_hwctrl_dev_info_t26audio_hwctrl_channel_state");
-//LOAD_SYMBOL(fReal_audio_hal_change_channel, "audio_hal_change_channel");
-LOAD_SYMBOL(fReal_audio_hal_close_channel, "audio_hal_close_channel");
-LOAD_SYMBOL(fReal_audio_hal_open_channel, "audio_hal_open_channel");
-LOAD_SYMBOL(fReal_audio_hal_switch_to_burst, "audio_hal_switch_to_burst");
-LOAD_SYMBOL(fReal_audio_hal_switch_to_normal, "audio_hal_switch_to_normal");
-LOAD_SYMBOL(fReal_audio_hal_set_burst_device, "audio_hal_set_burst_device");
-//LOAD_SYMBOL(fReal_get_fcn_name, "get_fcn_name");
-
-
-	return;
-
-out_fail:
-	dlclose(realLibHandle);
-}
-
-void libEvtUnloading(void)
-{
-	if (realLibHandle)
-		 dlclose(realLibHandle);
-}
-
 
 int gCardNo = -1;
 snd_ctl_card_info_t * gCardInfo;
